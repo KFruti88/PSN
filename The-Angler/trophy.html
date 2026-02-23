@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        /* Transparent overlay settings per Lead Developer instructions */
+        /* Per Lead Developer: Transparent wrapper for WordPress view */
         #wp-custom-wrapper {
             background-color: transparent !important;
             min-height: 100vh;
@@ -15,9 +15,9 @@
             justify-content: center;
             align-items: flex-start;
             padding: 40px 0;
+            width: 100% !important;
         }
 
-        /* 90% width and responsive container */
         .container-90 {
             width: 90% !important;
             max-width: 1400px;
@@ -30,14 +30,7 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        .stat-card {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 10px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
+        .stat-card { background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
         .tier-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; display: block; }
         .tier-val { font-size: 1.5rem; font-weight: 900; line-height: 1.2; }
 
@@ -48,11 +41,7 @@
         .silver { color: #94a3b8; text-shadow: 0 0 10px rgba(148, 163, 184, 0.3); }
         .bronze { color: #b45309; text-shadow: 0 0 10px rgba(180, 83, 9, 0.3); }
 
-        .player-row {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 24px;
-            margin-bottom: 24px;
-        }
+        .player-row { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 24px; margin-bottom: 24px; }
         .player-row:last-child { border: none; margin-bottom: 0; padding-bottom: 0; }
     </style>
 </head>
@@ -114,14 +103,13 @@
 
         async function startLiveSync() {
             const container = document.getElementById('display-container');
-            
             container.innerHTML = PLAYERS.map(player => `
                 <div class="player-row flex flex-col xl:flex-row items-center gap-6">
                     <div class="flex items-center gap-4 min-w-[220px] w-full xl:w-auto">
                         <img src="${player.img}" class="w-14 h-14 rounded-full border-2 border-purple-500 shadow-lg" />
                         <div>
                             <h2 class="text-xl font-black text-white uppercase tracking-tighter">${player.name}</h2>
-                            <div id="game-${player.id}" class="text-[10px] text-gray-500 italic">Checking Status...</div>
+                            <div id="game-${player.id}" class="text-[10px] text-gray-500 italic uppercase tracking-widest">Checking Status...</div>
                         </div>
                     </div>
                     <div class="grid grid-cols-5 gap-3 flex-1 w-full">
@@ -145,26 +133,25 @@
                         });
                     }
                 });
-                updateGameStatus(player);
+                updateGameStatus(player.id);
             });
         }
 
-        async function updateGameStatus(player) {
+        async function updateGameStatus(playerId) {
             try {
-                const response = await fetch(`https://decapi.me/twitch/game/${player.id}`);
-                const game = await response.text();
-                const el = document.getElementById(`game-${player.id}`);
-                const isOff = game.toLowerCase().includes('offline') || game.includes('not found');
-                el.innerText = isOff ? 'Offline' : 'Playing: ' + game;
-                el.className = isOff ? 'text-[10px] text-gray-500 italic' : 'text-[10px] text-purple-400 font-bold italic';
+                const res = await fetch(`https://decapi.me/twitch/game/${playerId}`);
+                const game = await res.text();
+                const el = document.getElementById(`game-${playerId}`);
+                if (el) {
+                    const isOff = game.toLowerCase().includes('offline') || game.includes('not found');
+                    el.innerText = isOff ? 'Offline' : 'Live: ' + game;
+                    el.className = isOff ? 'text-[10px] text-gray-500 italic uppercase tracking-widest' : 'text-[10px] text-purple-400 font-bold italic uppercase tracking-widest';
+                }
             } catch (e) {}
         }
 
-        auth.signInAnonymously().then(startLiveSync).catch(err => {
-            document.getElementById('display-container').innerHTML = `<p class="text-red-500 text-center">Connection Failed: ${err.message}</p>`;
-        });
-
-        setInterval(() => PLAYERS.forEach(updateGameStatus), 60000);
+        auth.signInAnonymously().then(startLiveSync);
+        setInterval(() => PLAYERS.forEach(p => updateGameStatus(p.id)), 60000);
     </script>
 </body>
 </html>
