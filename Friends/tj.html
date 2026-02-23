@@ -4,184 +4,198 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <style>
-        /* Responsive 90% width wrapper for WordPress */
-        #wp-custom-wrapper {
-            background-color: transparent !important;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 0;
-            width: 100% !important;
+        /* Responsive 90% width and transparent wrapper per Lead Developer rules */
+        #wp-custom-wrapper { 
+            background: transparent !important; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 40px 0; 
+            width: 100% !important; 
         }
-
-        .container-90 {
-            width: 90% !important;
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(15, 23, 42, 0.98);
-            padding: 40px;
-            border-radius: 32px;
-            border: 1px solid rgba(160, 32, 240, 0.3);
-            backdrop-filter: blur(20px);
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        .container-90 { 
+            width: 90% !important; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            background: rgba(15, 23, 42, 0.98); 
+            padding: 40px; 
+            border-radius: 32px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(20px); 
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8); 
         }
-
-        /* Metallic Font Colors & Glows */
+        
+        /* Metallic Trophy Font Colors */
         .color-legendary { color: #a855f7; text-shadow: 0 0 15px rgba(168, 85, 247, 0.6); }
         .color-diamond { color: #22d3ee; text-shadow: 0 0 15px rgba(34, 211, 238, 0.5); }
-        .color-great-one { color: #f472b6; text-shadow: 0 0 15px rgba(244, 114, 182, 0.6); }
         .color-gold { color: #fbbf24; text-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
         .color-silver { color: #94a3b8; text-shadow: 0 0 15px rgba(148, 163, 184, 0.5); }
         .color-bronze { color: #b45309; text-shadow: 0 0 15px rgba(180, 83, 9, 0.5); }
-        .color-piebald { color: #e2e8f0; text-shadow: 0 0 10px rgba(226, 232, 240, 0.4); }
 
-        .stat-card {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 20px;
-            padding: 24px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.3s ease;
+        .stat-card { 
+            background: rgba(255, 255, 255, 0.02); 
+            border-radius: 20px; 
+            padding: 20px; 
+            text-align: center; 
+            border: 1px solid rgba(255,255,255,0.05); 
         }
-        .stat-card:hover { background: rgba(255, 255, 255, 0.05); transform: translateY(-3px); }
+        .tier-val { font-size: 3.5rem; font-weight: 900; line-height: 1; }
+        
+        .card-angler { border-left: 4px solid #3b82f6; background: linear-gradient(to right, rgba(59, 130, 240, 0.05), transparent); }
+        .card-default { border-left: 4px solid #a020f0; background: linear-gradient(to right, rgba(160, 32, 240, 0.05), transparent); }
 
-        .tier-val { font-size: 3rem; font-weight: 900; line-height: 1; margin-top: 8px; }
+        .video-card { border: 1px solid rgba(255,255,255,0.1); background: #0a0a0a; border-radius: 16px; overflow: hidden; }
     </style>
 </head>
 <body>
 
 <div id="wp-custom-wrapper">
     <div class="container-90">
-        <header class="flex flex-col md:flex-row justify-between items-center mb-12 gap-8">
+        <header class="flex flex-col lg:flex-row justify-between items-center mb-10 gap-8">
             <div class="flex items-center gap-6">
-                <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/9dad426e-04cb-4fc0-a917-25982b3800ce-profile_image-70x70.png" 
-                     class="w-24 h-24 rounded-full border-4 border-purple-600 shadow-xl">
+                <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/9dad426e-04cb-4fc0-a917-25982b3800ce-profile_image-70x70.png" class="w-24 h-24 rounded-full border-4 border-purple-600 shadow-2xl">
                 <div>
                     <h1 class="text-4xl font-black text-white uppercase italic tracking-tighter">terrdog420</h1>
-                    <p id="live-status" class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Checking Twitch Status...</p>
+                    <p id="live-status" class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">DarkWing Dog | Syncing...</p>
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                 <div class="bg-white p-1 rounded-lg">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://www.amazon.com/gp/goldbox?tag=Werewolf3788-20">
-                 </div>
-                 <a href="https://www.amazon.com/gp/goldbox?tag=Werewolf3788-20" target="_blank" class="bg-orange-500 text-black font-black py-2 px-6 rounded-full text-[10px] uppercase">Shop Today's Deals</a>
+
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center gap-4">
+                <div class="bg-white p-1 rounded-lg">
+                    <img id="qr-code" src="" class="w-16 h-16">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <span id="amazon-label" class="text-[9px] font-black uppercase tracking-widest text-orange-400 italic">Shop Gear</span>
+                    <a id="amazon-btn" href="" target="_blank" class="bg-orange-500 hover:bg-orange-400 text-black font-black py-2 px-6 rounded-xl text-[10px] uppercase transition-all">Visit Amazon</a>
+                </div>
             </div>
         </header>
 
-        <section id="trophy-section">
-            <div id="game-title" class="text-xl font-black text-white uppercase italic mb-8 border-l-4 border-purple-500 pl-4">
-                Loading Game Progress...
-            </div>
-            <div id="stats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-10 items-start">
+            <div class="xl:col-span-2">
+                <div class="video-card">
+                    <div id="video-title" class="p-3 bg-purple-600/10 text-purple-500 font-black text-center text-xs tracking-widest uppercase border-b border-white/5">
+                        🦅 Darkterr Live Feed
+                    </div>
+                    <div style="position: relative; padding-bottom: 56.25%; height: 0; background: #000;">
+                        <iframe
+                            src="https://player.twitch.tv/?channel=terrdog420&parent=werewolf.ourflora.com&parent=kfruti88.github.io&autoplay=false&muted=true"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                            allowfullscreen="true">
+                        </iframe>
+                    </div>
                 </div>
-        </section>
+            </div>
+
+            <div class="flex flex-col gap-6">
+                <div id="game-title" class="text-lg font-black text-white uppercase italic border-l-4 border-purple-500 pl-4">Game Stats</div>
+                <div id="stats-grid" class="flex flex-col gap-4">
+                    </div>
+            </div>
+        </div>
 
         <footer class="mt-20 pt-10 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 opacity-40">
             <div class="flex items-center gap-4">
                 <img src="https://github.com/KFruti88/images/blob/main/Transparent%20Dark%20Terror.png?raw=true" class="h-10 w-10">
-                <p class="text-[10px] font-black uppercase tracking-widest text-white">
-                    Lead Developer: <span class="text-purple-500">Werewolf3788</span>
-                </p>
+                <p class="text-[10px] font-black uppercase tracking-widest text-white">Lead Developer: <span class="text-purple-500">Werewolf3788</span></p>
             </div>
-            <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">KFruti88/PSN Repository</p>
         </footer>
     </div>
 </div>
 
 <script>
-    // 1. CONFIGURATION
     const config = {
         user: "terrdog420",
-        firebase: {
-            apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
-            projectId: "angler-squad-tracker"
-        },
+        firebase: { apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k", projectId: "angler-squad-tracker" },
+        repoBase: "https://raw.githubusercontent.com/KFruti88/PSN/main/amazon-links/",
+        defaultAmazon: "https://www.amazon.com/gp/goldbox?tag=Werewolf3788-20",
         games: {
-            "angler": { title: "Call of the Wild: The Angler", tiers: ["Legendary", "Diamond", "Gold", "Silver", "Bronze"] },
-            "hunter": { title: "theHunter: Call of the Wild", tiers: ["Great One", "Diamond", "Gold", "Piebald"] },
-            "default": { title: "Squad Progress", tiers: ["Diamond", "Gold", "Silver", "Bronze"] }
+            "angler": { 
+                title: "Fishing Progress", 
+                tiers: ["Legendary", "Diamond", "Gold", "Silver", "Bronze"], 
+                urlFile: "fising.url", 
+                label: "Fishing Gear", 
+                color: "blue", 
+                emoji: "🎣" // FISHING REEL ONLY 
+            },
+            "default": { 
+                title: "Squad Stats", 
+                tiers: ["Diamond", "Gold", "Silver", "Bronze"], 
+                urlFile: null, 
+                label: "Today's Deals", 
+                color: "purple", 
+                emoji: "🐕" // DOG ONLY FOR TJ 
+            }
         }
     };
 
-    // 2. INITIALIZE FIREBASE
-    firebase.initializeApp({ 
-        apiKey: config.firebase.apiKey, 
-        authDomain: `${config.firebase.projectId}.firebaseapp.com`, 
-        projectId: config.firebase.projectId 
-    });
+    firebase.initializeApp({ apiKey: config.firebase.apiKey, authDomain: `${config.firebase.projectId}.firebaseapp.com`, projectId: config.firebase.projectId });
     const db = firebase.firestore();
 
-    // 3. IMPROVED SYNC FUNCTION (Checks Firebase Keys Exactly)
-    function syncStats(tiers) {
-        db.collection('catches').doc(config.user).onSnapshot(doc => {
-            if (doc.exists) {
-                const data = doc.data();
-                console.log("Syncing Data:", data); // View this in your browser console
-
-                tiers.forEach(tier => {
-                    // ID on page: stat-Legendary
-                    const elementId = `stat-${tier.replace(/\s+/g, '')}`;
-                    const el = document.getElementById(elementId);
-                    
-                    if (el) {
-                        // Looks for the exact key in Firebase: data['Legendary']
-                        el.innerText = data[tier] || 0;
-                    }
-                });
-            }
-        }, error => {
-            console.error("Firebase Sync Error:", error);
-        });
+    async function getRemoteUrl(fileName) {
+        if (!fileName) return config.defaultAmazon;
+        try {
+            const res = await fetch(config.repoBase + fileName + '?v=' + Date.now());
+            const text = await res.text();
+            const match = text.match(/URL=(.*)/);
+            return match ? match[1].trim() : config.defaultAmazon;
+        } catch (e) { return config.defaultAmazon; }
     }
 
-    // 4. SMART GAME DETECTION (DecAPI)
-    async function checkGameAndLoad() {
+    async function updateDashboard() {
         try {
             const res = await fetch(`https://decapi.me/twitch/game/${config.user}?v=${Date.now()}`);
             const gameText = await res.text();
             const gameLower = gameText.toLowerCase();
             
-            let active = config.games.default;
-            for (let key in config.games) {
-                if (gameLower.includes(key)) { active = config.games[key]; break; }
-            }
+            // Explicitly forcing Angler layout if the Twitch status mentions it
+            let key = "default";
+            if (gameLower.includes('angler')) { key = "angler"; }
+            const active = config.games[key];
 
-            // Update UI with Twitch status
-            const isOff = gameLower.includes('offline') || gameLower.includes('not found');
-            document.getElementById('live-status').innerText = isOff ? "OFFLINE" : `LIVE: ${gameText.toUpperCase()}`;
-            document.getElementById('game-title').innerText = active.title;
-            
-            // Generate the Grid with Metallic Styles
+            // Amazon & QR
+            const finalUrl = await getRemoteUrl(active.urlFile);
+            document.getElementById('amazon-btn').href = finalUrl;
+            document.getElementById('amazon-label').innerText = active.label;
+            document.getElementById('qr-code').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(finalUrl)}`;
+
+            // Stats Logic
             const grid = document.getElementById('stats-grid');
             grid.innerHTML = active.tiers.map(tier => {
                 const styleClass = tier.toLowerCase().replace(/\s+/g, '-');
-                return `
-                    <div class="stat-card">
-                        <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 block">${tier}</span>
-                        <div id="stat-${tier.replace(/\s+/g, '')}" class="tier-val color-${styleClass}">0</div>
-                    </div>
-                `;
+                const cardTheme = active.color === 'blue' ? 'card-angler' : 'card-default';
+                return `<div class="stat-card ${cardTheme}">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 block">${active.emoji} ${tier}</span>
+                    <div id="stat-${tier.replace(/\s+/g, '')}" class="tier-val color-${styleClass}">0</div>
+                </div>`;
             }).join('');
 
-            // Start Real-Time Firebase Listener
-            syncStats(active.tiers);
-        } catch (e) { console.error("Sync Error:", e); }
+            syncFirebase(active.tiers);
+        } catch (e) { console.error(e); }
     }
 
-    // Initialize Auth and Start Logic
+    function syncFirebase(tiers) {
+        db.collection('catches').doc(config.user).onSnapshot(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                tiers.forEach(tier => {
+                    const el = document.getElementById(`stat-${tier.replace(/\s+/g, '')}`);
+                    if (el) el.innerText = data[tier] || 0;
+                });
+            }
+        });
+    }
+
     firebase.auth().signInAnonymously().then(() => {
-        checkGameAndLoad();
-        setInterval(checkGameAndLoad, 60000); // Check Twitch every minute
+        updateDashboard();
+        setInterval(updateDashboard, 60000);
     });
 </script>
-
 </body>
 </html>
