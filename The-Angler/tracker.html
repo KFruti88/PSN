@@ -1,0 +1,274 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
+import { getFirestore, collection, doc, onSnapshot, setDoc, updateDoc, increment } from 'firebase/firestore';
+import { Trophy, Fish, User, LayoutDashboard, Settings, Plus, Minus, ChevronRight, BarChart3, Medal, Star } from 'lucide-react';
+
+// Firebase configuration
+const firebaseConfig = JSON.parse(__firebase_config);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'angler-catch-tracker';
+
+// Defined Users (Public Handles)
+const PLAYERS = [
+  { id: 'Werewolf3788', name: 'Werewolf3788', color: 'text-blue-500', bg: 'bg-blue-50' },
+  { id: 'Raymystyro', name: 'Raymystyro', color: 'text-red-500', bg: 'bg-red-50' },
+  { id: 'terrdog420', name: 'terrdog420', color: 'text-green-500', bg: 'bg-green-50' }
+];
+
+// Standard Fish Species
+const STANDARD_FISH = [
+  "Largemouth Bass", "Smallmouth Bass", "Rainbow Trout", "Brown Trout", "Lake Trout", 
+  "Brook Trout", "Northern Pike", "Tiger Muskie", "Yellow Perch", "Bluegill", 
+  "Pumpkinseed", "Black Crappie", "Channel Catfish", "Burbot", "Atlantic Salmon",
+  "African Tigerfish", "Rednose Labeo", "Japanese Eel", "Cherry Salmon", "European Eel",
+  "Shovelnose Sturgeon", "Mirror Carp", "Dolly Varden Trout", "Crucian Carp", "Redbreast Kurper",
+  "Ohrid Trout", "Zander", "European Perch", "Asp", "Ide", "Arctic Char", "Grayling"
+].sort();
+
+// Specific Legendary Fish (Named Bosses)
+const LEGENDARY_FISH = [
+  "Sidewinder", "Goldstein", "The Warden", "Big Larry", "Kuroyama", "Speira", 
+  "Dominator", "General", "Matriarch", "The Prodigy", "Siren", "Hannibal"
+].sort();
+
+const STANDARD_RANKS = [
+  { id: 'bronze', label: 'Bronze', color: 'text-orange-400' },
+  { id: 'silver', label: 'Silver', color: 'text-slate-400' },
+  { id: 'gold', label: 'Gold', color: 'text-yellow-500' },
+  { id: 'diamond', label: 'Diamond', color: 'text-cyan-400' }
+];
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [activePlayer, setActivePlayer] = useState(null);
+  const [view, setView] = useState('landing'); 
+  const [catches, setCatches] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState('standard'); // 'standard' or 'legendary'
+
+  // 1. Initialize Auth
+  useEffect(() => {
+    const initAuth = async () => {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (err) { console.error("Auth error:", err); }
+    };
+    initAuth();
+    const unsubscribe = onAuthStateChanged(auth, setUser);
+    return () => unsubscribe();
+  }, []);
+
+  // 2. Data Listener
+  useEffect(() => {
+    if (!user) return;
+    const catchesRef = collection(db, 'artifacts', appId, 'public', 'data', 'catches');
+    const unsubscribe = onSnapshot(catchesRef, (snapshot) => {
+      const data = {};
+      snapshot.forEach(doc => { data[doc.id] = doc.data(); });
+      setCatches(data);
+      setLoading(false);
+    }, (error) => { setLoading(false); });
+    return () => unsubscribe();
+  }, [user]);
+
+  const updateCatch = async (playerId, fishName, rank, change) => {
+    if (!user) return;
+    const docId = `${playerId}_${fishName.replace(/\s+/g, '_')}`;
+    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'catches', docId);
+    try {
+      await setDoc(docRef, {
+        playerId,
+        fishName,
+        [rank]: increment(change)
+      }, { merge: true });
+    } catch (err) { console.error("Update error:", err); }
+  };
+
+  const getCount = (playerId, fishName, rank) => {
+    const docId = `${playerId}_${fishName.replace(/\s+/g, '_')}`;
+    return catches[docId]?.[rank] || 0;
+  };
+
+  const filteredFish = useMemo(() => {
+    const source = activeTab === 'standard' ? STANDARD_FISH : LEGENDARY_FISH;
+    return source.filter(f => f.toLowerCase().includes(searchTerm.toLowerCase()));
+  }, [searchTerm, activeTab]);
+
+  const stats = useMemo(() => {
+    const s = {};
+    PLAYERS.forEach(p => {
+      s[p.id] = { bronze: 0, silver: 0, gold: 0, diamond: 0, legendary: 0, total: 0 };
+    });
+    Object.values(catches).forEach(entry => {
+      const p = entry.playerId;
+      if (s[p]) {
+        [...STANDARD_RANKS.map(r => r.id), 'legendary'].forEach(r => {
+          const val = entry[r] || 0;
+          s[p][r] += val;
+          s[p].total += val;
+        });
+      }
+    });
+    return s;
+  }, [catches]);
+
+  // Landing Page
+  if (view === 'landing') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white rounded-3xl shadow-xl p-8 text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="bg-blue-600 p-4 rounded-2xl shadow-lg">
+              <Fish className="w-10 h-10 text-white" />
+            </div>
+          </div>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2">Angler Catch Hub</h1>
+          <p className="text-slate-500 mb-8">Select your profile to update catches.</p>
+          <div className="space-y-3 w-full">
+            {PLAYERS.map(player => (
+              <button key={player.id} onClick={() => { setActivePlayer(player); setView('tracker'); }} className="w-full p-4 flex items-center justify-between bg-white border border-slate-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all group">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${player.bg}`}><User className={`w-5 h-5 ${player.color}`} /></div>
+                  <span className="font-semibold text-slate-700">{player.name}</span>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500" />
+              </button>
+            ))}
+            <div className="pt-4 border-t border-slate-100 mt-4">
+              <button onClick={() => setView('display')} className="w-full p-4 flex items-center justify-center gap-2 bg-slate-800 text-white rounded-xl hover:bg-slate-700 transition-all font-bold shadow-lg">
+                <LayoutDashboard className="w-5 h-5" /> View Public Display
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Tracker View
+  if (view === 'tracker') {
+    return (
+      <div className="min-h-screen bg-white md:p-6 pb-24">
+        <div className="max-w-4xl mx-auto w-[90%]">
+          <div className="flex items-center justify-between mb-8 sticky top-0 bg-white/90 backdrop-blur-md py-4 z-10 border-b border-slate-100">
+            <div className="flex items-center gap-4">
+              <button onClick={() => setView('landing')} className="p-2 hover:bg-slate-100 rounded-full"><LayoutDashboard className="w-6 h-6 text-slate-600" /></button>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">{activePlayer.name}'s Tracker</h2>
+              </div>
+            </div>
+            <div className="flex bg-slate-100 p-1 rounded-xl">
+              <button onClick={() => setActiveTab('standard')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'standard' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}>STANDARD</button>
+              <button onClick={() => setActiveTab('legendary')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'legendary' ? 'bg-white shadow-sm text-purple-600' : 'text-slate-500'}`}>LEGENDARY</button>
+            </div>
+          </div>
+
+          <div className="relative mb-6">
+            <input type="text" placeholder={`Search ${activeTab} fish...`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <Fish className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          </div>
+
+          <div className="space-y-4">
+            {filteredFish.map(fish => (
+              <div key={fish} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+                <h3 className="font-bold text-slate-800 text-lg mb-4 flex items-center gap-2">
+                   {activeTab === 'legendary' ? <Star className="w-4 h-4 text-purple-500 fill-purple-500" /> : <div className="w-2 h-2 rounded-full bg-blue-500" />}
+                   {fish}
+                </h3>
+                
+                <div className={`grid gap-3 ${activeTab === 'standard' ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-1'}`}>
+                  {(activeTab === 'standard' ? STANDARD_RANKS : [{id: 'legendary', label: 'Legendary Catch', color: 'text-purple-500'}]).map(rank => (
+                    <div key={rank.id} className="flex flex-col items-center bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <span className={`text-[10px] font-black uppercase mb-2 ${rank.color}`}>{rank.label}</span>
+                      <div className="flex items-center gap-4">
+                        <button onClick={() => updateCatch(activePlayer.id, fish, rank.id, -1)} disabled={getCount(activePlayer.id, fish, rank.id) <= 0} className="p-1 rounded bg-white border border-slate-200 disabled:opacity-30 text-slate-500"><Minus className="w-4 h-4" /></button>
+                        <span className="font-bold text-slate-800 text-lg">{getCount(activePlayer.id, fish, rank.id)}</span>
+                        <button onClick={() => updateCatch(activePlayer.id, fish, rank.id, 1)} className="p-1 rounded bg-white border border-slate-200 text-slate-500"><Plus className="w-4 h-4" /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Public Display
+  if (view === 'display') {
+    return (
+      <div className="min-h-screen bg-slate-900 text-white p-4 md:p-10 font-sans">
+        <div className="max-w-6xl mx-auto w-[90%]">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-black italic tracking-tighter flex items-center gap-3">
+              <Trophy className="text-yellow-400 w-10 h-10" /> THE ANGLER <span className="text-blue-500">PRO TRACKER</span>
+            </h1>
+            <button onClick={() => setView('landing')} className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all">DASHBOARD</button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {PLAYERS.map(player => (
+              <div key={player.id} className="bg-slate-800/50 border border-slate-700 rounded-3xl p-6 relative overflow-hidden">
+                <div className={`absolute top-0 right-0 w-32 h-32 opacity-10 blur-2xl -mr-10 -mt-10 rounded-full ${player.id === 'Werewolf3788' ? 'bg-blue-500' : player.id === 'Raymystyro' ? 'bg-red-500' : 'bg-green-500'}`}></div>
+                <div className="flex items-center gap-4 mb-6 relative">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border-2 ${player.id === 'Werewolf3788' ? 'bg-blue-900 border-blue-500' : player.id === 'Raymystyro' ? 'bg-red-900 border-red-500' : 'bg-green-900 border-green-500'}`}><User className="w-8 h-8 text-white" /></div>
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight">{player.name}</h2>
+                    <p className="text-slate-400 text-xs font-medium">Total Catches: {stats[player.id]?.total || 0}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 relative">
+                  <div className="flex items-center justify-between bg-purple-900/30 p-3 rounded-2xl border border-purple-500/30">
+                    <div className="flex items-center gap-3"><Star className="w-5 h-5 text-purple-400 fill-purple-400" /><span className="text-purple-100 font-bold text-sm uppercase">Legendaries</span></div>
+                    <span className="text-2xl font-black text-purple-400">{stats[player.id]?.legendary || 0}</span>
+                  </div>
+                  {STANDARD_RANKS.slice(0).reverse().map(rank => (
+                    <div key={rank.id} className="flex items-center justify-between bg-slate-900/40 p-3 rounded-2xl border border-slate-700/50">
+                      <div className="flex items-center gap-3"><Medal className={`w-5 h-5 ${rank.color}`} /><span className="text-slate-300 font-bold text-sm uppercase">{rank.label}</span></div>
+                      <span className={`text-xl font-black ${rank.color}`}>{stats[player.id]?.[rank.id] || 0}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 bg-slate-800/30 border border-slate-700 rounded-3xl p-8 backdrop-blur-sm">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><BarChart3 className="text-blue-500" /> TEAM TOTALS</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-slate-900/50 rounded-2xl border border-slate-700 text-center">
+                <p className="text-slate-500 text-[10px] font-black uppercase mb-1">Total Diamonds</p>
+                <p className="text-3xl font-black text-cyan-400">{Object.values(stats).reduce((acc, curr) => acc + curr.diamond, 0)}</p>
+              </div>
+              <div className="p-4 bg-slate-900/50 rounded-2xl border border-slate-700 text-center">
+                <p className="text-slate-500 text-[10px] font-black uppercase mb-1">Total Legendaries</p>
+                <p className="text-3xl font-black text-purple-500">{Object.values(stats).reduce((acc, curr) => acc + curr.legendary, 0)}</p>
+              </div>
+              <div className="p-4 bg-slate-900/50 rounded-2xl border border-slate-700 text-center">
+                <p className="text-slate-500 text-[10px] font-black uppercase mb-1">Total Gold</p>
+                <p className="text-3xl font-black text-yellow-500">{Object.values(stats).reduce((acc, curr) => acc + curr.gold, 0)}</p>
+              </div>
+              <div className="p-4 bg-slate-900/50 rounded-2xl border border-slate-700 text-center">
+                <p className="text-slate-500 text-[10px] font-black uppercase mb-1">Grand Total</p>
+                <p className="text-3xl font-black text-white">{Object.values(stats).reduce((acc, curr) => acc + curr.total, 0)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
