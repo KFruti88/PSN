@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angler Squad Tracker | Private</title>
+    <title>Angler Squad | Private Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebase Configuration
         const firebaseConfig = JSON.parse(__firebase_config);
@@ -17,17 +17,8 @@
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'angler-tracker-v1';
 
-        // Local State
-        let currentUser = null;
-
+        // Trio Configuration - Ordered: TJ (terrdog420), Werewolf3788, Ray (Raymystyro)
         const players = [
-            { 
-                id: 'Raymystyro', 
-                name: 'Raymystyro', 
-                aliases: 'lonewolf, speedray, OneLIVIDMAN', 
-                twitch: 'raymystyro',
-                img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/032a0367-589f-4763-94de-4fc679a0b2df-profile_image-70x70.png'
-            },
             { 
                 id: 'terrdog420', 
                 name: 'terrdog420', 
@@ -41,19 +32,28 @@
                 aliases: 'Lead Developer', 
                 twitch: 'werewolf3788',
                 img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/1a4efdb4-023e-4802-b07c-82c09a45c4c8-profile_image-70x70.png'
+            },
+            { 
+                id: 'Raymystyro', 
+                name: 'Raymystyro', 
+                aliases: 'lonewolf, speedray, OneLIVIDMAN', 
+                twitch: 'raymystyro',
+                img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/032a0367-589f-4763-94de-4fc679a0b2df-profile_image-70x70.png'
             }
         ];
 
-        const tiers = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legendary'];
+        const tiers = ['Legendary', 'Diamond', 'Gold', 'Silver', 'Bronze'];
         const tierColors = {
-            Bronze: 'text-orange-400',
-            Silver: 'text-gray-300',
+            Legendary: 'text-purple-500',
+            Diamond: 'text-cyan-400',
             Gold: 'text-yellow-400',
-            Diamond: 'text-cyan-300',
-            Legendary: 'text-red-500'
+            Silver: 'text-slate-400',
+            Bronze: 'text-orange-700'
         };
 
-        // Authentication & Sync
+        let currentUser = null;
+
+        // Auth initialization
         async function initAuth() {
             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                 await signInWithCustomToken(auth, __initial_auth_token);
@@ -70,50 +70,91 @@
             }
         });
 
+        // Sync data from Firestore
         function setupRealtimeSync() {
             players.forEach(player => {
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'catches', player.id);
                 onSnapshot(docRef, (docSnap) => {
+                    const statusEl = document.getElementById(`sync-status-${player.id}`);
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         tiers.forEach(tier => {
                             const el = document.getElementById(`count-${player.id}-${tier}`);
                             if (el) el.innerText = data[tier] || 0;
                         });
+                        if (statusEl) statusEl.innerHTML = '● <span class="ml-1">Synced</span>';
+                        if (statusEl) statusEl.className = 'text-[8px] font-bold text-green-500 uppercase tracking-widest flex items-center';
+                    } else {
+                        if (statusEl) statusEl.innerHTML = '● <span class="ml-1">No Data</span>';
+                        if (statusEl) statusEl.className = 'text-[8px] font-bold text-gray-500 uppercase tracking-widest flex items-center';
                     }
-                }, (err) => console.error("Firestore Error:", err));
+                }, (err) => {
+                    console.error("Firestore Error:", err);
+                    const statusEl = document.getElementById(`sync-status-${player.id}`);
+                    if (statusEl) statusEl.innerHTML = '● <span class="ml-1">Error</span>';
+                    if (statusEl) statusEl.className = 'text-[8px] font-bold text-red-500 uppercase tracking-widest flex items-center';
+                });
             });
         }
 
+        // Manual Update Function
         window.updateCount = async (playerId, tier, delta) => {
             if (!currentUser) return;
             const el = document.getElementById(`count-${playerId}-${tier}`);
+            const statusEl = document.getElementById(`sync-status-${playerId}`);
             const currentCount = parseInt(el.innerText) || 0;
             const newCount = Math.max(0, currentCount + delta);
+            
+            if (statusEl) statusEl.innerHTML = '<span class="animate-pulse">● Saving...</span>';
             
             const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'catches', playerId);
             try {
                 await setDoc(docRef, { [tier]: newCount }, { merge: true });
             } catch (err) {
                 console.error("Save Error:", err);
+                if (statusEl) statusEl.innerHTML = '● Save Failed';
+                if (statusEl) statusEl.className = 'text-[8px] font-bold text-red-500 uppercase tracking-widest flex items-center';
             }
         };
 
+        // Twitch Game Check
         async function updateTwitchStatuses() {
             players.forEach(async (player) => {
-                if (!player.twitch) return;
                 try {
                     const response = await fetch(`https://decapi.me/twitch/game/${player.twitch}`);
                     const game = await response.text();
                     const statusEl = document.getElementById(`twitch-${player.id}`);
                     if (statusEl) {
                         const isOffline = game.toLowerCase().includes('offline') || game.includes('Account not found');
-                        statusEl.innerText = isOffline ? 'Offline' : `Streaming: ${game}`;
-                        statusEl.className = isOffline ? 'text-xs text-gray-500' : 'text-xs text-purple-400 font-bold';
+                        statusEl.innerText = isOffline ? 'Offline' : `Playing: ${game}`;
+                        statusEl.className = isOffline ? 'text-[10px] text-gray-500 italic' : 'text-[10px] text-purple-400 font-bold italic';
                     }
                 } catch (e) {}
             });
         }
+
+        // Generate Code for tracker.html (GitHub extraction source)
+        window.generateGitHubCode = () => {
+            let html = `<!-- SQUAD DATA SOURCE FOR PROGRESS PAGE -->\n<div id="angler-data-source">\n`;
+            players.forEach(player => {
+                html += `  <!-- ${player.name} Stats -->\n`;
+                tiers.forEach(tier => {
+                    const val = document.getElementById(`count-${player.id}-${tier}`).innerText;
+                    html += `  <div id="${player.id}-${tier.toLowerCase()}">${val}</div>\n`;
+                });
+                html += `\n`;
+            });
+            html += `</div>`;
+            
+            const modal = document.getElementById('github-modal');
+            const textarea = document.getElementById('github-code-output');
+            textarea.value = html;
+            modal.classList.remove('hidden');
+        };
+
+        window.closeModal = () => {
+            document.getElementById('github-modal').classList.add('hidden');
+        };
 
         window.onload = () => {
             renderUI();
@@ -124,24 +165,33 @@
         function renderUI() {
             const grid = document.getElementById('player-grid');
             grid.innerHTML = players.map(player => `
-                <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-2xl">
+                <div class="bg-slate-900/80 rounded-3xl p-6 border border-slate-800 shadow-2xl backdrop-blur-md relative z-20">
+                    <div class="flex items-center justify-between mb-4">
+                         <div id="sync-status-${player.id}" class="text-[8px] font-bold text-gray-500 uppercase tracking-widest flex items-center">
+                            ● <span class="ml-1">Connecting...</span>
+                         </div>
+                    </div>
+
                     <div class="flex items-center gap-4 mb-6">
-                        <img src="${player.img}" class="w-16 h-16 rounded-full border-2 border-purple-500 shadow-lg" onerror="this.src='https://via.placeholder.com/70?text=SQUAD'" />
+                        <div class="relative">
+                            <img src="${player.img}" class="w-16 h-16 rounded-full border-2 border-purple-600 shadow-lg object-cover" />
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-slate-900 rounded-full"></div>
+                        </div>
                         <div class="flex-1 min-w-0">
                             <h2 class="text-xl font-black text-white truncate uppercase tracking-tighter">${player.name}</h2>
-                            <p class="text-[10px] text-gray-400 italic truncate opacity-70">${player.aliases}</p>
-                            <div id="twitch-${player.id}" class="text-xs mt-1 italic text-gray-500">Connecting...</div>
+                            <p class="text-[9px] text-slate-400 italic truncate uppercase tracking-widest">${player.aliases}</p>
+                            <div id="twitch-${player.id}" class="mt-0.5">...</div>
                         </div>
                     </div>
                     
-                    <div class="space-y-3">
+                    <div class="space-y-2.5">
                         ${tiers.map(tier => `
-                            <div class="flex items-center justify-between bg-black/30 p-3 rounded-xl border border-white/5">
-                                <span class="font-bold text-sm ${tierColors[tier]} uppercase">${tier}</span>
+                            <div class="flex items-center justify-between bg-black/40 p-3 rounded-2xl border border-white/5 transition-colors hover:border-white/10">
+                                <span class="font-black text-[10px] ${tierColors[tier]} uppercase tracking-widest">${tier}</span>
                                 <div class="flex items-center gap-4">
-                                    <button onclick="updateCount('${player.id}', '${tier}', -1)" class="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-red-600 text-white rounded-lg transition-all active:scale-90 touch-manipulation">-</button>
-                                    <span id="count-${player.id}-${tier}" class="text-2xl font-mono font-bold text-white min-w-[2.5ch] text-center">0</span>
-                                    <button onclick="updateCount('${player.id}', '${tier}', 1)" class="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-green-600 text-white rounded-lg transition-all active:scale-90 touch-manipulation">+</button>
+                                    <button onclick="updateCount('${player.id}', '${tier}', -1)" class="w-9 h-9 flex items-center justify-center bg-slate-800 hover:bg-red-600/40 text-white rounded-xl transition-all active:scale-90 touch-manipulation border border-white/5">-</button>
+                                    <span id="count-${player.id}-${tier}" class="text-2xl font-mono font-black text-white min-w-[2ch] text-center">0</span>
+                                    <button onclick="updateCount('${player.id}', '${tier}', 1)" class="w-9 h-9 flex items-center justify-center bg-slate-800 hover:bg-green-600/40 text-white rounded-xl transition-all active:scale-90 touch-manipulation border border-white/5">+</button>
                                 </div>
                             </div>
                         `).join('')}
@@ -157,49 +207,100 @@
             font-family: ui-sans-serif, system-ui, sans-serif !important;
             min-height: 100vh;
             padding: 40px 0;
+            position: relative;
+            overflow: hidden;
         }
-        .bg-grid { background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
-        /* Prevent double-tap zoom on mobile for fast clicking */
+        .bg-grid { 
+            background-image: radial-gradient(circle at 2px 2px, #1e293b 1px, transparent 0);
+            background-size: 24px 24px; 
+        }
         .touch-manipulation { touch-action: manipulation; }
-        
-        .container-90 {
-            width: 90% !important;
-            margin-left: auto !important;
-            margin-right: auto !important;
+        .container-90 { width: 90% !important; margin: 0 auto !important; position: relative; z-index: 10; }
+
+        .ripple {
+            position: absolute;
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-animation 1s cubic-bezier(0, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 5;
+        }
+        @keyframes ripple-animation { 
+            0% { transform: scale(0); opacity: 0.8; }
+            100% { transform: scale(5); opacity: 0; }
         }
     </style>
 </head>
 <body class="bg-grid">
 
-    <div id="wp-custom-wrapper">
+    <div id="wp-custom-wrapper" onclick="createRipple(event)">
         <div class="container-90">
             <header class="text-center mb-12">
-                <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 tracking-tighter mb-4 uppercase italic">
-                    ANGLER SQUAD TRACKER
+                <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-purple-400 via-indigo-500 to-purple-600 tracking-tighter mb-4 uppercase italic">
+                    SQUAD TRACKING HUB
                 </h1>
                 
                 <div class="flex flex-wrap justify-center gap-3">
-                    <a href="https://theangler.org/fish-species/legendary-fish" target="_blank" class="px-5 py-2.5 bg-red-900/10 border border-red-500/20 rounded-xl text-[10px] font-black tracking-widest hover:bg-red-500/10 transition-all text-red-400 uppercase">Legendary Schedule</a>
-                    <a href="https://theangler.org/fish-species" target="_blank" class="px-5 py-2.5 bg-blue-900/10 border border-blue-500/20 rounded-xl text-[10px] font-black tracking-widest hover:bg-blue-500/10 transition-all text-blue-400 uppercase">Fish Species</a>
-                    <a href="https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" target="_blank" class="px-5 py-2.5 bg-orange-900/10 border border-orange-500/20 rounded-xl text-[10px] font-black tracking-widest hover:bg-orange-500/10 transition-all text-orange-400 uppercase">Amazon Deals</a>
+                    <button onclick="generateGitHubCode()" class="px-6 py-3 bg-purple-900/20 border border-purple-500/30 rounded-2xl text-[10px] font-black tracking-widest hover:bg-purple-500/20 transition-all text-purple-400 uppercase shadow-xl">
+                        Export GitHub Data
+                    </button>
+                    <a href="https://www.amazon.com/s?k=fishing&tag=werewoolf3788-20" target="_blank" class="px-6 py-3 bg-orange-900/20 border border-orange-500/30 rounded-2xl text-[10px] font-black tracking-widest hover:bg-orange-500/20 transition-all text-orange-400 uppercase shadow-xl">
+                        Shop Fishing Gear
+                    </a>
                 </div>
             </header>
 
-            <div id="player-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                <!-- Loading Skeleton -->
-                <div class="animate-pulse bg-gray-800 h-96 rounded-2xl"></div>
-                <div class="animate-pulse bg-gray-800 h-96 rounded-2xl"></div>
-                <div class="animate-pulse bg-gray-800 h-96 rounded-2xl"></div>
+            <div id="player-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <!-- Players rendered here -->
             </div>
 
-            <footer class="pt-8 border-t border-slate-800 text-center opacity-40">
-                <p class="text-[10px] font-black uppercase tracking-widest">
-                    Project by <span class="text-cyan-400 font-bold">Werewolf3788</span> &bull; Private Squad Sync
+            <footer class="pt-10 border-t border-slate-800/50 text-center">
+                <p class="text-[10px] font-black uppercase tracking-widest opacity-40">
+                    Lead Developer: <span class="text-purple-500">Werewolf3788</span> &bull; Private Squad Dashboard
                 </p>
-                <p class="text-[9px] mt-1 italic">GitHub: KFruti88</p>
+                <p class="text-[9px] mt-2 opacity-30 italic">Source: KFruti88 GitHub Repository</p>
             </footer>
         </div>
     </div>
 
+    <!-- Export Modal -->
+    <div id="github-modal" class="hidden fixed inset-0 bg-slate-950/95 z-[100] flex items-center justify-center p-6 backdrop-blur-sm">
+        <div class="bg-slate-900 border border-purple-500/30 rounded-[2rem] p-10 max-w-2xl w-full shadow-[0_0_50px_rgba(168,85,247,0.15)]">
+            <h3 class="text-3xl font-black text-white mb-4 uppercase italic tracking-tighter">Export to GitHub</h3>
+            <p class="text-sm text-slate-400 mb-8 leading-relaxed">Copy the block below and paste it into <span class="text-indigo-400 font-bold">The-Angler/tracker.html</span> on GitHub. This will update the public progress page instantly.</p>
+            
+            <textarea id="github-code-output" readonly class="w-full h-72 bg-black/50 border border-slate-800 rounded-2xl p-6 text-[11px] font-mono text-indigo-300 mb-8 focus:outline-none scrollbar-hide"></textarea>
+            
+            <div class="flex justify-between items-center">
+                <span class="text-[10px] uppercase font-bold text-slate-500 tracking-widest">v1.2.0 Build Stable</span>
+                <button onclick="closeModal()" class="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-2xl uppercase tracking-widest transition-all shadow-lg active:scale-95">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function createRipple(event) {
+            const wrapper = document.getElementById('wp-custom-wrapper');
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            
+            const rect = wrapper.getBoundingClientRect();
+            const size = 150;
+            const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+            const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+            
+            const x = clientX - rect.left - size / 2;
+            const y = clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            
+            wrapper.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 1000);
+        }
+    </script>
 </body>
 </html>
