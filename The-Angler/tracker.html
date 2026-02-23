@@ -3,188 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angler Squad Tracker | Private</title>
+    <title>The Angler - Trophy Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase Configuration
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'angler-tracker-v1';
-
-        // Local State
-        let currentUser = null;
-
-        const players = [
-            { 
-                id: 'Raymystyro', 
-                name: 'Raymystyro', 
-                aliases: 'lonewolf, speedray, OneLIVIDMAN', 
-                twitch: 'raymystyro',
-                img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/032a0367-589f-4763-94de-4fc679a0b2df-profile_image-70x70.png'
-            },
-            { 
-                id: 'terrdog420', 
-                name: 'terrdog420', 
-                aliases: 'DarkWing Dog, Darkterr', 
-                twitch: 'terrdog420', 
-                img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/9dad426e-04cb-4fc0-a917-25982b3800ce-profile_image-70x70.png' 
-            },
-            { 
-                id: 'Werewolf3788', 
-                name: 'Werewolf3788', 
-                aliases: 'Lead Developer', 
-                twitch: 'werewolf3788',
-                img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/1a4efdb4-023e-4802-b07c-82c09a45c4c8-profile_image-70x70.png'
-            }
-        ];
-
-        const tiers = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legendary'];
-        const tierColors = {
-            Bronze: 'text-orange-400',
-            Silver: 'text-gray-300',
-            Gold: 'text-yellow-400',
-            Diamond: 'text-cyan-300',
-            Legendary: 'text-red-500'
-        };
-
-        // Authentication & Sync
-        async function initAuth() {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                setupRealtimeSync();
-                updateTwitchStatuses();
-            }
-        });
-
-        function setupRealtimeSync() {
-            players.forEach(player => {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'catches', player.id);
-                onSnapshot(docRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        tiers.forEach(tier => {
-                            const el = document.getElementById(`count-${player.id}-${tier}`);
-                            if (el) el.innerText = data[tier] || 0;
-                        });
-                    }
-                }, (err) => console.error("Firestore Error:", err));
-            });
-        }
-
-        window.updateCount = async (playerId, tier, delta) => {
-            if (!currentUser) return;
-            const el = document.getElementById(`count-${playerId}-${tier}`);
-            const currentCount = parseInt(el.innerText) || 0;
-            const newCount = Math.max(0, currentCount + delta);
-            
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'catches', playerId);
-            try {
-                await setDoc(docRef, { [tier]: newCount }, { merge: true });
-            } catch (err) {
-                console.error("Save Error:", err);
-            }
-        };
-
-        async function updateTwitchStatuses() {
-            players.forEach(async (player) => {
-                if (!player.twitch) return;
-                try {
-                    const response = await fetch(`https://decapi.me/twitch/game/${player.twitch}`);
-                    const game = await response.text();
-                    const statusEl = document.getElementById(`twitch-${player.id}`);
-                    if (statusEl) {
-                        const isOffline = game.toLowerCase().includes('offline') || game.includes('Account not found');
-                        statusEl.innerText = isOffline ? 'Offline' : `Streaming: ${game}`;
-                        statusEl.className = isOffline ? 'text-xs text-gray-500' : 'text-xs text-purple-400 font-bold';
-                    }
-                } catch (e) {}
-            });
-        }
-
-        window.onload = () => {
-            renderUI();
-            initAuth();
-            setInterval(updateTwitchStatuses, 60000);
-        };
-
-        function renderUI() {
-            const grid = document.getElementById('player-grid');
-            grid.innerHTML = players.map(player => `
-                <div class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-2xl">
-                    <div class="flex items-center gap-4 mb-6">
-                        <img src="${player.img}" class="w-16 h-16 rounded-full border-2 border-purple-500 shadow-lg" onerror="this.src='https://via.placeholder.com/70?text=SQUAD'" />
-                        <div class="flex-1 min-w-0">
-                            <h2 class="text-xl font-black text-white truncate uppercase tracking-tighter">${player.name}</h2>
-                            <p class="text-[10px] text-gray-400 italic truncate opacity-70">${player.aliases}</p>
-                            <div id="twitch-${player.id}" class="text-xs mt-1 italic text-gray-500">Connecting...</div>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-3">
-                        ${tiers.map(tier => `
-                            <div class="flex items-center justify-between bg-black/30 p-3 rounded-xl border border-white/5">
-                                <span class="font-bold text-sm ${tierColors[tier]} uppercase">${tier}</span>
-                                <div class="flex items-center gap-4">
-                                    <button onclick="updateCount('${player.id}', '${tier}', -1)" class="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-red-600 text-white rounded-lg transition-all active:scale-90 touch-manipulation">-</button>
-                                    <span id="count-${player.id}-${tier}" class="text-2xl font-mono font-bold text-white min-w-[2.5ch] text-center">0</span>
-                                    <button onclick="updateCount('${player.id}', '${tier}', 1)" class="w-9 h-9 flex items-center justify-center bg-gray-700 hover:bg-green-600 text-white rounded-lg transition-all active:scale-90 touch-manipulation">+</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `).join('');
-        }
-    </script>
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: ui-sans-serif, system-ui, sans-serif; }
-        .bg-grid { background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
-        /* Prevent double-tap zoom on mobile for fast clicking */
-        .touch-manipulation { touch-action: manipulation; }
+        /* Force background on the wrapper since WP often overrides the body tag */
+        #wp-custom-wrapper {
+            background-color: #0f172a !important;
+            color: #f1f5f9 !important;
+            min-height: 100vh;
+            width: 100%;
+            margin: 0;
+            padding: 40px 0;
+        }
+        
+        .trophy-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a) !important;
+            border: 1px solid #334155 !important;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        
+        .trophy-card:hover {
+            transform: translateY(-4px);
+            border-color: #3b82f6 !important;
+        }
+
+        .legendary { color: #f472b6 !important; text-shadow: 0 0 12px rgba(244, 114, 182, 0.6); }
+        .diamond { color: #22d3ee !important; text-shadow: 0 0 12px rgba(34, 211, 238, 0.6); }
+        .gold { color: #fbbf24 !important; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+        .silver { color: #94a3b8 !important; text-shadow: 0 0 10px rgba(148, 163, 184, 0.5); }
+        .bronze { color: #b45309 !important; text-shadow: 0 0 10px rgba(180, 83, 9, 0.5); }
+        
+        .container-90 {
+            width: 90% !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        /* Ensure standard WP text doesn't bleed through */
+        #wp-custom-wrapper p, #wp-custom-wrapper h1, #wp-custom-wrapper h2 {
+            margin-bottom: 0.5rem;
+        }
     </style>
 </head>
-<body class="min-h-screen bg-grid overflow-x-hidden">
+<body>
 
-    <div id="main-content">
-        <div class="max-w-[90%] mx-auto py-8">
+    <!-- This wrapper ensures the background color stays even inside a WordPress post/page -->
+    <div id="wp-custom-wrapper">
+        <div class="container-90">
+            <!-- Header -->
             <header class="text-center mb-12">
-                <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 tracking-tighter mb-4">
-                    ANGLER SQUAD TRACKER
-                </h1>
-                
-                <div class="flex flex-wrap justify-center gap-3">
-                    <a href="https://theangler.org/fish-species/legendary-fish" target="_blank" class="px-5 py-2.5 bg-red-900/10 border border-red-500/20 rounded-xl text-[10px] font-black tracking-widest hover:bg-red-500/10 transition-all text-red-400 uppercase">Legendary Schedule</a>
-                    <a href="https://theangler.org/fish-species" target="_blank" class="px-5 py-2.5 bg-blue-900/10 border border-blue-500/20 rounded-xl text-[10px] font-black tracking-widest hover:bg-blue-500/10 transition-all text-blue-400 uppercase">Fish Species</a>
-                    <a href="https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" target="_blank" class="px-5 py-2.5 bg-orange-900/10 border border-orange-500/20 rounded-xl text-[10px] font-black tracking-widest hover:bg-orange-500/10 transition-all text-orange-400 uppercase">Amazon Deals</a>
-                </div>
+                <h1 class="text-4xl font-extrabold tracking-tight text-white mb-2 uppercase italic">Call of the Wild: The Angler</h1>
+                <p class="text-blue-400 font-medium tracking-widest uppercase text-sm">Official Trio Progress Tracker</p>
             </header>
 
-            <div id="player-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                <!-- Players Rendered Here -->
+            <!-- Stats Grid -->
+            <div id="tracker-container" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Loading States -->
+                <div class="animate-pulse bg-slate-800 h-80 rounded-2xl"></div>
+                <div class="animate-pulse bg-slate-800 h-80 rounded-2xl"></div>
+                <div class="animate-pulse bg-slate-800 h-80 rounded-2xl"></div>
             </div>
 
-            <footer class="pt-8 border-t border-slate-800 text-center opacity-40">
-                <p class="text-[10px] font-black uppercase tracking-widest">
-                    Project by <span class="text-cyan-400 font-bold">Werewolf3788</span> &bull; Private Squad Sync
+            <!-- Amazon Affiliate Section -->
+            <div class="mt-16 text-center">
+                <a href="https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" target="_blank" class="inline-flex items-center px-8 py-4 border border-transparent text-lg font-bold rounded-xl shadow-2xl text-white bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105">
+                    🎣 Shop Today's Deals on Amazon
+                </a>
+                <p class="mt-6 text-slate-500 text-sm">
+                    Source Data: <a href="https://github.com/KFruti88/PSN/blob/main/The-Angler/tracker.html" class="underline hover:text-blue-400">KFruti88 GitHub Repository</a>
                 </p>
-                <p class="text-[9px] mt-1 italic">GitHub: KFruti88</p>
-            </footer>
+            </div>
         </div>
     </div>
 
+    <script>
+        const SOURCE_URL = 'https://raw.githubusercontent.com/KFruti88/PSN/main/The-Angler/tracker.html';
+        const USERS = [
+            { id: 'Werewolf3788', name: 'Werewolf3788' },
+            { id: 'Raymystyro', name: 'Raymystyro' },
+            { id: 'terrdog420', name: 'terrdog420' }
+        ];
+
+        async function updateTracker() {
+            const container = document.getElementById('tracker-container');
+            
+            try {
+                let response;
+                let retries = 5;
+                let delay = 1000;
+
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        response = await fetch(SOURCE_URL);
+                        if (response.ok) break;
+                    } catch (e) {
+                        if (i === retries - 1) throw e;
+                    }
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+
+                if (!response.ok) throw new Error('Failed to fetch');
+
+                const htmlText = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+
+                let htmlContent = '';
+
+                USERS.forEach(user => {
+                    const leg  = doc.getElementById(`${user.id}-legendary`)?.innerText || '0';
+                    const dia  = doc.getElementById(`${user.id}-diamond`)?.innerText || '0';
+                    const gold = doc.getElementById(`${user.id}-gold`)?.innerText || '0';
+                    const silv = doc.getElementById(`${user.id}-silver`)?.innerText || '0';
+                    const bron = doc.getElementById(`${user.id}-bronze`)?.innerText || '0';
+
+                    htmlContent += `
+                        <div class="trophy-card p-6 rounded-2xl shadow-xl flex flex-col items-center">
+                            <h2 class="text-2xl font-black mb-6 text-white border-b-2 border-blue-500/50 pb-2 w-full text-center tracking-wide uppercase">
+                                ${user.name}
+                            </h2>
+                            
+                            <!-- Elite Tier Grid (Leg, Dia) -->
+                            <div class="grid grid-cols-2 gap-4 w-full mb-4">
+                                <div class="bg-slate-900/50 p-4 rounded-lg text-center border border-slate-700/50">
+                                    <span class="block text-3xl legendary mb-1">👑</span>
+                                    <span class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Legendary</span>
+                                    <p class="text-2xl font-black">${leg}</p>
+                                </div>
+                                <div class="bg-slate-900/50 p-4 rounded-lg text-center border border-slate-700/50">
+                                    <span class="block text-3xl diamond mb-1">💎</span>
+                                    <span class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Diamond</span>
+                                    <p class="text-2xl font-black">${dia}</p>
+                                </div>
+                            </div>
+
+                            <!-- Standard Tier Grid (Gold, Silver, Bronze) -->
+                            <div class="grid grid-cols-3 gap-3 w-full">
+                                <div class="text-center bg-slate-800/20 p-2 rounded-lg border border-slate-700/30">
+                                    <span class="block text-xl gold">🥇</span>
+                                    <span class="text-[9px] uppercase font-bold text-slate-500">Gold</span>
+                                    <p class="text-lg font-bold">${gold}</p>
+                                </div>
+                                <div class="text-center bg-slate-800/20 p-2 rounded-lg border border-slate-700/30">
+                                    <span class="block text-xl silver">🥈</span>
+                                    <span class="text-[9px] uppercase font-bold text-slate-500">Silver</span>
+                                    <p class="text-lg font-bold">${silv}</p>
+                                </div>
+                                <div class="text-center bg-slate-800/20 p-2 rounded-lg border border-slate-700/30">
+                                    <span class="block text-xl bronze">🥉</span>
+                                    <span class="text-[9px] uppercase font-bold text-slate-500">Bronze</span>
+                                    <p class="text-lg font-bold">${bron}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = htmlContent;
+
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="col-span-full p-12 bg-slate-900/80 border-2 border-red-500/50 rounded-2xl text-center backdrop-blur-sm">
+                        <div class="text-5xl mb-4">⚠️</div>
+                        <h3 class="text-xl font-bold text-white mb-2">Sync Error</h3>
+                        <p class="text-slate-400 max-w-md mx-auto mb-6">Unable to connect to the trophy data on GitHub. Please check your connection.</p>
+                        <button onclick="updateTracker()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-6 rounded-full transition-all">
+                            Refresh Data
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        window.onload = updateTracker;
+    </script>
 </body>
 </html>
