@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -41,18 +42,20 @@
 
         async function updateTwitch() {
             players.forEach(async (p) => {
-                const res = await fetch(`https://decapi.me/twitch/game/${p.twitch}`);
-                const game = await res.text();
-                const el = document.getElementById(`tw-${p.id}`);
-                const isOff = game.toLowerCase().includes('offline') || game.includes('not found');
-                el.innerText = isOff ? 'Offline' : `Playing: ${game}`;
-                el.className = isOff ? 'text-[10px] text-gray-500 italic' : 'text-[10px] text-purple-400 font-bold italic';
+                try {
+                    const res = await fetch(`https://decapi.me/twitch/game/${p.twitch}`);
+                    const game = await res.text();
+                    const el = document.getElementById(`tw-${p.id}`);
+                    const isOff = game.toLowerCase().includes('offline') || game.includes('not found');
+                    el.innerText = isOff ? 'Offline' : `Playing: ${game}`;
+                    el.className = isOff ? 'text-[10px] text-gray-500 italic' : 'text-[10px] text-purple-400 font-bold italic';
+                } catch (e) {}
             });
         }
 
         function init() {
             document.getElementById('grid').innerHTML = players.map(p => `
-                <div class="bg-slate-900/80 rounded-3xl p-6 border border-slate-800 shadow-2xl backdrop-blur-md">
+                <div class="bg-slate-900/80 rounded-3xl p-6 border border-slate-800 shadow-2xl backdrop-blur-md relative z-10">
                     <div class="flex items-center gap-4 mb-6">
                         <img src="${p.img}" class="w-16 h-16 rounded-full border-2 border-purple-600 object-cover" />
                         <div>
@@ -83,15 +86,44 @@
         }
         window.onload = () => { init(); updateTwitch(); setInterval(updateTwitch, 60000); };
     </script>
+
     <style>
-        #wp-custom-wrapper { background-color: transparent !important; min-height: 100vh; position: relative; overflow: hidden; }
-        .bg-grid { background-color: #020617; background-image: radial-gradient(circle at 2px 2px, #1e293b 1px, transparent 0); background-size: 24px 24px; }
+        /* CRITICAL: This bypasses Divi section background settings */
+        #wp-custom-wrapper { 
+            background: linear-gradient(180deg, #020617 0%, #1e3a8a 50%, #172554 100%) !important; 
+            min-height: 100vh; 
+            position: relative !important; 
+            overflow: hidden !important; 
+            z-index: 999 !important; /* Forces it to the front */
+            width: 100% !important;
+        }
+
         .container-90 { width: 90% !important; margin: 0 auto !important; }
+
+        /* Water Ripple Styling */
+        .ripple {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(147, 197, 253, 0.4);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-effect 0.8s ease-out;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes ripple-effect {
+            to {
+                transform: scale(200);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
-<body class="bg-grid">
-    <div id="wp-custom-wrapper">
-        <div class="container-90 py-10">
+<body>
+    <div id="wp-custom-wrapper" onmousedown="createRipple(event)" ontouchstart="createRipple(event)">
+        <div class="container-90 py-10 relative z-10">
             <header class="text-center mb-12">
                 <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-purple-400 via-indigo-500 to-purple-600 tracking-tighter mb-4 uppercase italic">SQUAD TRACKING HUB</h1>
                 <a href="https://www.amazon.com/s?k=fishing&tag=Werewolf3788-20" target="_blank" class="px-6 py-3 bg-orange-900/20 border border-orange-500/30 rounded-2xl text-[10px] font-black tracking-widest text-orange-400 uppercase shadow-xl">Shop Fishing Gear</a>
@@ -99,5 +131,24 @@
             <div id="grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
         </div>
     </div>
+
+    <script>
+        function createRipple(e) {
+            const wrapper = document.getElementById('wp-custom-wrapper');
+            const ripple = document.createElement('div');
+            ripple.className = 'ripple';
+            
+            // Handle both touch and mouse clicks
+            const x = (e.touches ? e.touches[0].clientX : e.clientX);
+            const y = (e.touches ? e.touches[0].clientY : e.clientY);
+            
+            const rect = wrapper.getBoundingClientRect();
+            ripple.style.left = `${x - rect.left}px`;
+            ripple.style.top = `${y - rect.top}px`;
+            
+            wrapper.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 800);
+        }
+    </script>
 </body>
 </html>
