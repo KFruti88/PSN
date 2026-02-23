@@ -102,7 +102,6 @@
 
         .team-card {
             background: var(--glass);
-            backdrop-filter: blur(10px);
             border: 1px solid var(--border);
             padding: 18px;
             border-radius: 12px;
@@ -134,7 +133,7 @@
             box-shadow: 0 0 15px rgba(145, 70, 255, 0.4);
         }
 
-        /* Intel Grid - Forced Centering */
+        /* Intel Grid - Universal Centering */
         .intel-grid {
             width: 100%;
             display: grid;
@@ -247,12 +246,12 @@
             text-decoration: none;
             padding: 22px 40px;
             border-radius: 15px;
-            font-weight: 900; /* Bolder font for visibility */
+            font-weight: 900; 
             text-transform: uppercase;
             letter-spacing: 2px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-shadow: 0 1px 2px rgba(255,255,255,0.3); /* Pop effect */
+            text-shadow: 0 1px 2px rgba(255,255,255,0.4); /* High contrast for mobile */
         }
 
         .amazon-btn:hover { transform: translateY(-5px); filter: brightness(1.1); box-shadow: 0 20px 40px rgba(255, 153, 0, 0.3); }
@@ -282,7 +281,8 @@
 
             .amazon-btn {
                 padding: 18px 25px;
-                font-size: 0.9rem;
+                font-size: 0.95rem;
+                letter-spacing: 1px;
             }
         }
     </style>
@@ -367,7 +367,7 @@
         </section>
     </div>
 
-    <!-- Affiliate Deals Support - Updated URL with Fishing Search -->
+    <!-- Affiliate Deals Support - Updated Universal URL -->
     <div class="affiliate-section">
         <a href="https://www.amazon.com/s?k=fishing&tag=werewolf3788-20" target="_blank" class="amazon-btn">
             🛒 Support the Hub - Shop Fishing Gear
@@ -445,10 +445,8 @@
         if (ripples.length > 50) ripples.shift();
     }
 
-    // Tracking both mouse and finger movement
     window.addEventListener('mousemove', createRipple);
     window.addEventListener('touchmove', (e) => {
-        // Prevent scrolling from stuttering the ripple effect
         createRipple(e);
     }, { passive: true });
 
