@@ -5,11 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
+    <style>
+        #wp-custom-wrapper { 
+            background: linear-gradient(180deg, #020617 0%, #1e3a8a 50%, #172554 100%) !important; 
+            min-height: 100vh; 
+            position: relative !important; 
+            overflow: hidden !important; 
+            width: 100% !important;
+        }
+        .container-90 { width: 90% !important; margin: 0 auto !important; }
+        .ripple {
+            position: absolute; width: 2px; height: 2px;
+            background: rgba(147, 197, 253, 0.4); border-radius: 50%;
+            transform: scale(0); animation: ripple-effect 0.8s ease-out;
+            pointer-events: none; z-index: 1;
+        }
+        @keyframes ripple-effect { to { transform: scale(200); opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div id="wp-custom-wrapper" onmousedown="createRipple(event)">
+        <div class="container-90 py-10 relative z-10">
+            <header class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-purple-400 via-indigo-500 to-purple-600 tracking-tighter mb-4 uppercase italic">SQUAD TRACKING HUB</h1>
+                <a href="https://www.amazon.com/s?k=fishing&tag=Werewolf3788-20" target="_blank" class="px-6 py-3 bg-orange-900/20 border border-orange-500/30 rounded-2xl text-[10px] font-black tracking-widest text-orange-400 uppercase shadow-xl">Shop Fishing Gear</a>
+            </header>
+            <div id="grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+        </div>
+    </div>
+
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
             authDomain: "angler-squad-tracker.firebaseapp.com",
@@ -19,9 +48,9 @@
             appId: "1:325679067980:web:57edbad70fe12b988355e9"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
         const players = [
             { id: 'terrdog420', name: 'terrdog420', aliases: 'DarkWing Dog, Darkterr', twitch: 'terrdog420', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/9dad426e-04cb-4fc0-a917-25982b3800ce-profile_image-70x70.png' },
@@ -32,13 +61,13 @@
         const tiers = ['Legendary', 'Diamond', 'Gold', 'Silver', 'Bronze'];
         const tierColors = { Legendary: 'text-purple-500', Diamond: 'text-cyan-400', Gold: 'text-yellow-400', Silver: 'text-slate-400', Bronze: 'text-orange-700' };
 
-        window.updateCount = async (playerId, tier, delta) => {
-            const el = document.getElementById(`count-${playerId}-${tier}`);
-            const currentCount = parseInt(el.innerText) || 0;
-            const newCount = Math.max(0, currentCount + delta);
-            el.innerText = newCount;
-            await setDoc(doc(db, 'catches', playerId), { [tier]: newCount }, { merge: true });
-        };
+        // IMPROVED: Uses FieldValue.increment to prevent sync issues
+        async function updateCount(playerId, tier, delta) {
+            const docRef = db.collection('catches').doc(playerId);
+            await docRef.set({
+                [tier]: firebase.firestore.FieldValue.increment(delta)
+            }, { merge: true });
+        }
 
         async function updateTwitch() {
             players.forEach(async (p) => {
@@ -61,7 +90,7 @@
                         <div>
                             <h2 class="text-xl font-black text-white uppercase tracking-tighter">${p.name}</h2>
                             <p class="text-[9px] text-slate-400 uppercase tracking-widest">${p.aliases}</p>
-                            <div id="tw-${p.id}" class="mt-0.5">...</div>
+                            <div id="tw-${p.id}" class="mt-0.5 text-[10px]">...</div>
                         </div>
                     </div>
                     <div class="space-y-2.5">
@@ -78,77 +107,35 @@
                     </div>
                 </div>
             `).join('');
-            signInAnonymously(auth).then(() => {
-                players.forEach(p => onSnapshot(doc(db, 'catches', p.id), s => {
-                    if (s.exists()) tiers.forEach(t => document.getElementById(`count-${p.id}-${t}`).innerText = s.data()[t] || 0);
-                }));
+
+            auth.signInAnonymously().then(() => {
+                players.forEach(p => {
+                    db.collection('catches').doc(p.id).onSnapshot(s => {
+                        if (s.exists) {
+                            const data = s.data();
+                            tiers.forEach(t => {
+                                document.getElementById(`count-${p.id}-${t}`).innerText = data[t] || 0;
+                            });
+                        }
+                    });
+                });
             });
         }
-        window.onload = () => { init(); updateTwitch(); setInterval(updateTwitch, 60000); };
-    </script>
 
-    <style>
-        /* CRITICAL: This bypasses Divi section background settings */
-        #wp-custom-wrapper { 
-            background: linear-gradient(180deg, #020617 0%, #1e3a8a 50%, #172554 100%) !important; 
-            min-height: 100vh; 
-            position: relative !important; 
-            overflow: hidden !important; 
-            z-index: 999 !important; /* Forces it to the front */
-            width: 100% !important;
-        }
-
-        .container-90 { width: 90% !important; margin: 0 auto !important; }
-
-        /* Water Ripple Styling */
-        .ripple {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: rgba(147, 197, 253, 0.4);
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple-effect 0.8s ease-out;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        @keyframes ripple-effect {
-            to {
-                transform: scale(200);
-                opacity: 0;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div id="wp-custom-wrapper" onmousedown="createRipple(event)" ontouchstart="createRipple(event)">
-        <div class="container-90 py-10 relative z-10">
-            <header class="text-center mb-12">
-                <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-purple-400 via-indigo-500 to-purple-600 tracking-tighter mb-4 uppercase italic">SQUAD TRACKING HUB</h1>
-                <a href="https://www.amazon.com/s?k=fishing&tag=Werewolf3788-20" target="_blank" class="px-6 py-3 bg-orange-900/20 border border-orange-500/30 rounded-2xl text-[10px] font-black tracking-widest text-orange-400 uppercase shadow-xl">Shop Fishing Gear</a>
-            </header>
-            <div id="grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
-        </div>
-    </div>
-
-    <script>
         function createRipple(e) {
             const wrapper = document.getElementById('wp-custom-wrapper');
             const ripple = document.createElement('div');
             ripple.className = 'ripple';
-            
-            // Handle both touch and mouse clicks
             const x = (e.touches ? e.touches[0].clientX : e.clientX);
             const y = (e.touches ? e.touches[0].clientY : e.clientY);
-            
             const rect = wrapper.getBoundingClientRect();
             ripple.style.left = `${x - rect.left}px`;
             ripple.style.top = `${y - rect.top}px`;
-            
             wrapper.appendChild(ripple);
             setTimeout(() => ripple.remove(), 800);
         }
+
+        window.onload = () => { init(); updateTwitch(); setInterval(updateTwitch, 60000); };
     </script>
 </body>
 </html>
