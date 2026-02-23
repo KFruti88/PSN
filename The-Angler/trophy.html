@@ -3,12 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angler Squad | Public Progress</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    
+    <style>
+        /* Transparent overlay settings per Lead Developer instructions */
+        #wp-custom-wrapper {
+            background-color: transparent !important;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 0;
+        }
 
+        /* 90% width and responsive container */
+        .container-90 {
+            width: 90% !important;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(15, 23, 42, 0.95);
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .tier-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; display: block; }
+        .tier-val { font-size: 1.5rem; font-weight: 900; line-height: 1.2; }
+
+        /* Squad Tier Colors */
+        .legendary { color: #a855f7; text-shadow: 0 0 10px rgba(168, 85, 247, 0.4); }
+        .diamond { color: #22d3ee; text-shadow: 0 0 10px rgba(34, 211, 238, 0.3); }
+        .gold { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.3); }
+        .silver { color: #94a3b8; text-shadow: 0 0 10px rgba(148, 163, 184, 0.3); }
+        .bronze { color: #b45309; text-shadow: 0 0 10px rgba(180, 83, 9, 0.3); }
+
+        .player-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 24px;
+            margin-bottom: 24px;
+        }
+        .player-row:last-child { border: none; margin-bottom: 0; padding-bottom: 0; }
+    </style>
+</head>
+<body class="bg-slate-950">
+
+    <div id="wp-custom-wrapper">
+        <div class="container-90">
+            <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 text-center md:text-left">
+                <div>
+                    <h1 class="text-3xl font-black tracking-tighter text-white uppercase italic">Squad Live Progress</h1>
+                    <p class="text-blue-400 text-xs font-bold tracking-widest uppercase italic">Live Firebase Sync</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" target="_blank" class="bg-orange-500 hover:bg-orange-400 text-black font-black py-2 px-5 rounded-full text-[10px] uppercase tracking-widest transition-all">
+                        Today's Amazon Deals
+                    </a>
+                </div>
+            </header>
+
+            <div id="display-container" class="space-y-8">
+                <div class="text-center py-20 opacity-50">
+                    <p class="text-xs uppercase tracking-widest animate-pulse">Establishing Squad Connection...</p>
+                </div>
+            </div>
+
+            <footer class="mt-12 pt-6 border-t border-white/10 text-center opacity-40">
+                <p class="text-[9px] font-black uppercase tracking-widest">
+                    Lead Developer: <span class="text-blue-400">Werewolf3788</span> &bull; GitHub: KFruti88
+                </p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
             authDomain: "angler-squad-tracker.firebaseapp.com",
@@ -18,55 +100,71 @@
             appId: "1:325679067980:web:57edbad70fe12b988355e9"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        const players = [
+        const PLAYERS = [
             { id: 'terrdog420', name: 'terrdog420', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/9dad426e-04cb-4fc0-a917-25982b3800ce-profile_image-70x70.png' },
             { id: 'Werewolf3788', name: 'Werewolf3788', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/1a4efdb4-023e-4802-b07c-82c09a45c4c8-profile_image-70x70.png' },
             { id: 'Raymystyro', name: 'Raymystyro', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/032a0367-589f-4763-94de-4fc679a0b2df-profile_image-70x70.png' }
         ];
 
-        const tiers = ['Legendary', 'Diamond', 'Gold', 'Silver', 'Bronze'];
-        const tierColors = { Legendary: 'text-purple-500', Diamond: 'text-cyan-400', Gold: 'text-yellow-400', Silver: 'text-slate-400', Bronze: 'text-orange-700' };
+        const TIERS = ['Legendary', 'Diamond', 'Gold', 'Silver', 'Bronze'];
 
-        function init() {
-            document.getElementById('display').innerHTML = players.map(p => `
-                <div class="flex flex-col xl:flex-row items-center gap-6 border-b border-white/5 pb-8 mb-8 last:border-0">
-                    <div class="flex items-center gap-4 min-w-[220px]">
-                        <img src="${p.img}" class="w-14 h-14 rounded-full border-2 border-purple-500" />
-                        <h2 class="text-xl font-black text-white uppercase tracking-tighter">${p.name}</h2>
+        async function startLiveSync() {
+            const container = document.getElementById('display-container');
+            
+            container.innerHTML = PLAYERS.map(player => `
+                <div class="player-row flex flex-col xl:flex-row items-center gap-6">
+                    <div class="flex items-center gap-4 min-w-[220px] w-full xl:w-auto">
+                        <img src="${player.img}" class="w-14 h-14 rounded-full border-2 border-purple-500 shadow-lg" />
+                        <div>
+                            <h2 class="text-xl font-black text-white uppercase tracking-tighter">${player.name}</h2>
+                            <div id="game-${player.id}" class="text-[10px] text-gray-500 italic">Checking Status...</div>
+                        </div>
                     </div>
                     <div class="grid grid-cols-5 gap-3 flex-1 w-full">
-                        ${tiers.map(t => `
-                            <div class="bg-white/5 rounded-xl p-3 text-center border border-white/5">
-                                <span class="block text-[8px] font-black uppercase tracking-widest ${tierColors[t]} opacity-70">${t}</span>
-                                <div id="v-${p.id}-${t}" class="text-2xl font-black ${tierColors[t]}">0</div>
+                        ${TIERS.map(tier => `
+                            <div class="stat-card border-white/5">
+                                <span class="tier-label ${tier.toLowerCase()}">${tier}</span>
+                                <div id="val-${player.id}-${tier}" class="tier-val ${tier.toLowerCase()}">0</div>
                             </div>
                         `).join('')}
                     </div>
                 </div>
             `).join('');
-            signInAnonymously(auth).then(() => {
-                players.forEach(p => onSnapshot(doc(db, 'catches', p.id), s => {
-                    if (s.exists()) tiers.forEach(t => document.getElementById(`v-${p.id}-${t}`).innerText = s.data()[t] || 0);
-                }));
+
+            PLAYERS.forEach(player => {
+                db.collection('catches').doc(player.id).onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        TIERS.forEach(tier => {
+                            const el = document.getElementById(`val-${player.id}-${tier}`);
+                            if (el) el.innerText = data[tier] || 0;
+                        });
+                    }
+                });
+                updateGameStatus(player);
             });
         }
-        window.onload = init;
+
+        async function updateGameStatus(player) {
+            try {
+                const response = await fetch(`https://decapi.me/twitch/game/${player.id}`);
+                const game = await response.text();
+                const el = document.getElementById(`game-${player.id}`);
+                const isOff = game.toLowerCase().includes('offline') || game.includes('not found');
+                el.innerText = isOff ? 'Offline' : 'Playing: ' + game;
+                el.className = isOff ? 'text-[10px] text-gray-500 italic' : 'text-[10px] text-purple-400 font-bold italic';
+            } catch (e) {}
+        }
+
+        auth.signInAnonymously().then(startLiveSync).catch(err => {
+            document.getElementById('display-container').innerHTML = `<p class="text-red-500 text-center">Connection Failed: ${err.message}</p>`;
+        });
+
+        setInterval(() => PLAYERS.forEach(updateGameStatus), 60000);
     </script>
-    <style>
-        .container-90 { width: 90% !important; margin: 0 auto !important; background: rgba(15, 23, 42, 0.95); padding: 30px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); }
-    </style>
-</head>
-<body class="bg-slate-950 py-10">
-    <div class="container-90">
-        <header class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-black text-white uppercase italic tracking-tighter">Squad Live Progress</h1>
-            <a href="https://www.amazon.com/s?k=fishing&tag=Werewolf3788-20" target="_blank" class="bg-orange-500 text-black font-black py-2 px-5 rounded-full text-[10px] uppercase tracking-widest">Shop Fishing Gear</a>
-        </header>
-        <div id="display"></div>
-    </div>
 </body>
 </html>
