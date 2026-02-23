@@ -20,7 +20,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            /* Consistent Deep Water Background */
             background-color: var(--water-bg);
             color: #eee;
             font-family: 'Inter', sans-serif;
@@ -31,7 +30,7 @@
             position: relative;
         }
 
-        /* Interactive Water Layer - Active on all devices */
+        /* Interactive Water Layer */
         #water-canvas {
             position: fixed;
             top: 0;
@@ -137,20 +136,20 @@
         .intel-grid {
             width: 100%;
             display: grid;
-            grid-template-columns: 1fr 600px;
+            grid-template-columns: 1fr 700px; /* Slightly wider to accommodate setup + bait */
             gap: 20px;
             margin-bottom: 25px;
             align-items: start;
             justify-content: center;
         }
 
-        /* Map Section - Responsive Ratio Fix */
+        /* Map Section */
         .map-section {
             background: #000;
             border: 1px solid var(--border);
             overflow: hidden;
             width: 100%;
-            height: 750px; /* Desktop height */
+            height: 750px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
             position: relative;
             border-radius: 20px;
@@ -166,6 +165,7 @@
             border: 1px solid var(--border);
             padding: 24px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            width: 100%;
         }
 
         .section-title {
@@ -180,51 +180,78 @@
         }
 
         /* Tactical Tables */
-        .species-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
-        .species-table th { text-align: left; font-size: 0.65rem; text-transform: uppercase; color: #888; padding-bottom: 12px; border-bottom: 1px solid #444; }
-        .species-table td { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; vertical-align: middle; }
+        .species-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; table-layout: fixed; }
+        .species-table th { text-align: left; font-size: 0.7rem; text-transform: uppercase; color: #888; padding-bottom: 12px; border-bottom: 1px solid #444; }
+        .species-table td { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; vertical-align: middle; }
         
-        .name-col { text-align: left !important; font-weight: 900; color: #fff; width: 30%; }
-        .hook-setup-col { text-align: center !important; width: 45%; }
-        .weight-col { text-align: right !important; width: 25%; color: var(--diamond); font-weight: 900; font-size: 0.95rem; }
+        .name-col { text-align: left !important; font-weight: 900; color: #fff; width: 25%; overflow: hidden; text-overflow: ellipsis; }
+        .hook-setup-col { text-align: center !important; width: 50%; }
+        .weight-col { text-align: right !important; width: 25%; color: var(--diamond); font-weight: 900; }
+
+        /* Flex Container for centering badges in the middle column */
+        .setup-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
 
         .hook-tag {
             background: #000;
             color: var(--diamond);
             border: 1px solid var(--diamond-glow);
-            padding: 3px 8px;
+            padding: 4px 8px;
             border-radius: 4px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: bold;
             display: inline-flex;
             align-items: center;
             gap: 4px;
+            white-space: nowrap;
         }
 
         .hook-tag::before { content: "🔹"; font-size: 0.6rem; }
 
         .bait-text {
-            display: block;
-            font-size: 0.7rem;
-            color: #bbb;
-            font-style: italic;
-            margin-top: 6px;
+            font-size: 0.75rem;
+            color: #ddd;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* Legendary Row */
         .legendary-section-title { color: var(--legendary); border-bottom: 2px solid var(--legendary); margin-top: 20px; }
         .legendary-row td { color: var(--legendary); font-weight: 900; }
+        
         .legendary-tag {
-            background: rgba(191, 85, 255, 0.1);
-            border: 1px solid var(--legendary);
+            background: #000;
             color: #fff;
-            padding: 3px 10px;
+            border: 1px solid var(--legendary);
+            padding: 4px 8px;
             border-radius: 4px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            box-shadow: 0 0 10px rgba(191, 85, 255, 0.2);
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
         }
-        .legendary-row .weight-col { color: var(--legendary); text-shadow: 0 0 5px rgba(191, 85, 255, 0.3); }
+        .legendary-tag::before { content: "🟣"; font-size: 0.6rem; }
+
+        .legendary-bait {
+            font-size: 0.75rem;
+            color: #eee;
+            background: rgba(191, 85, 255, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid rgba(191, 85, 255, 0.3);
+        }
 
         /* Footer Affiliate */
         .affiliate-section {
@@ -251,7 +278,7 @@
             letter-spacing: 2px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-shadow: 0 1px 2px rgba(255,255,255,0.4); /* High contrast for mobile */
+            text-shadow: 0 1px 2px rgba(255,255,255,0.4);
         }
 
         .amazon-btn:hover { transform: translateY(-5px); filter: brightness(1.1); box-shadow: 0 20px 40px rgba(255, 153, 0, 0.3); }
@@ -265,7 +292,6 @@
             .team-grid { grid-template-columns: 1fr; }
             .dashboard-container { width: 90%; margin: 0 auto; }
             
-            /* MOBILE MAP FIX: HEIGHT = WIDTH (1:1 Ratio) and centered */
             .map-section { 
                 height: 0;
                 padding-bottom: 100%; 
@@ -278,6 +304,14 @@
                 top: 0;
                 left: 0;
             }
+
+            .data-section { padding: 15px; }
+            .name-col { width: 30%; font-size: 0.8rem; }
+            .hook-setup-col { width: 45%; }
+            .weight-col { width: 25%; font-size: 0.8rem; }
+            
+            .bait-text, .legendary-bait { font-size: 0.65rem; }
+            .hook-tag, .legendary-tag { font-size: 0.7rem; padding: 2px 5px; }
 
             .amazon-btn {
                 padding: 18px 25px;
@@ -318,7 +352,7 @@
     </div>
 
     <div class="intel-grid">
-        <!-- Live Map Segment - Ratio Optimized for Mobile and Centered -->
+        <!-- Live Map Segment -->
         <section class="map-section">
             <iframe src="https://app.theangler.org/map/golden-ridge-reserve?x=14305.54956&y=24953.64746&z=15" title="Tactical Map" allowfullscreen></iframe>
         </section>
@@ -330,44 +364,206 @@
                 <thead>
                     <tr>
                         <th class="name-col">Specimen</th>
-                        <th class="hook-setup-col">Hook & Bait</th>
+                        <th class="hook-setup-col">Setup [Hook & Bait]</th>
                         <th class="weight-col">Min LB</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td class="name-col">Black Crappie</td><td class="hook-setup-col"><span class="hook-tag">#5</span><span class="bait-text">Marshmallow / Bread</span></td><td class="weight-col">2.75 lb</td></tr>
-                    <tr><td class="name-col">Bluegill</td><td class="hook-setup-col"><span class="hook-tag">#5</span><span class="bait-text">Marshmallow / Redworm</span></td><td class="weight-col">2.20 lb</td></tr>
-                    <tr><td class="name-col">Brook Trout</td><td class="hook-setup-col"><span class="hook-tag">#2</span><span class="bait-text">Spinner / Spoon</span></td><td class="weight-col">9.04 lb</td></tr>
-                    <tr><td class="name-col">Burbot</td><td class="hook-setup-col"><span class="hook-tag">#4</span><span class="bait-text">Liver / Minnow</span></td><td class="weight-col">18.74 lb</td></tr>
-                    <tr><td class="name-col">Channel Catfish</td><td class="hook-setup-col"><span class="hook-tag">#3/0</span><span class="bait-text">Liver / Cheese</span></td><td class="weight-col">26.46 lb</td></tr>
-                    <tr><td class="name-col">Cutthroat Trout</td><td class="hook-setup-col"><span class="hook-tag">#2</span><span class="bait-text">Spinner / Spoon</span></td><td class="weight-col">14.99 lb</td></tr>
-                    <tr><td class="name-col">Golden Trout</td><td class="hook-setup-col"><span class="hook-tag">#3</span><span class="bait-text">Eggs / Fly</span></td><td class="weight-col">10.36 lb</td></tr>
-                    <tr><td class="name-col">Freshwater Drum</td><td class="hook-setup-col"><span class="hook-tag">#2/0</span><span class="bait-text">Cheese / Corn</span></td><td class="weight-col">39.68 lb</td></tr>
-                    <tr><td class="name-col">Lake Trout</td><td class="hook-setup-col"><span class="hook-tag">#4/0</span><span class="bait-text">Large Spoon / Jig Head</span></td><td class="weight-col">50.71 lb</td></tr>
-                    <tr><td class="name-col">Largemouth Bass</td><td class="hook-setup-col"><span class="hook-tag">#1/0</span><span class="bait-text">Popper / Frog</span></td><td class="weight-col">11.02 lb</td></tr>
+                    <tr>
+                        <td class="name-col">Black Crappie</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#5</span>
+                                <span class="bait-text">Marshmallow</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">2.75 lb</td>
+                    </tr>
+                    <tr>
+                        <td class="name-col">Bluegill</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#5</span>
+                                <span class="bait-text">Redworm</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">2.20 lb</td>
+                    </tr>
+                    <tr>
+                        <td class="name-col">Brook Trout</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#2</span>
+                                <span class="bait-text">Spinner</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">9.04 lb</td>
+                    </tr>
+                    <tr>
+                        <td class="name-col">Burbot</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#4</span>
+                                <span class="bait-text">Liver</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">18.74 lb</td>
+                    </tr>
+                    <tr>
+                        <td class="name-col">Channel Catfish</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#3/0</span>
+                                <span class="bait-text">Cheese</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">26.46 lb</td>
+                    </tr>
+                    <tr>
+                        <td class="name-col">Cutthroat Trout</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#2</span>
+                                <span class="bait-text">Spinner</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">14.99 lb</td>
+                    </tr>
+                    <tr>
+                        <td class="name-col">Golden Trout</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#3</span>
+                                <span class="bait-text">Eggs</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">10.36 lb</td>
+                    </tr>
+                    <tr>
+                        <td class="name-col">Freshwater Drum</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#2/0</span>
+                                <span class="bait-text">Corn</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">39.68 lb</td>
+                    </tr>
+                    <tr>
+                        <td class="name-col">Lake Trout</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#4/0</span>
+                                <span class="bait-text">Large Spoon</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">50.71 lb</td>
+                    </tr>
+                    <tr>
+                        <td class="name-col">Largemouth Bass</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="hook-tag">#1/0</span>
+                                <span class="bait-text">Popper</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">11.02 lb</td>
+                    </tr>
                 </tbody>
             </table>
 
             <div class="section-title legendary-section-title">LEGENDARY OPS [IMPERIAL]</div>
             <table class="species-table">
                 <thead>
-                    <tr><th class="name-col">Target</th><th class="hook-setup-col">Hook Range</th><th class="weight-col">Weight</th></tr>
+                    <tr><th class="name-col">Target</th><th class="hook-setup-col">Setup [Hook & Bait]</th><th class="weight-col">Weight</th></tr>
                 </thead>
                 <tbody>
-                    <tr class="legendary-row"><td class="name-col">Sidewinder</td><td class="hook-setup-col"><span class="legendary-tag">#4 - #4/0</span></td><td class="weight-col">110.69 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Speilfinne</td><td class="hook-setup-col"><span class="legendary-tag">#6 - #4/0</span></td><td class="weight-col">80.58 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Mamlambo</td><td class="hook-setup-col"><span class="legendary-tag">#2/0 - #4/0</span></td><td class="weight-col">79.01 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">El Matador</td><td class="hook-setup-col"><span class="legendary-tag">#2/0 - #4/0</span></td><td class="weight-col">90.15 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Big Larry</td><td class="hook-setup-col"><span class="legendary-tag">#2 - #4/0</span></td><td class="weight-col">64.44 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Groot Slang</td><td class="hook-setup-col"><span class="legendary-tag">#3/0 - #4/0</span></td><td class="weight-col">66.14 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Kalle Paul</td><td class="hook-setup-col"><span class="legendary-tag">#6 - #4/0</span></td><td class="weight-col">52.69 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Goldstein</td><td class="hook-setup-col"><span class="legendary-tag">#7 - #2/0</span></td><td class="weight-col">27.32 lb</td></tr>
+                    <tr class="legendary-row">
+                        <td class="name-col">Sidewinder</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="legendary-tag">#4 - #4/0</span>
+                                <span class="legendary-bait">Large Spoon</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">110.69 lb</td>
+                    </tr>
+                    <tr class="legendary-row">
+                        <td class="name-col">Speilfinne</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="legendary-tag">#6 - #4/0</span>
+                                <span class="legendary-bait">Spinner</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">80.58 lb</td>
+                    </tr>
+                    <tr class="legendary-row">
+                        <td class="name-col">Mamlambo</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="legendary-tag">#2/0 - #4/0</span>
+                                <span class="legendary-bait">Minnow</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">79.01 lb</td>
+                    </tr>
+                    <tr class="legendary-row">
+                        <td class="name-col">El Matador</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="legendary-tag">#2/0 - #4/0</span>
+                                <span class="legendary-bait">Corn</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">90.15 lb</td>
+                    </tr>
+                    <tr class="legendary-row">
+                        <td class="name-col">Big Larry</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="legendary-tag">#2 - #4/0</span>
+                                <span class="legendary-bait">Cheese</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">64.44 lb</td>
+                    </tr>
+                    <tr class="legendary-row">
+                        <td class="name-col">Groot Slang</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="legendary-tag">#3/0 - #4/0</span>
+                                <span class="legendary-bait">Frog</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">66.14 lb</td>
+                    </tr>
+                    <tr class="legendary-row">
+                        <td class="name-col">Kamo Mermani</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="legendary-tag">#3/0 - #4/0</span>
+                                <span class="legendary-bait">Marshmallow</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">55.20 lb</td>
+                    </tr>
+                    <tr class="legendary-row">
+                        <td class="name-col">Goldstein</td>
+                        <td class="hook-setup-col">
+                            <div class="setup-container">
+                                <span class="legendary-tag">#7 - #2/0</span>
+                                <span class="legendary-bait">Popper</span>
+                            </div>
+                        </td>
+                        <td class="weight-col">27.32 lb</td>
+                    </tr>
                 </tbody>
             </table>
         </section>
     </div>
 
-    <!-- Affiliate Deals Support - Updated Universal URL -->
+    <!-- Affiliate Deals Support -->
     <div class="affiliate-section">
         <a href="https://www.amazon.com/s?k=fishing&tag=werewolf3788-20" target="_blank" class="amazon-btn">
             🛒 Support the Hub - Shop Fishing Gear
