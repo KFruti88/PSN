@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        @import url(https://fonts.googleapis.com/css?family=Roboto:700,900);
+        * { box-sizing: border-box; }
+        html, body { 
+            height: 100%; width: 90%; margin: 0 auto; 
+            padding: 0; overflow: hidden; background: transparent; 
+            font-family: 'Roboto', sans-serif; 
+        }
+
+        /* LIVE SLIDE TICKER */
+        #chat-ticker-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 50px;
+            background: rgba(0, 0, 0, 0.6); border-bottom: 4px solid #a020f0;
+            display: flex; align-items: center; overflow: hidden; z-index: 1000;
+        }
+        #ticker-wrapper { display: flex; white-space: nowrap; padding-left: 100%; animation: ticker-scroll 25s linear infinite; }
+        @keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        .ticker-item { display: inline-flex; align-items: center; padding: 0 60px; color: white; font-weight: 700; font-size: 22px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+
+        /* TROPHY HUD (The Angler Specific) */
+        #trophy-hud {
+            position: absolute; top: 60px; left: 0;
+            display: none; /* Hidden unless playing The Angler */
+            gap: 15px; animation: slideInLeft 0.5s ease-out forwards;
+        }
+        .trophy-pill {
+            background: rgba(0,0,0,0.7); border-left: 4px solid #fff;
+            padding: 5px 15px; border-radius: 4px; color: white;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .t-label { font-size: 10px; font-weight: 900; text-transform: uppercase; opacity: 0.7; }
+        .t-val { font-size: 20px; font-weight: 900; }
+        .legendary-border { border-color: #a855f7; color: #a855f7; }
+        .diamond-border { border-color: #22d3ee; color: #22d3ee; }
+        .gold-border { border-color: #fbbf24; color: #fbbf24; }
+
+        /* HUD & BRANDING */
+        .top-right-hub { position: absolute; top: 70px; right: 40px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .info-pill { background: rgba(0, 0, 0, 0.6); border-right: 6px solid #a020f0; padding: 8px 22px; color: white; font-weight: 900; border-radius: 4px; display: flex; align-items: center; gap: 15px; }
+        .brand-footer { position: absolute; bottom: 30px; right: 40px; display: flex; align-items: center; gap: 20px; }
+        #game-name-display { font-size: 28px; font-weight: 900; color: white; text-transform: uppercase; transition: all 0.4s; }
+        .main-logo { height: 115px; width: 115px; }
+
+        @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="chat-ticker-container">
+    <div id="ticker-wrapper"><div class="ticker-item">🐾 THE PACK IS READY... TICKER ACTIVE...</div></div>
+</div>
+
+<div id="trophy-hud">
+    <div class="trophy-pill legendary-border"><span class="t-label">Legendary</span><span id="stat-Legendary" class="t-val">0</span></div>
+    <div class="trophy-pill diamond-border"><span class="t-label">Diamond</span><span id="stat-Diamond" class="t-val">0</span></div>
+    <div class="trophy-pill gold-border"><span class="t-label">Gold</span><span id="stat-Gold" class="t-val">0</span></div>
+</div>
+
+<div class="top-right-hub">
+    <div class="info-pill" id="theme-pill"><span id="game-icon">🐾</span><span id="local-time">--:--</span><span>| CST</span></div>
+    <div style="background: white; padding: 4px; border-radius: 4px;"><img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://www.amazon.com/gp/goldbox?tag=Werewolf3788-20"></div>
+</div>
+
+<div class="brand-footer">
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <div id="game-name-display">SYNCING...</div>
+        <div id="shoutout-display" style="background: rgba(0,0,0,0.6); border-left: 4px solid #a020f0; padding: 10px 15px; color: white; font-weight: 700;">Support the Pack! Scan the QR! 🛒</div>
+    </div>
+    <img src="https://github.com/KFruti88/images/blob/main/Transparent%20Dark%20Terror.png?raw=true" class="main-logo" id="brand-logo">
+</div>
+
+<script>
+    const config = {
+        user: "terrdog420",
+        timezone: "America/Chicago",
+        firebase: {
+            apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+            projectId: "angler-squad-tracker"
+        },
+        gameThemes: {
+            "angler": { color: "#3b82f6", icon: "🎣", showTrophies: true },
+            "hunter": { color: "#228B22", icon: "🌲", showTrophies: false },
+            "red dead": { color: "#b22234", icon: "🤠", showTrophies: false },
+            "default": { color: "#a020f0", icon: "🐾", showTrophies: false }
+        }
+    };
+
+    // Firebase Initialization
+    firebase.initializeApp({ apiKey: config.firebase.apiKey, authDomain: `${config.firebase.projectId}.firebaseapp.com`, projectId: config.firebase.projectId });
+    const db = firebase.firestore();
+    firebase.auth().signInAnonymously();
+
+    // Listen to TJ's Catches
+    db.collection('catches').doc(config.user).onSnapshot(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            ['Legendary', 'Diamond', 'Gold'].forEach(t => {
+                const el = document.getElementById(`stat-${t}`);
+                if(el) el.innerText = data[t] || 0;
+            });
+        }
+    });
+
+    async function updateTheme() {
+        try {
+            const res = await fetch(`https://decapi.me/twitch/game/${config.user}?v=${Date.now()}`);
+            const game = (await res.text()).toLowerCase();
+            const display = document.getElementById('game-name-display');
+            display.innerText = game.toUpperCase();
+            
+            let theme = config.gameThemes.default;
+            for(let key in config.gameThemes) { if(game.includes(key)) { theme = config.gameThemes[key]; break; } }
+            
+            // Toggle Trophy HUD visibility based on game
+            document.getElementById('trophy-hud').style.display = theme.showTrophies ? 'flex' : 'none';
+            
+            const c = theme.color;
+            display.style.textShadow = `0 0 10px ${c}`;
+            document.getElementById('chat-ticker-container').style.borderBottomColor = c;
+            document.getElementById('theme-pill').style.borderRightColor = c;
+            document.getElementById('game-icon').innerText = theme.icon;
+            document.getElementById('brand-logo').style.filter = `drop-shadow(0 0 15px ${c})`;
+        } catch (e) {}
+    }
+
+    // StreamElements Events
+    window.addEventListener('onEventReceived', function (obj) {
+        if (obj.detail.listener === "message-receive") {
+            const d = obj.detail.event.data;
+            const item = document.createElement('div');
+            item.className = "ticker-item";
+            item.innerHTML = `<span style="color: #ccc; font-size: 14px; margin-right: 10px;">[${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}]</span> <span style="font-weight:900; color:${d.color || '#fff'}">🐺 ${d.displayName}:</span> <span>${d.text}</span>`;
+            document.getElementById('ticker-wrapper').appendChild(item);
+        }
+    });
+
+    setInterval(updateTheme, 30000); 
+    updateTheme();
+    setInterval(() => { 
+        document.getElementById('local-time').innerText = new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZone: config.timezone }); 
+    }, 1000);
+</script>
+</body>
+</html>
