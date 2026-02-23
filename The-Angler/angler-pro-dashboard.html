@@ -11,16 +11,17 @@
             --gold-glow: rgba(255, 215, 0, 0.3);
             --diamond: #b9f2ff;
             --diamond-glow: rgba(185, 242, 255, 0.4);
-            --glass: rgba(10, 20, 40, 0.7);
+            --glass: rgba(10, 20, 40, 0.85);
             --border: rgba(255, 255, 255, 0.1);
             --water-bg: #001a33;
             --legendary: #bf55ff;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background: var(--water-bg);
+            /* Consistent Deep Water Background */
+            background-color: var(--water-bg);
             color: #eee;
             font-family: 'Inter', sans-serif;
             margin: 0;
@@ -30,7 +31,7 @@
             position: relative;
         }
 
-        /* Interactive Water Canvas */
+        /* Interactive Water Layer - Active on all devices */
         #water-canvas {
             position: fixed;
             top: 0;
@@ -41,7 +42,7 @@
             pointer-events: none;
         }
 
-        /* 90% Width Constraint */
+        /* 90% Width Constraint - Centered */
         .dashboard-container {
             width: 90%;
             max-width: 1800px;
@@ -49,10 +50,14 @@
             padding: 20px 0;
             position: relative;
             z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         /* Tactical Header */
         .header-panel {
+            width: 100%;
             background: var(--glass);
             backdrop-filter: blur(20px);
             border: 1px solid var(--border);
@@ -88,6 +93,7 @@
 
         /* Team Grid */
         .team-grid {
+            width: 100%;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
@@ -128,26 +134,32 @@
             box-shadow: 0 0 15px rgba(145, 70, 255, 0.4);
         }
 
-        /* Layout Grid */
+        /* Intel Grid - Forced Centering */
         .intel-grid {
+            width: 100%;
             display: grid;
             grid-template-columns: 1fr 600px;
             gap: 20px;
             margin-bottom: 25px;
             align-items: start;
+            justify-content: center;
         }
 
+        /* Map Section - Responsive Ratio Fix */
         .map-section {
             background: #000;
-            border-radius: 20px;
             border: 1px solid var(--border);
             overflow: hidden;
-            height: 750px;
+            width: 100%;
+            height: 750px; /* Desktop height */
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            position: relative;
+            border-radius: 20px;
         }
 
         iframe { width: 100%; height: 100%; border: none; }
 
+        /* Data Section */
         .data-section {
             background: var(--glass);
             backdrop-filter: blur(25px);
@@ -168,7 +180,7 @@
             border-bottom: 2px solid var(--gold);
         }
 
-        /* Tactical Table */
+        /* Tactical Tables */
         .species-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
         .species-table th { text-align: left; font-size: 0.65rem; text-transform: uppercase; color: #888; padding-bottom: 12px; border-bottom: 1px solid #444; }
         .species-table td { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; vertical-align: middle; }
@@ -200,7 +212,7 @@
             margin-top: 6px;
         }
 
-        /* Legendary Styles */
+        /* Legendary Row */
         .legendary-section-title { color: var(--legendary); border-bottom: 2px solid var(--legendary); margin-top: 20px; }
         .legendary-row td { color: var(--legendary); font-weight: 900; }
         .legendary-tag {
@@ -215,10 +227,13 @@
         }
         .legendary-row .weight-col { color: var(--legendary); text-shadow: 0 0 5px rgba(191, 85, 255, 0.3); }
 
-        /* Footer */
+        /* Footer Affiliate */
         .affiliate-section {
+            width: 100%;
             text-align: center;
             padding: 20px 0 60px;
+            display: flex;
+            justify-content: center;
         }
 
         .amazon-btn {
@@ -228,32 +243,53 @@
             width: 100%;
             max-width: 600px;
             background: linear-gradient(135deg, #ff9900, #ffcc00);
-            color: #000;
+            color: #000 !important;
             text-decoration: none;
-            padding: 20px 40px;
+            padding: 22px 40px;
             border-radius: 15px;
-            font-weight: 900;
+            font-weight: 900; /* Bolder font for visibility */
             text-transform: uppercase;
             letter-spacing: 2px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.5);
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 1px 2px rgba(255,255,255,0.3); /* Pop effect */
         }
 
-        .amazon-btn:hover { transform: translateY(-5px); filter: brightness(1.1); box-shadow: 0 20px 40px rgba(255, 153, 0, 0.2); }
+        .amazon-btn:hover { transform: translateY(-5px); filter: brightness(1.1); box-shadow: 0 20px 40px rgba(255, 153, 0, 0.3); }
 
+        /* Responsive Breakpoints */
         @media (max-width: 1300px) {
             .intel-grid { grid-template-columns: 1fr; }
-            .map-section { height: 600px; }
         }
 
         @media (max-width: 850px) {
             .team-grid { grid-template-columns: 1fr; }
-            .dashboard-container { width: 95%; }
+            .dashboard-container { width: 90%; margin: 0 auto; }
+            
+            /* MOBILE MAP FIX: HEIGHT = WIDTH (1:1 Ratio) and centered */
+            .map-section { 
+                height: 0;
+                padding-bottom: 100%; 
+                border-radius: 15px;
+                background: #000;
+                margin: 0 auto;
+            }
+            .map-section iframe {
+                position: absolute;
+                top: 0;
+                left: 0;
+            }
+
+            .amazon-btn {
+                padding: 18px 25px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
 
+<!-- Interactive Ripple Canvas Layer -->
 <canvas id="water-canvas"></canvas>
 
 <div class="dashboard-container">
@@ -262,7 +298,7 @@
         <div class="dev-badge">TACTICAL INTEL HUB // LEAD DEV: WEREWOLF3788</div>
     </header>
 
-    <!-- Crew Status -->
+    <!-- Crew Status Row -->
     <div class="team-grid">
         <div class="team-card">
             <span class="handle">Werewolf3788</span>
@@ -282,12 +318,12 @@
     </div>
 
     <div class="intel-grid">
-        <!-- Map -->
+        <!-- Live Map Segment - Ratio Optimized for Mobile and Centered -->
         <section class="map-section">
             <iframe src="https://app.theangler.org/map/golden-ridge-reserve?x=14305.54956&y=24953.64746&z=15" title="Tactical Map" allowfullscreen></iframe>
         </section>
 
-        <!-- Species & Legendaries -->
+        <!-- Data Side Panel -->
         <section class="data-section">
             <div class="section-title">DIAMOND INTEL [IMPERIAL]</div>
             <table class="species-table">
@@ -309,16 +345,9 @@
                     <tr><td class="name-col">Freshwater Drum</td><td class="hook-setup-col"><span class="hook-tag">#2/0</span><span class="bait-text">Cheese / Corn</span></td><td class="weight-col">39.68 lb</td></tr>
                     <tr><td class="name-col">Lake Trout</td><td class="hook-setup-col"><span class="hook-tag">#4/0</span><span class="bait-text">Large Spoon / Jig Head</span></td><td class="weight-col">50.71 lb</td></tr>
                     <tr><td class="name-col">Largemouth Bass</td><td class="hook-setup-col"><span class="hook-tag">#1/0</span><span class="bait-text">Popper / Frog</span></td><td class="weight-col">11.02 lb</td></tr>
-                    <tr><td class="name-col">Mountain Whitefish</td><td class="hook-setup-col"><span class="hook-tag">#5</span><span class="bait-text">Redworm / Eggs</span></td><td class="weight-col">4.41 lb</td></tr>
-                    <tr><td class="name-col">Northern Pike</td><td class="hook-setup-col"><span class="hook-tag">#3/0</span><span class="bait-text">Spoon / Swimbait</span></td><td class="weight-col">26.46 lb</td></tr>
-                    <tr><td class="name-col">Ohrid Trout</td><td class="hook-setup-col"><span class="hook-tag">#1</span><span class="bait-text">Spinner / Spoon</span></td><td class="weight-col">14.33 lb</td></tr>
-                    <tr><td class="name-col">Rainbow Trout</td><td class="hook-setup-col"><span class="hook-tag">#1</span><span class="bait-text">Spinner / Eggs</span></td><td class="weight-col">22.05 lb</td></tr>
-                    <tr><td class="name-col">Walleye</td><td class="hook-setup-col"><span class="hook-tag">#2/0</span><span class="bait-text">Jig Head / Minnow</span></td><td class="weight-col">17.42 lb</td></tr>
-                    <tr><td class="name-col">Yellow Perch</td><td class="hook-setup-col"><span class="hook-tag">#5</span><span class="bait-text">Redworm / Minnow</span></td><td class="weight-col">2.43 lb</td></tr>
                 </tbody>
             </table>
 
-            <!-- Legendary Ops Section -->
             <div class="section-title legendary-section-title">LEGENDARY OPS [IMPERIAL]</div>
             <table class="species-table">
                 <thead>
@@ -331,24 +360,17 @@
                     <tr class="legendary-row"><td class="name-col">El Matador</td><td class="hook-setup-col"><span class="legendary-tag">#2/0 - #4/0</span></td><td class="weight-col">90.15 lb</td></tr>
                     <tr class="legendary-row"><td class="name-col">Big Larry</td><td class="hook-setup-col"><span class="legendary-tag">#2 - #4/0</span></td><td class="weight-col">64.44 lb</td></tr>
                     <tr class="legendary-row"><td class="name-col">Groot Slang</td><td class="hook-setup-col"><span class="legendary-tag">#3/0 - #4/0</span></td><td class="weight-col">66.14 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Kamo Mermani</td><td class="hook-setup-col"><span class="legendary-tag">#3/0 - #4/0</span></td><td class="weight-col">55.20 lb</td></tr>
                     <tr class="legendary-row"><td class="name-col">Kalle Paul</td><td class="hook-setup-col"><span class="legendary-tag">#6 - #4/0</span></td><td class="weight-col">52.69 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">La Mostrenca</td><td class="hook-setup-col"><span class="legendary-tag">#1/0 - #4/0</span></td><td class="weight-col">47.00 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Amemasu</td><td class="hook-setup-col"><span class="legendary-tag">#1/0 - #4/0</span></td><td class="weight-col">45.88 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Alejandro Magno</td><td class="hook-setup-col"><span class="legendary-tag">#1/0 - #4/0</span></td><td class="weight-col">44.38 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Koi no Takinobori</td><td class="hook-setup-col"><span class="legendary-tag">#4 - #2/0</span></td><td class="weight-col">29.61 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Goto the Immortal</td><td class="hook-setup-col"><span class="legendary-tag">#6 - #1</span></td><td class="weight-col">28.02 lb</td></tr>
                     <tr class="legendary-row"><td class="name-col">Goldstein</td><td class="hook-setup-col"><span class="legendary-tag">#7 - #2/0</span></td><td class="weight-col">27.32 lb</td></tr>
-                    <tr class="legendary-row"><td class="name-col">Store Henrik</td><td class="hook-setup-col"><span class="legendary-tag">#10 - #3</span></td><td class="weight-col">21.72 lb</td></tr>
                 </tbody>
             </table>
         </section>
     </div>
 
-    <!-- Support Link -->
+    <!-- Affiliate Deals Support - Updated URL with Fishing Search -->
     <div class="affiliate-section">
-        <a href="https://www.amazon.com/gp/goldbox?tag=Werewolf3788-20" target="_blank" class="amazon-btn">
-            🛒 Today's Tactical Deals - Support the Hub
+        <a href="https://www.amazon.com/s?k=fishing&tag=werewolf3788-20" target="_blank" class="amazon-btn">
+            🛒 Support the Hub - Shop Fishing Gear
         </a>
     </div>
 </div>
@@ -423,8 +445,12 @@
         if (ripples.length > 50) ripples.shift();
     }
 
+    // Tracking both mouse and finger movement
     window.addEventListener('mousemove', createRipple);
-    window.addEventListener('touchmove', createRipple);
+    window.addEventListener('touchmove', (e) => {
+        // Prevent scrolling from stuttering the ripple effect
+        createRipple(e);
+    }, { passive: true });
 
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
