@@ -17,138 +17,141 @@
             font-family: 'Roboto', sans-serif; 
         }
 
-        /* LIVE SLIDE TICKER */
+        :root { --accent: #a020f0; }
+
+        /* PERSISTENT TICKER */
         #chat-ticker-container {
             position: absolute; top: 0; left: 0; width: 100%; height: 50px;
-            background: rgba(0, 0, 0, 0.6); border-bottom: 4px solid #a020f0;
+            background: rgba(0, 0, 0, 0.7); border-bottom: 4px solid var(--accent);
             display: flex; align-items: center; overflow: hidden; z-index: 1000;
         }
-        #ticker-wrapper { display: flex; white-space: nowrap; padding-left: 100%; animation: ticker-scroll 25s linear infinite; }
-        @keyframes ticker-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
-        .ticker-item { display: inline-flex; align-items: center; padding: 0 60px; color: white; font-weight: 700; font-size: 22px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
 
-        /* TROPHY HUD (The Angler Specific) */
-        #trophy-hud {
-            position: absolute; top: 60px; left: 0;
-            display: none; /* Hidden unless playing The Angler */
-            gap: 15px; animation: slideInLeft 0.5s ease-out forwards;
+        #ticker-wrapper {
+            display: flex; white-space: nowrap; padding-left: 100%; 
+            animation: ticker-scroll 30s linear infinite; /* Adjusted speed for readability */
         }
-        .trophy-pill {
-            background: rgba(0,0,0,0.7); border-left: 4px solid #fff;
-            padding: 5px 15px; border-radius: 4px; color: white;
-            display: flex; flex-direction: column; align-items: center;
+
+        @keyframes ticker-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
         }
-        .t-label { font-size: 10px; font-weight: 900; text-transform: uppercase; opacity: 0.7; }
-        .t-val { font-size: 20px; font-weight: 900; }
-        .legendary-border { border-color: #a855f7; color: #a855f7; }
-        .diamond-border { border-color: #22d3ee; color: #22d3ee; }
-        .gold-border { border-color: #fbbf24; color: #fbbf24; }
 
-        /* HUD & BRANDING */
-        .top-right-hub { position: absolute; top: 70px; right: 40px; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-        .info-pill { background: rgba(0, 0, 0, 0.6); border-right: 6px solid #a020f0; padding: 8px 22px; color: white; font-weight: 900; border-radius: 4px; display: flex; align-items: center; gap: 15px; }
-        .brand-footer { position: absolute; bottom: 30px; right: 40px; display: flex; align-items: center; gap: 20px; }
-        #game-name-display { font-size: 28px; font-weight: 900; color: white; text-transform: uppercase; transition: all 0.4s; }
-        .main-logo { height: 115px; width: 115px; }
+        .ticker-item {
+            display: inline-flex; align-items: center; padding: 0 60px;
+            color: white; font-weight: 700; font-size: 22px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
 
-        @keyframes slideInLeft { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* BRANDING & HUD */
+        #game-name-display { font-size: 28px; font-weight: 900; color: white; text-transform: uppercase; }
+        .main-logo { height: 115px; width: 115px; filter: drop-shadow(0 0 15px var(--accent)); }
+        
+        #game-stats-hud { position: absolute; top: 60px; left: 0; display: flex; gap: 15px; opacity: 0; transition: 0.5s; }
+        #game-stats-hud.active { opacity: 1; }
+        .stat-pill { background: rgba(0,0,0,0.7); border-left: 4px solid var(--accent); padding: 5px 15px; border-radius: 4px; color: white; display: flex; flex-direction: column; align-items: center; }
     </style>
 </head>
 <body>
 
 <div id="chat-ticker-container">
-    <div id="ticker-wrapper"><div class="ticker-item">🐾 THE PACK IS READY... TICKER ACTIVE...</div></div>
-</div>
-
-<div id="trophy-hud">
-    <div class="trophy-pill legendary-border"><span class="t-label">Legendary</span><span id="stat-Legendary" class="t-val">0</span></div>
-    <div class="trophy-pill diamond-border"><span class="t-label">Diamond</span><span id="stat-Diamond" class="t-val">0</span></div>
-    <div class="trophy-pill gold-border"><span class="t-label">Gold</span><span id="stat-Gold" class="t-val">0</span></div>
-</div>
-
-<div class="top-right-hub">
-    <div class="info-pill" id="theme-pill"><span id="game-icon">🐾</span><span id="local-time">--:--</span><span>| CST</span></div>
-    <div style="background: white; padding: 4px; border-radius: 4px;"><img src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://www.amazon.com/gp/goldbox?tag=Werewolf3788-20"></div>
-</div>
-
-<div class="brand-footer">
-    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-        <div id="game-name-display">SYNCING...</div>
-        <div id="shoutout-display" style="background: rgba(0,0,0,0.6); border-left: 4px solid #a020f0; padding: 10px 15px; color: white; font-weight: 700;">Support the Pack! Scan the QR! 🛒</div>
+    <div id="ticker-wrapper" class="ticker-active">
+        <div class="ticker-item">🐺 THE PACK IS READY... WAITING FOR CHAT...</div>
     </div>
-    <img src="https://github.com/KFruti88/images/blob/main/Transparent%20Dark%20Terror.png?raw=true" class="main-logo" id="brand-logo">
+</div>
+
+<div id="game-stats-hud"></div>
+
+<div class="brand-footer" style="position: absolute; bottom: 30px; right: 40px; display: flex; align-items: center; gap: 20px;">
+    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+        <div id="game-name-display">OFFLINE</div>
+        <div id="shoutout-display" style="background: rgba(0,0,0,0.6); border-left: 4px solid var(--accent); padding: 10px 15px; color: white; font-weight: 700;">Support the Pack! Scan the QR! 🛒</div>
+    </div>
+    <img src="https://github.com/KFruti88/images/blob/main/Transparent%20Dark%20Terror.png?raw=true" class="main-logo">
 </div>
 
 <script>
     const config = {
         user: "terrdog420",
-        timezone: "America/Chicago",
-        firebase: {
-            apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
-            projectId: "angler-squad-tracker"
-        },
-        gameThemes: {
-            "angler": { color: "#3b82f6", icon: "🎣", showTrophies: true },
-            "hunter": { color: "#228B22", icon: "🌲", showTrophies: false },
-            "red dead": { color: "#b22234", icon: "🤠", showTrophies: false },
-            "default": { color: "#a020f0", icon: "🐾", showTrophies: false }
+        tickerLimit: 8, // Max messages to show in the loop
+        firebase: { apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k", projectId: "angler-squad-tracker" },
+        themes: {
+            "angler": { color: "#3b82f6", icon: "🎣", stats: ['Legendary', 'Diamond', 'Gold'] },
+            "hunter": { color: "#228B22", icon: "🌲", stats: ['Great One', 'Diamond', 'Piebald'] },
+            "default": { color: "#a020f0", icon: "🐾", stats: [] }
         }
     };
 
-    // Firebase Initialization
+    // Firebase Init
     firebase.initializeApp({ apiKey: config.firebase.apiKey, authDomain: `${config.firebase.projectId}.firebaseapp.com`, projectId: config.firebase.projectId });
     const db = firebase.firestore();
     firebase.auth().signInAnonymously();
 
-    // Listen to TJ's Catches
-    db.collection('catches').doc(config.user).onSnapshot(doc => {
-        if (doc.exists) {
-            const data = doc.data();
-            ['Legendary', 'Diamond', 'Gold'].forEach(t => {
-                const el = document.getElementById(`stat-${t}`);
-                if(el) el.innerText = data[t] || 0;
-            });
-        }
-    });
+    // CHAT PERSISTENCE LOGIC
+    function handleTicker(user, message, color) {
+        const wrapper = document.getElementById('ticker-wrapper');
+        
+        // Remove the default welcome message if it's there
+        if (wrapper.innerText.includes("THE PACK IS READY")) wrapper.innerHTML = "";
 
-    async function updateTheme() {
-        try {
-            const res = await fetch(`https://decapi.me/twitch/game/${config.user}?v=${Date.now()}`);
-            const game = (await res.text()).toLowerCase();
-            const display = document.getElementById('game-name-display');
-            display.innerText = game.toUpperCase();
-            
-            let theme = config.gameThemes.default;
-            for(let key in config.gameThemes) { if(game.includes(key)) { theme = config.gameThemes[key]; break; } }
-            
-            // Toggle Trophy HUD visibility based on game
-            document.getElementById('trophy-hud').style.display = theme.showTrophies ? 'flex' : 'none';
-            
-            const c = theme.color;
-            display.style.textShadow = `0 0 10px ${c}`;
-            document.getElementById('chat-ticker-container').style.borderBottomColor = c;
-            document.getElementById('theme-pill').style.borderRightColor = c;
-            document.getElementById('game-icon').innerText = theme.icon;
-            document.getElementById('brand-logo').style.filter = `drop-shadow(0 0 15px ${c})`;
-        } catch (e) {}
+        const item = document.createElement('div');
+        item.className = "ticker-item";
+        item.innerHTML = `<span style="font-weight:900; color:${color || 'var(--accent)'}">🐺 ${user}:</span> <span style="margin-left:10px">${message}</span>`;
+        
+        wrapper.appendChild(item);
+
+        // Keep the loop at the limit
+        if (wrapper.children.length > config.tickerLimit) {
+            wrapper.removeChild(wrapper.children[0]);
+        }
+        
+        // Save to local storage so it stays after refresh/offline
+        localStorage.setItem('tj_ticker_backup', wrapper.innerHTML);
     }
 
-    // StreamElements Events
+    // Load backup messages on startup
+    window.onload = () => {
+        const backup = localStorage.getItem('tj_ticker_backup');
+        if (backup) document.getElementById('ticker-wrapper').innerHTML = backup;
+        updateOverlay();
+    };
+
     window.addEventListener('onEventReceived', function (obj) {
         if (obj.detail.listener === "message-receive") {
             const d = obj.detail.event.data;
-            const item = document.createElement('div');
-            item.className = "ticker-item";
-            item.innerHTML = `<span style="color: #ccc; font-size: 14px; margin-right: 10px;">[${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}]</span> <span style="font-weight:900; color:${d.color || '#fff'}">🐺 ${d.displayName}:</span> <span>${d.text}</span>`;
-            document.getElementById('ticker-wrapper').appendChild(item);
+            handleTicker(d.displayName, d.text, d.color);
         }
     });
 
-    setInterval(updateTheme, 30000); 
-    updateTheme();
-    setInterval(() => { 
-        document.getElementById('local-time').innerText = new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', timeZone: config.timezone }); 
-    }, 1000);
+    async function updateOverlay() {
+        try {
+            const res = await fetch(`https://decapi.me/twitch/game/${config.user}?v=${Date.now()}`);
+            const game = (await res.text()).toLowerCase();
+            document.getElementById('game-name-display').innerText = game.includes('not found') ? "OFFLINE" : game.toUpperCase();
+            
+            let active = config.themes.default;
+            for(let key in config.themes) { if(game.includes(key)) { active = config.themes[key]; break; } }
+            
+            document.documentElement.style.setProperty('--accent', active.color);
+            
+            // Stats HUD logic remains the same
+            const hud = document.getElementById('game-stats-hud');
+            if (active.stats.length > 0) {
+                hud.innerHTML = active.stats.map(s => `<div class="stat-pill"><span class="s-label">${s}</span><span id="stat-${s.replace(/\s+/g, '')}" class="s-val">0</span></div>`).join('');
+                hud.classList.add('active');
+                db.collection('catches').doc(config.user).onSnapshot(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        active.stats.forEach(s => {
+                            const el = document.getElementById(`stat-${s.replace(/\s+/g, '')}`);
+                            if(el) el.innerText = data[s] || 0;
+                        });
+                    }
+                });
+            } else { hud.classList.remove('active'); }
+        } catch (e) {}
+    }
+
+    setInterval(updateOverlay, 60000);
 </script>
 </body>
 </html>
