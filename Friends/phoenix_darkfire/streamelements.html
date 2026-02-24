@@ -1,1 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* --- BASE SETUP --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: white;
+            background: transparent;
+            transition: background 0.5s ease;
+        }
 
+        #wp-custom-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- TOP BANNER: DARK & FIREY --- */
+        .top-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 140px;
+            /* Darker blue theme #336cf2 integrated into gradient */
+            background: linear-gradient(180deg, rgba(0, 2, 10, 0.98) 0%, rgba(51, 108, 242, 0.3) 60%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 80px;
+            box-sizing: border-box;
+            border-bottom: 2px solid rgba(51, 108, 242, 0.4);
+            z-index: 100;
+        }
+
+        .banner-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* --- FLAMING WINGS NEXT TO TEXT --- */
+        .wing-icon {
+            width: 180px;
+            height: 100px;
+            background: url('https://img.icons8.com/ios/500/ffffff/wings.png') no-repeat center/contain;
+            filter: 
+                drop-shadow(0 0 5px #ffffff) 
+                drop-shadow(0 0 15px #336cf2) 
+                drop-shadow(0 5px 30px #1a4bb3);
+            animation: wingFlicker 1.8s infinite alternate ease-in-out;
+        }
+
+        .wing-icon.right {
+            transform: scaleX(-1);
+            --dir: -1;
+        }
+
+        @keyframes wingFlicker {
+            0% { 
+                opacity: 0.7; 
+                filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 10px #336cf2) drop-shadow(0 5px 25px #1a4bb3);
+                transform: scale(1) scaleX(var(--dir, 1));
+            }
+            100% { 
+                opacity: 1.0; 
+                filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 20px #336cf2) drop-shadow(0 10px 45px #0a2d80);
+                transform: scale(1.08) scaleX(var(--dir, 1));
+            }
+        }
+
+        /* --- EERIE BLUE FLAME TEXT --- */
+        .title-text {
+            font-size: 64px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            color: #f0faff;
+            text-shadow: 
+                0 0 10px #fff,
+                0 0 20px #336cf2,
+                0 0 40px #1a4bb3,
+                0 0 70px #0a1b4d;
+            animation: firePulse 2.5s infinite alternate;
+        }
+
+        @keyframes firePulse {
+            0% { transform: skewX(-1deg); text-shadow: 0 0 10px #fff, 0 -2px 15px #336cf2, 0 -5px 30px #1a4bb3; }
+            50% { transform: skewX(1deg); text-shadow: 0 0 15px #fff, 0 -8px 25px #336cf2, 0 -12px 50px #0a2d80; }
+            100% { transform: skewX(-1deg); text-shadow: 0 0 10px #fff, 0 -2px 18px #336cf2, 0 -6px 35px #1a4bb3; }
+        }
+
+        /* --- LOWER RIGHT: TWITCH HUD --- */
+        .lower-right-hud {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 15px 30px;
+            border-radius: 60px 20px 20px 60px;
+            border-right: 5px solid #336cf2;
+            backdrop-filter: blur(10px);
+            box-shadow: -10px 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .twitch-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #336cf2;
+            box-shadow: 0 0 20px #336cf2;
+        }
+
+        .game-info {
+            display: flex;
+            flex-direction: column;
+            text-align: right;
+        }
+
+        .playing-label { font-size: 14px; color: #336cf2; text-transform: uppercase; font-weight: bold; letter-spacing: 2px; }
+        .current-game { font-size: 28px; font-weight: 800; color: white; }
+
+        /* --- LOWER LEFT: AMAZON LINK (ABOVE) & CLOCK (BELOW) --- */
+        .lower-left-hud {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .amazon-link-box {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 12px 20px;
+            border-left: 5px solid #336cf2;
+            backdrop-filter: blur(10px);
+            max-width: 450px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .amazon-label {
+            font-size: 12px;
+            color: #336cf2;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .amazon-url {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            word-break: break-all;
+            display: block;
+        }
+
+        .clock-box {
+            background: rgba(0, 0, 0, 0.75);
+            padding: 20px 25px;
+            border-left: 5px solid #336cf2;
+            backdrop-filter: blur(10px);
+        }
+
+        #time { font-size: 36px; font-weight: 900; display: block; letter-spacing: 3px; }
+        #date { font-size: 18px; color: #336cf2; font-weight: 700; text-transform: uppercase; }
+
+        /* --- DYNAMIC MODE HIGHLIGHTS --- */
+        .match-highlight {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border: 0px solid transparent;
+            transition: all 0.5s ease;
+            z-index: 50;
+        }
+
+        body.cod-mode .match-highlight { border: 4px solid #9ef01a; animation: glitchBorder 1.5s infinite; }
+        @keyframes glitchBorder { 0% { box-shadow: inset 0 0 15px #9ef01a; } 50% { box-shadow: inset 2px -2px 25px #38b000, inset -2px 2px 25px #9ef01a; } 100% { box-shadow: inset 0 0 15px #9ef01a; } }
+        body.wot-mode .match-highlight { border: 4px solid #8b9467; box-shadow: inset 0 0 30px rgba(139, 148, 103, 0.5); }
+        body.swat-mode .match-highlight { animation: swatStrobe 0.5s infinite alternate; border-width: 4px; }
+        @keyframes swatStrobe { 0% { border-color: #1a237e; box-shadow: inset 0 0 25px rgba(26, 35, 126, 0.7); } 100% { border-color: #d32f2f; box-shadow: inset 0 0 20px rgba(211, 47, 47, 0.5); } }
+        body.racing-mode .match-highlight { animation: policeFlash 0.8s infinite alternate; border-width: 4px; }
+        @keyframes policeFlash { 0% { border-color: #ff0000; box-shadow: inset 0 0 25px rgba(255, 0, 0, 0.6); } 100% { border-color: #0000ff; box-shadow: inset 0 0 25px rgba(0, 255, 0, 0.6); } }
+        body.farming-mode .match-highlight { border: 4px solid #ffde00; box-shadow: inset 0 0 30px #ffde0066; }
+        body.hunting-mode .match-highlight { border: 4px solid #355e3b; box-shadow: inset 0 0 30px #355e3b66; }
+        body.fishing-mode .match-highlight { border: 4px solid #0077be; box-shadow: inset 0 0 30px #0077be66; }
+        body.arc-mode .match-highlight { border: 4px solid #a020f0; box-shadow: inset 0 0 25px #a020f0; }
+        body.grounded-mode .match-highlight { border: 4px solid #8db600; box-shadow: inset 0 0 25px #8db600; }
+        body.monopoly-mode .match-highlight { border: 4px solid #2ecc71; box-shadow: inset 0 0 25px #2ecc71; }
+        body.marvel-mode .match-highlight { border: 4px solid #f0131e; box-shadow: inset 0 0 25px #f0131e, inset 0 0 10px #fff; }
+        body.division-mode .match-highlight { border: 4px solid #ff8c00; box-shadow: inset 0 0 30px #ff8c00; }
+        body.sniper-mode .match-highlight { border: 4px solid #6b8e23; box-shadow: inset 0 0 20px #000; }
+        body.dbd-mode .match-highlight { border: 4px solid #8b0000; box-shadow: inset 0 0 25px #8b0000; animation: bleed 2s infinite; }
+        @keyframes bleed { 0% { box-shadow: inset 0 0 10px #8b0000; } 50% { box-shadow: inset 0 0 35px #ff0000; } 100% { box-shadow: inset 0 0 10px #8b0000; } }
+        body.sonic-mode .match-highlight { border: 4px solid #1e90ff; box-shadow: inset 0 0 25px #ffd700; }
+
+        /* --- BLERP ALERT SYSTEM --- */
+        .blerp-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+            opacity: 0.01;
+            pointer-events: none;
+            z-index: -100;
+        }
+
+        /* --- DYNAMIC THEMES & CURSORS --- */
+        body.cod-mode { background: linear-gradient(180deg, #0a0f02 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="2" fill="%23ff0000"/><circle cx="16" cy="16" r="14" stroke="%239ef01a" stroke-width="1" fill="none"/></svg>'), auto; }
+        body.wot-mode { background: linear-gradient(180deg, #3d4432 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="14" stroke="%238b9467" stroke-width="2" fill="none"/><line x1="16" y1="2" x2="16" y2="30" stroke="%238b9467"/><line x1="2" y1="16" x2="30" y2="16" stroke="%238b9467"/></svg>'), auto; }
+        body.swat-mode { background: linear-gradient(180deg, #0d1117 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="2" fill="%23ff0000"/><circle cx="16" cy="16" r="14" stroke="%23333" stroke-width="1" fill="none"/></svg>'), auto; }
+        body.racing-mode { background: linear-gradient(180deg, #1a1a1a 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🏎️</text></svg>'), auto; }
+        body.farming-mode { background: linear-gradient(180deg, #367c2b 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🚜</text></svg>'), auto; }
+        body.hunting-mode { background: linear-gradient(180deg, #1b3022 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🏹</text></svg>'), auto; }
+        body.fishing-mode { background: linear-gradient(180deg, #001f3f 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🎣</text></svg>'), auto; }
+        body.arc-mode { background: linear-gradient(180deg, #2c003e 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🤖</text></svg>'), auto; }
+        body.grounded-mode { background: linear-gradient(180deg, #4b5320 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🐜</text></svg>'), auto; }
+        body.monopoly-mode { background: linear-gradient(180deg, #1d5c2f 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🎩</text></svg>'), auto; }
+        body.marvel-mode { background: linear-gradient(180deg, #5a0000 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🦸</text></svg>'), auto; }
+        body.division-mode { background: linear-gradient(180deg, #442200 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="12" stroke="%23ff8c00" stroke-width="3" fill="none"/></svg>'), auto; }
+        body.sniper-mode { background: linear-gradient(180deg, #2e3b23 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🔭</text></svg>'), auto; }
+        body.dbd-mode { background: linear-gradient(180deg, #200000 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🩸</text></svg>'), auto; }
+        body.sonic-mode { background: linear-gradient(180deg, #00008b 0%, transparent 100%); cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">💍</text></svg>'), auto; }
+
+    </style>
+</head>
+<body class="default-mode">
+
+<div id="wp-custom-wrapper">
+    <!-- Dynamic Mode Border (Edges only) -->
+    <div class="match-highlight"></div>
+
+    <!-- Top Banner -->
+    <div class="top-banner">
+        <div class="banner-group">
+            <div class="wing-icon left" style="--dir: 1"></div>
+            <div class="title-text">Phoenix</div>
+        </div>
+        
+        <div class="banner-group">
+            <div class="title-text">Darkfire</div>
+            <div class="wing-icon right" style="--dir: -1"></div>
+        </div>
+    </div>
+
+    <!-- Lower Left: Amazon Wishlist (Text Link Above) & Timestamp (Below) -->
+    <div class="lower-left-hud">
+        <div class="amazon-link-box">
+            <div class="amazon-label">Support via Amazon Wishlist</div>
+            <span class="amazon-url">amazon.com/hz/wishlist/ls/ZSBX0CSJRQT7?tag=phoenix_darkfire-20</span>
+        </div>
+        <div class="clock-box">
+            <span id="time">00:00:00</span>
+            <span id="date">JAN 01, 2026</span>
+        </div>
+    </div>
+
+    <!-- Lower Right: Profile & Game -->
+    <div class="lower-right-hud">
+        <img class="twitch-logo" src="https://static-cdn.jtvnw.net/jtv_user_pictures/705599df-3e5f-4d6f-9c95-3ff34317d268-profile_image-70x70.png" alt="Phoenix Profile">
+        <div class="game-info">
+            <span class="playing-label">Currently Playing</span>
+            <span class="current-game" id="game-name">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Blerp Hidden Listener -->
+    <div class="blerp-container">
+        <iframe src="https://obs.blerp.com/pwn/5xyg481k2pau" allow="autoplay"></iframe>
+    </div>
+</div>
+
+<script>
+    /** * CLOCK LOGIC - Central Time (America/Chicago)
+     */
+    function updateClock() {
+        const now = new Date();
+        const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'America/Chicago' };
+        const dateOptions = { month: 'short', day: '2-digit', year: 'numeric', timeZone: 'America/Chicago' };
+        
+        document.getElementById('time').textContent = now.toLocaleTimeString('en-US', timeOptions);
+        document.getElementById('date').textContent = now.toLocaleDateString('en-US', dateOptions).toUpperCase();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    /** * TWITCH GAME FETCHING & AUTO THEME SWITCHER
+     */
+    async function updateTwitchData() {
+        try {
+            const response = await fetch('https://decapi.me/twitch/game/phoenix_darkfire');
+            const game = await response.text();
+            const gameDisplay = document.getElementById('game-name');
+            
+            if (game && !game.includes("Internal Server Error")) {
+                gameDisplay.textContent = game;
+                updateThemeBasedOnGame(game);
+            } else {
+                gameDisplay.textContent = "Live Stream";
+            }
+        } catch (error) {
+            document.getElementById('game-name').textContent = "Phoenix Darkfire";
+        }
+    }
+
+    function updateThemeBasedOnGame(gameName) {
+        const game = gameName.toLowerCase();
+        let mode = 'default-mode';
+
+        if (game.includes('call of duty') || game.includes('warzone')) mode = 'cod-mode';
+        else if (game.includes('world of tanks')) mode = 'wot-mode';
+        else if (game.includes('swat')) mode = 'swat-mode';
+        else if (game.includes('racing') || game.includes('need for speed') || game.includes('forza')) mode = 'racing-mode';
+        else if (game.includes('farming')) mode = 'farming-mode';
+        else if (game.includes('hunting') || game.includes('the hunter')) mode = 'hunting-mode';
+        else if (game.includes('fishing') || game.includes('abzu')) mode = 'fishing-mode';
+        else if (game.includes('grounded')) mode = 'grounded-mode';
+        else if (game.includes('monopoly')) mode = 'monopoly-mode';
+        else if (game.includes('marvel')) mode = 'marvel-mode';
+        else if (game.includes('division')) mode = 'division-mode';
+        else if (game.includes('sniper')) mode = 'sniper-mode';
+        else if (game.includes('dead by daylight')) mode = 'dbd-mode';
+        else if (game.includes('sonic')) mode = 'sonic-mode';
+
+        setMode(mode);
+    }
+
+    function setMode(modeClass) {
+        document.body.className = modeClass;
+    }
+    
+    updateTwitchData();
+    setInterval(updateTwitchData, 60000);
+</script>
+
+</body>
+</html>
