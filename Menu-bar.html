@@ -28,88 +28,69 @@
     --police-blue: #2500E0;
   }
 
-  body { margin: 0; background: #000; }
-  
-  /* CONTAINER: Responsive 95% Width */
   #wp-custom-wrapper { 
-    width: 95% !important; 
-    margin: 5px auto; 
+    width: 90% !important; 
+    margin: 0 auto; 
+    padding: 0;
     font-family: 'Segoe UI', Impact, sans-serif;
-    box-sizing: border-box;
+    line-height: 1;
   }
 
-  /* THE BOX: Now fits content tightly */
   .total-header {
     background: #000;
-    border: 4px solid var(--game-color);
-    border-radius: 8px;
-    overflow: hidden;
-    transition: border-color 0.5s ease;
+    border: 2px solid var(--game-color);
+    border-radius: 4px;
+    overflow: visible;
     display: flex;
     flex-direction: column;
   }
 
-  /* NAVIGATION: Reduced height to fit links tightly */
   .nav-links {
     list-style: none; 
     display: flex; 
-    justify-content: center;
+    /* THIS SPACES THEM OUT ACROSS THE ENTIRE WIDTH */
+    justify-content: space-evenly; 
     align-items: center; 
     margin: 0; 
-    padding: 5px 0; /* Reduced padding for tighter fit */
-    flex-wrap: wrap;
+    padding: 0; 
+    width: 100%;
   }
 
   .nav-links a {
     color: var(--werewolf-orange) !important;
     text-decoration: none; 
     font-weight: 900; 
-    padding: 8px 12px; 
-    text-transform: uppercase;
-    font-size: 14px;
+    padding: 2px 0; /* Vertical only, let justify-content handle horizontal */
+    text-transform: uppercase; 
+    font-size: 11px; 
+    line-height: 10px; 
+    display: inline-block;
   }
 
-  /* STATUS BAR: Compacted */
   .status-bar {
     background-color: var(--game-color);
-    color: #fff;
-    text-align: center;
-    padding: 6px; /* Narrower mission bar */
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 11px;
+    color: #fff; text-align: center; 
+    padding: 1px 0; 
+    font-weight: 800; text-transform: uppercase; 
+    font-size: 9px; line-height: 9px;
     transition: background-color 0.5s ease;
   }
 
-  /* FIRE ENGINE SIREN */
-  .siren-active {
-    animation: sirenBorder 0.4s steps(1, end) infinite !important;
-  }
-  .siren-active .status-bar {
-    animation: sirenBG 0.4s steps(1, end) infinite !important;
-  }
+  /* SIREN ANIMATION */
+  .siren-active { animation: sirenBorder 0.4s steps(1, end) infinite !important; }
+  .siren-active .status-bar { animation: sirenBG 0.4s steps(1, end) infinite !important; }
+  @keyframes sirenBorder { 0%, 100% { border-color: var(--fire-engine-red) !important; } 50% { border-color: var(--police-blue) !important; } }
+  @keyframes sirenBG { 0%, 100% { background-color: var(--fire-engine-red) !important; } 50% { background-color: var(--police-blue) !important; } }
 
-  @keyframes sirenBorder {
-    0%, 100% { border-color: var(--fire-engine-red) !important; }
-    50% { border-color: var(--police-blue) !important; }
-  }
-  @keyframes sirenBG {
-    0%, 100% { background-color: var(--fire-engine-red) !important; }
-    50% { background-color: var(--police-blue) !important; }
-  }
-
-  /* DROPDOWN: Positioned exactly below the nav */
+  /* DROPDOWN */
+  .dropdown { position: relative; }
   .dropdown-content { 
-    display: none; 
-    position: absolute; 
-    background: #000; 
-    border: 2px solid var(--game-color); 
-    min-width: 160px; 
-    z-index: 99; 
+    display: none; position: absolute; background: #000; 
+    border: 2px solid var(--game-color); min-width: 140px; z-index: 9999;
+    top: 100%; left: 50%; transform: translateX(-50%);
   }
   .dropdown:hover .dropdown-content { display: block; }
-  .dropdown-content a { display: block; padding: 10px; border-bottom: 1px solid #222; font-size: 12px; }
+  .dropdown-content a { display: block; padding: 5px; border-bottom: 1px solid #222; font-size: 10px; line-height: normal; text-align: center;}
 
   /* TEAM COLORS */
   .link-werewolf { color: var(--werewolf-orange) !important; }
@@ -118,8 +99,8 @@
   .link-michael { color: #0000FF !important; }
 
   @media (max-width: 600px) {
-    .nav-links a { font-size: 11px; padding: 5px 8px; }
-    #wp-custom-wrapper { width: 98% !important; }
+    .nav-links a { font-size: 9px; }
+    #wp-custom-wrapper { width: 95% !important; }
   }
 </style>
 
@@ -127,44 +108,22 @@
   async function syncTwitch() {
     const header = document.getElementById('header-container');
     const status = document.getElementById('game-status');
-    
-    const gameColors = {
-      "the angler": "#00CCFF",
-      "call of the wild": "#355E3B",
-      "red dead": "#BA0000",
-      "world of tanks": "#545454",
-      "jurassic park": "#4B3621",
-      "need for speed": "SIREN",
-      "default": "#444"
-    };
-
+    const gameColors = { "the angler": "#00CCFF", "call of the wild": "#355E3B", "red dead": "#BA0000", "world of tanks": "#545454", "jurassic park": "#4B3621", "need for speed": "SIREN", "default": "#444" };
     try {
       const resp = await fetch('https://decapi.me/twitch/game/werewolf3788?v=' + Date.now());
       const gameText = await resp.text();
       const gameLower = gameText.toLowerCase();
-
       header.classList.remove('siren-active');
       status.innerText = "MISSION: " + gameText;
-
       let activeColor = gameColors["default"];
-
       for (const [key, value] of Object.entries(gameColors)) {
         if (gameLower.includes(key)) {
-          if (value === "SIREN") {
-            header.classList.add('siren-active');
-            return;
-          } else {
-            activeColor = value;
-          }
-          break;
+          if (value === "SIREN") { header.classList.add('siren-active'); return; }
+          activeColor = value; break;
         }
       }
       document.documentElement.style.setProperty('--game-color', activeColor);
-    } catch (e) {
-      status.innerText = "OFFLINE / API ERR";
-    }
+    } catch (e) { status.innerText = "OFFLINE"; }
   }
-
-  syncTwitch();
-  setInterval(syncTwitch, 30000);
+  syncTwitch(); setInterval(syncTwitch, 30000);
 </script>
