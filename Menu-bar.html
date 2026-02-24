@@ -1,172 +1,170 @@
 <div id="wp-custom-wrapper">
-    <nav class="werewolf-nav" id="dynamic-nav">
-        <ul class="nav-links">
-            <li><a href="https://werewolf.ourflora.com/">Home</a></li>
-            <li><a href="https://werewolf.ourflora.com/movies-anywhere/">Movies Anywhere</a></li>
-            
-            <li class="dropdown">
-                <a href="#" class="dropbtn">Gaming Crew ▼</a>
-                <div class="dropdown-content" id="drop-box">
-                    <a href="https://werewolf.ourflora.com/werewolf/" class="link-werewolf">Werewolf3788</a>
-                    <a href="https://werewolf.ourflora.com/darkwing-dog/" class="link-tj">terrdog420</a>
-                    <a href="https://werewolf.ourflora.com/raymystro/" class="link-ray">Raymystyro</a>
-                    <a href="https://werewolf.ourflora.com/mjolnirgaming-2/" class="link-michael">MjolnirGaming</a>
-                </div>
-            </li>
-            
-            <li><a href="https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" target="_blank">Today's Deals</a></li>
-        </ul>
+  <div id="header-container" class="total-header">
+    <nav class="werewolf-nav">
+      <ul class="nav-links">
+        <li><a href="https://werewolf.ourflora.com/">Home</a></li>
+        <li><a href="https://werewolf.ourflora.com/movies-anywhere/">Movies</a></li>
+        <li class="dropdown">
+          <a href="#">Crew ▼</a>
+          <div class="dropdown-content">
+            <a href="https://werewolf.ourflora.com/werewolf/" class="link-werewolf">Werewolf3788</a>
+            <a href="https://werewolf.ourflora.com/darkwing-dog/" class="link-tj">terrdog420</a>
+            <a href="https://werewolf.ourflora.com/raymystro/" class="link-ray">Raymystyro</a>
+            <a href="https://werewolf.ourflora.com/mjolnirgaming-2/" class="link-michael">MjolnirGaming</a>
+          </div>
+        </li>
+        <li><a href="https://www.amazon.com/goldbox?tag=werewolf3788-20" target="_blank">Deals</a></li>
+      </ul>
     </nav>
-    <div id="game-status" class="status-bar">Syncing with Twitch...</div>
+    <div id="game-status" class="status-bar">Syncing...</div>
+  </div>
 </div>
 
 <style>
-    :root {
-        --werewolf-orange: #FE4B03; /* Jet Orange */
-        --dynamic-accent: #FE4B03; 
-    }
+  :root {
+    --werewolf-orange: #FE4B03; 
+    --game-color: #333; 
+    --fire-engine-red: #D70013;
+    --police-blue: #2500E0;
+  }
 
-    #wp-custom-wrapper {
-        width: 90% !important;
-        margin: 10px auto;
-        background: transparent !important;
-        font-family: 'Segoe UI', Impact, sans-serif;
-    }
+  body { margin: 0; background: #000; }
+  
+  /* CONTAINER: Responsive 95% Width */
+  #wp-custom-wrapper { 
+    width: 95% !important; 
+    margin: 5px auto; 
+    font-family: 'Segoe UI', Impact, sans-serif;
+    box-sizing: border-box;
+  }
 
-    .werewolf-nav {
-        background: #000;
-        border: 4px solid var(--dynamic-accent);
-        border-radius: 8px 8px 0 0;
-        padding: 0 20px;
-        transition: border-color 0.5s ease;
-    }
+  /* THE BOX: Now fits content tightly */
+  .total-header {
+    background: #000;
+    border: 4px solid var(--game-color);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.5s ease;
+    display: flex;
+    flex-direction: column;
+  }
 
-    /* THE COP LIGHTS ANIMATION */
-    .cop-mode-border { animation: sirenBorder 0.6s infinite; }
-    .cop-mode-bg { animation: sirenBG 0.6s infinite; }
+  /* NAVIGATION: Reduced height to fit links tightly */
+  .nav-links {
+    list-style: none; 
+    display: flex; 
+    justify-content: center;
+    align-items: center; 
+    margin: 0; 
+    padding: 5px 0; /* Reduced padding for tighter fit */
+    flex-wrap: wrap;
+  }
 
-    @keyframes sirenBorder {
-        0%, 49% { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; }
-        50%, 100% { border-color: #0000ff; box-shadow: 0 0 15px #0000ff; }
-    }
+  .nav-links a {
+    color: var(--werewolf-orange) !important;
+    text-decoration: none; 
+    font-weight: 900; 
+    padding: 8px 12px; 
+    text-transform: uppercase;
+    font-size: 14px;
+  }
 
-    @keyframes sirenBG {
-        0%, 49% { background: #ff0000; }
-        50%, 100% { background: #0000ff; }
-    }
+  /* STATUS BAR: Compacted */
+  .status-bar {
+    background-color: var(--game-color);
+    color: #fff;
+    text-align: center;
+    padding: 6px; /* Narrower mission bar */
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 11px;
+    transition: background-color 0.5s ease;
+  }
 
-    .nav-links {
-        list-style: none;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 0; padding: 0; height: 60px;
-    }
+  /* FIRE ENGINE SIREN */
+  .siren-active {
+    animation: sirenBorder 0.4s steps(1, end) infinite !important;
+  }
+  .siren-active .status-bar {
+    animation: sirenBG 0.4s steps(1, end) infinite !important;
+  }
 
-    .nav-links a {
-        color: var(--werewolf-orange);
-        text-decoration: none;
-        padding: 0 15px;
-        font-weight: 900;
-        text-transform: uppercase;
-        font-size: 14px;
-        line-height: 60px;
-        display: block;
-    }
+  @keyframes sirenBorder {
+    0%, 100% { border-color: var(--fire-engine-red) !important; }
+    50% { border-color: var(--police-blue) !important; }
+  }
+  @keyframes sirenBG {
+    0%, 100% { background-color: var(--fire-engine-red) !important; }
+    50% { background-color: var(--police-blue) !important; }
+  }
 
-    /* Team Member Colors */
-    .link-werewolf { color: var(--werewolf-orange) !important; }
-    .link-ray { color: #C41E3A !important; }      
-    .link-tj { color: #A020F0 !important; }       
-    .link-michael { color: #0000FF !important; }  
+  /* DROPDOWN: Positioned exactly below the nav */
+  .dropdown-content { 
+    display: none; 
+    position: absolute; 
+    background: #000; 
+    border: 2px solid var(--game-color); 
+    min-width: 160px; 
+    z-index: 99; 
+  }
+  .dropdown:hover .dropdown-content { display: block; }
+  .dropdown-content a { display: block; padding: 10px; border-bottom: 1px solid #222; font-size: 12px; }
 
-    .dropdown-content {
-        display: none;
-        position: absolute;
-        background-color: #0a0a0a;
-        min-width: 220px;
-        border: 3px solid var(--dynamic-accent);
-        z-index: 1000;
-    }
+  /* TEAM COLORS */
+  .link-werewolf { color: var(--werewolf-orange) !important; }
+  .link-ray { color: #C41E3A !important; }
+  .link-tj { color: #A020F0 !important; }
+  .link-michael { color: #0000FF !important; }
 
-    .dropdown:hover .dropdown-content { display: block; }
-    .dropdown-content a { line-height: normal; padding: 15px 20px; border-bottom: 1px solid #222; }
-
-    .status-bar {
-        background: var(--dynamic-accent);
-        color: #fff;
-        text-align: center;
-        font-size: 11px;
-        font-weight: bold;
-        padding: 8px;
-        border-radius: 0 0 8px 8px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        transition: background 0.5s ease;
-    }
-
-    @media (max-width: 768px) {
-        .nav-links { flex-direction: column; height: auto; }
-        .nav-links a { line-height: 50px; text-align: center; }
-    }
+  @media (max-width: 600px) {
+    .nav-links a { font-size: 11px; padding: 5px 8px; }
+    #wp-custom-wrapper { width: 98% !important; }
+  }
 </style>
 
 <script>
-(function() {
-    const username = 'werewolf3788';
-    const statusEl = document.getElementById('game-status');
-    const navEl = document.getElementById('dynamic-nav');
-    const dropEl = document.getElementById('drop-box');
+  async function syncTwitch() {
+    const header = document.getElementById('header-container');
+    const status = document.getElementById('game-status');
     
-    const gamePalette = {
-        "The Angler": "#00CCFF",
-        "theHunter: Call of the Wild": "#355E3B",
-        "Red Dead Redemption": "#BA0000",
-        "World of Tanks": "#545454",
-        "Jurassic Park": "#4B3621",
-        "Need for Speed": "SIREN",
-        "default": "#FE4B03"
+    const gameColors = {
+      "the angler": "#00CCFF",
+      "call of the wild": "#355E3B",
+      "red dead": "#BA0000",
+      "world of tanks": "#545454",
+      "jurassic park": "#4B3621",
+      "need for speed": "SIREN",
+      "default": "#444"
     };
 
-    async function syncTwitch() {
-        try {
-            const response = await fetch(`https://decapi.me/twitch/game/${username}`);
-            const game = await response.text();
-            
-            // Clear animations first
-            navEl.classList.remove('cop-mode-border');
-            dropEl.classList.remove('cop-mode-border');
-            statusEl.classList.remove('cop-mode-bg');
+    try {
+      const resp = await fetch('https://decapi.me/twitch/game/werewolf3788?v=' + Date.now());
+      const gameText = await resp.text();
+      const gameLower = gameText.toLowerCase();
 
-            let activeColor = gamePalette["default"];
+      header.classList.remove('siren-active');
+      status.innerText = "MISSION: " + gameText;
 
-            if (game.toLowerCase().includes("offline")) {
-                activeColor = "#333333";
-                statusEl.innerText = "OFFLINE - LURKING IN THE SHADOWS";
-            } else {
-                statusEl.innerText = `CURRENT MISSION: ${game}`;
-                
-                for (let key in gamePalette) {
-                    if (game.includes(key)) {
-                        if (gamePalette[key] === "SIREN") {
-                            navEl.classList.add('cop-mode-border');
-                            dropEl.classList.add('cop-mode-border');
-                            statusEl.classList.add('cop-mode-bg');
-                            activeColor = "#ff0000"; // Red start
-                        } else {
-                            activeColor = gamePalette[key];
-                        }
-                        break;
-                    }
-                }
-            }
+      let activeColor = gameColors["default"];
 
-            document.documentElement.style.setProperty('--dynamic-accent', activeColor);
-            
-        } catch (e) { console.log("Twitch Sync Failed"); }
+      for (const [key, value] of Object.entries(gameColors)) {
+        if (gameLower.includes(key)) {
+          if (value === "SIREN") {
+            header.classList.add('siren-active');
+            return;
+          } else {
+            activeColor = value;
+          }
+          break;
+        }
+      }
+      document.documentElement.style.setProperty('--game-color', activeColor);
+    } catch (e) {
+      status.innerText = "OFFLINE / API ERR";
     }
+  }
 
-    syncTwitch();
-    setInterval(syncTwitch, 60000);
-})();
+  syncTwitch();
+  setInterval(syncTwitch, 30000);
 </script>
