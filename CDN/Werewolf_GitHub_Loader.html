@@ -1,0 +1,42 @@
+<div id="wp-custom-wrapper" style="width: 90% !important; margin: 0 auto !important; padding: 0;">
+    <div id="github-menu-loader">Loading Menu...</div>
+</div>
+
+<script>
+  (async function loadMenu() {
+    const container = document.getElementById('github-menu-loader');
+    // Using jsDelivr CDN to fetch your GitHub Menu-bar.html
+    const githubUrl = 'https://cdn.jsdelivr.net/gh/KFruti88/PSN@main/Menu-bar.html';
+
+    try {
+      const response = await fetch(githubUrl);
+      if (!response.ok) throw new Error('CDN Fetch Failed');
+      const html = await response.text();
+      
+      // Inject the code into the wrapper
+      container.innerHTML = html;
+
+      // Re-trigger any scripts inside the injected HTML
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        newScript.text = oldScript.text;
+        document.body.appendChild(newScript);
+      });
+      
+    } catch (err) {
+      container.innerHTML = '<div style="color:white; text-align:center;">MENU SYNC ERROR</div>';
+      console.error(err);
+    }
+  })();
+</script>
+
+<style>
+  /* Ensure the container stays tight to the code */
+  #github-menu-loader {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+</style>
