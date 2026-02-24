@@ -6,8 +6,10 @@
     <style>
         /* --- THEME COLOR VARIABLES --- */
         :root {
-            --theme-color: #336cf2; /* Water Blue #336cf2 as the primary default */
+            --theme-color: #336cf2; /* Water Blue #336cf2 primary default */
             --theme-glow: rgba(51, 108, 242, 0.6);
+            --phoenix-color: var(--theme-color);
+            --darkfire-color: var(--theme-color);
         }
 
         /* --- BASE SETUP --- */
@@ -35,8 +37,7 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 160px; /* Slightly taller for a smoother transition */
-            /* Banner is now black at top, fading slowly to transparent at the bottom */
+            height: 160px;
             background: linear-gradient(180deg, 
                 rgba(0, 0, 0, 1) 0%, 
                 rgba(0, 0, 0, 0.8) 40%, 
@@ -47,10 +48,7 @@
             align-items: center;
             padding: 0 80px;
             box-sizing: border-box;
-            /* Removed the colored border-bottom to keep color effects ONLY around text/wings */
-            border-bottom: none; 
             z-index: 100;
-            transition: all 0.5s ease;
         }
 
         .banner-group {
@@ -59,41 +57,66 @@
             gap: 15px;
         }
 
-        /* --- FLAMING WINGS (Color only in the glow) --- */
+        /* --- FLAMING WINGS --- */
         .wing-icon {
             width: 180px;
             height: 100px;
             background: url('https://img.icons8.com/ios/500/ffffff/wings.png') no-repeat center/contain;
-            filter: 
-                drop-shadow(0 0 5px #ffffff) 
-                drop-shadow(0 0 15px var(--theme-color)) 
-                drop-shadow(0 5px 30px var(--theme-color));
             animation: wingFlicker 1.8s infinite alternate ease-in-out;
             transition: filter 0.5s ease;
         }
 
-        .wing-icon.right { transform: scaleX(-1); --dir: -1; }
+        .wing-icon.left {
+            filter: drop-shadow(0 0 5px #ffffff) drop-shadow(0 0 15px var(--phoenix-color)) drop-shadow(0 5px 30px var(--phoenix-color));
+        }
+
+        .wing-icon.right { 
+            transform: scaleX(-1); 
+            --dir: -1; 
+            filter: drop-shadow(0 0 5px #ffffff) drop-shadow(0 0 15px var(--darkfire-color)) drop-shadow(0 5px 30px var(--darkfire-color));
+        }
 
         @keyframes wingFlicker {
             0% { opacity: 0.7; transform: scale(1) scaleX(var(--dir, 1)); }
             100% { opacity: 1.0; transform: scale(1.08) scaleX(var(--dir, 1)); }
         }
 
-        /* --- EERIE THEME FLAME TEXT (Color only in the glow) --- */
+        /* --- EERIE THEME FLAME TEXT --- */
         .title-text {
             font-size: 64px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 10px;
             color: #f0faff;
-            /* Glow effect around text */
-            text-shadow: 
-                0 0 10px #fff,
-                0 0 20px var(--theme-color),
-                0 0 40px var(--theme-color),
-                0 0 70px #000;
             animation: firePulse 2.5s infinite alternate;
-            transition: text-shadow 0.5s ease;
+            transition: all 0.5s ease;
+        }
+
+        .phoenix-text {
+            text-shadow: 0 0 10px #fff, 0 0 20px var(--phoenix-color), 0 0 40px var(--phoenix-color), 0 0 70px #000;
+        }
+
+        .darkfire-text {
+            text-shadow: 0 0 10px #fff, 0 0 20px var(--darkfire-color), 0 0 40px var(--darkfire-color), 0 0 70px #000;
+        }
+
+        /* HORROR MODE BLEEDING EFFECT */
+        body.horror-mode .title-text {
+            color: #ffcccc; /* Slightly stained white */
+            animation: bloodBleed 4s infinite;
+        }
+
+        @keyframes bloodBleed {
+            0%, 100% { 
+                text-shadow: 0 0 10px #8b0000, 0 5px 15px #ff0000; 
+            }
+            50% { 
+                text-shadow: 
+                    0 0 10px #8b0000, 
+                    0 10px 20px #ff0000, 
+                    0 30px 40px rgba(139, 0, 0, 0.8), 
+                    0 50px 60px rgba(139, 0, 0, 0.4); 
+            }
         }
 
         @keyframes firePulse {
@@ -102,7 +125,7 @@
             100% { transform: skewX(-1deg); }
         }
 
-        /* --- LOWER RIGHT: TWITCH HUD WITH RIPPLE/SHINE --- */
+        /* --- LOWER RIGHT: TWITCH HUD --- */
         .lower-right-hud {
             position: absolute;
             bottom: 40px;
@@ -120,7 +143,6 @@
             overflow: hidden;
         }
 
-        /* Shiny Sweep Effect */
         .lower-right-hud::after {
             content: "";
             position: absolute;
@@ -145,7 +167,6 @@
             height: 80px;
         }
 
-        /* Ripple Effect around Logo (Using theme color) */
         .twitch-ripple {
             position: absolute;
             inset: 0;
@@ -215,13 +236,12 @@
         .clock-box {
             background: rgba(0, 0, 0, 0.75);
             padding: 20px 25px;
-            border-left: 5px solid var(--theme-color);
+            border-left: 5px solid #336cf2; /* Locked to Water Blue for stability */
             backdrop-filter: blur(10px);
-            transition: border-color 0.5s ease;
         }
 
         #time { font-size: 36px; font-weight: 900; display: block; letter-spacing: 3px; }
-        #date { font-size: 18px; color: var(--theme-color); font-weight: 700; text-transform: uppercase; transition: color 0.5s ease; }
+        #date { font-size: 18px; color: #336cf2; font-weight: 700; text-transform: uppercase; }
 
         /* --- DYNAMIC MODES --- */
         .match-highlight {
@@ -233,30 +253,32 @@
             z-index: 50;
         }
 
-        /* Specific Mode Overrides */
-        body.action-mode { --theme-color: #ff0000; --theme-glow: rgba(255, 0, 0, 0.4); } 
-        body.horror-mode { --theme-color: #8b0000; --theme-glow: rgba(139, 0, 0, 0.4); } 
-        body.superhero-mode { --theme-color: #f0131e; --theme-glow: rgba(240, 19, 30, 0.4); } 
-        body.anime-mode { --theme-color: #ff8c00; --theme-glow: rgba(255, 140, 0, 0.4); } 
-        body.fighting-mode { --theme-color: #ffd700; --theme-glow: rgba(255, 215, 0, 0.4); } 
-        body.nature-mode { --theme-color: #336cf2; --theme-glow: rgba(51, 108, 242, 0.4); } 
-        body.fishing-mode { --theme-color: #336cf2; --theme-glow: rgba(51, 108, 242, 0.4); } 
-        body.fantasy-mode { --theme-color: #a020f0; --theme-glow: rgba(160, 32, 240, 0.4); } 
-        body.stealth-mode { --theme-color: #00ffff; --theme-glow: rgba(0, 255, 255, 0.4); } 
-        body.zombie-mode { --theme-color: #4b5320; --theme-glow: rgba(75, 83, 32, 0.4); } 
-        body.speed-mode { --theme-color: #1e90ff; --theme-glow: rgba(30, 144, 255, 0.4); } 
+        /* Mode Definitions */
+        body.action-mode { --theme-color: #ff0000; --phoenix-color: #ff0000; --darkfire-color: #ff0000; } 
+        body.horror-mode { --theme-color: #8b0000; --phoenix-color: #8b0000; --darkfire-color: #8b0000; } 
+        body.superhero-mode { --theme-color: #f0131e; --phoenix-color: #f0131e; --darkfire-color: #f0131e; } 
+        body.anime-mode { --theme-color: #ff8c00; --phoenix-color: #ff8c00; --darkfire-color: #ff8c00; } 
+        body.fighting-mode { --theme-color: #ffd700; --phoenix-color: #ffd700; --darkfire-color: #ffd700; } 
+        body.nature-mode, body.fishing-mode { --theme-color: #336cf2; --phoenix-color: #336cf2; --darkfire-color: #336cf2; } 
+        body.fantasy-mode { --theme-color: #a020f0; --phoenix-color: #a020f0; --darkfire-color: #a020f0; } 
+        body.stealth-mode { --theme-color: #00ffff; --phoenix-color: #00ffff; --darkfire-color: #00ffff; } 
+        body.zombie-mode { --theme-color: #4b5320; --phoenix-color: #4b5320; --darkfire-color: #4b5320; } 
         
+        /* Racing / Speed Mode Special Animation */
+        body.speed-mode { --theme-color: #ff0000; }
+        body.speed-mode .phoenix-text, body.speed-mode .wing-icon.left { animation: policeFlashA 1s infinite; }
+        body.speed-mode .darkfire-text, body.speed-mode .wing-icon.right { animation: policeFlashB 1s infinite; }
+        body.speed-mode .match-highlight { animation: borderFlash 1s infinite; }
+
+        @keyframes policeFlashA { 0%, 49% { --phoenix-color: #ff0000; opacity: 1; } 50%, 100% { --phoenix-color: #0000ff; opacity: 0.3; } }
+        @keyframes policeFlashB { 0%, 49% { --darkfire-color: #0000ff; opacity: 0.3; } 50%, 100% { --darkfire-color: #ff0000; opacity: 1; } }
+        @keyframes borderFlash { 0%, 49% { border-color: #ff0000; box-shadow: inset 0 0 20px #ff0000; } 50%, 100% { border-color: #0000ff; box-shadow: inset 0 0 20px #0000ff; } }
+
+        /* General Border Anims */
         body.action-mode .match-highlight { border-color: #ff0000; animation: fireBorder 2s infinite; }
         @keyframes fireBorder { 0%, 100% { box-shadow: inset 0 0 10px #ff0000; } 50% { box-shadow: inset 0 0 30px #ff8c00; } }
-
-        body.horror-mode .match-highlight { border-color: #8b0000; animation: bleed 2s infinite; }
-        @keyframes bleed { 0%, 100% { box-shadow: inset 0 0 10px #8b0000; } 50% { box-shadow: inset 0 0 35px #ff0000; } }
-
-        /* Cursor Icons per mode */
-        body.fighting-mode { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🥊</text></svg>'), auto; }
-        body.nature-mode { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🍃</text></svg>'), auto; }
-        body.fishing-mode { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🎣</text></svg>'), auto; }
-        body.speed-mode { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🏎️</text></svg>'), auto; }
+        body.horror-mode .match-highlight { border-color: #8b0000; animation: bleedBorder 2s infinite; }
+        @keyframes bleedBorder { 0%, 100% { box-shadow: inset 0 0 10px #8b0000; } 50% { box-shadow: inset 0 0 35px #ff0000; } }
 
         /* --- BLERP --- */
         .blerp-container { position: absolute; top: 0; left: 0; width: 1px; height: 1px; opacity: 0.01; pointer-events: none; z-index: -100; }
@@ -272,11 +294,11 @@
     <div class="top-banner">
         <div class="banner-group">
             <div class="wing-icon left" style="--dir: 1"></div>
-            <div class="title-text">Phoenix</div>
+            <div class="title-text phoenix-text">Phoenix</div>
         </div>
         
         <div class="banner-group">
-            <div class="title-text">Darkfire</div>
+            <div class="title-text darkfire-text">Darkfire</div>
             <div class="wing-icon right" style="--dir: -1"></div>
         </div>
     </div>
@@ -341,37 +363,38 @@
         const game = gameName.toLowerCase();
         let mode = 'default-mode';
 
-        // Categorized Mapping
-        if (game.includes('doom') || game.includes('infamous') || game.includes('prototype')) {
+        // Categorized Mapping from the master list
+        if (game.includes('doom') || game.includes('infamous') || game.includes('prototype') || game.includes('evil west') || game.includes('sifu') || game.includes('uncharted')) {
             mode = 'action-mode';
-        } else if (game.includes('dead by daylight') || game.includes('resident evil') || game.includes('evil dead') || game.includes('texas chain saw') || game.includes('vampyr') || game.includes('until dawn') || game.includes('akai') || game.includes('alan wake') || game.includes('the medium')) {
+        } else if (game.includes('dead by daylight') || game.includes('resident evil') || game.includes('evil dead') || game.includes('texas chain saw') || game.includes('vampyr') || game.includes('until dawn') || game.includes('akai') || game.includes('alan wake') || game.includes('the medium') || game.includes('beast inside') || game.includes('little nightmares') || game.includes('zombi')) {
             mode = 'horror-mode';
         } else if (game.includes('batman') || game.includes('marvel') || game.includes('spider-man') || game.includes('avengers') || game.includes('guardians') || game.includes('gotham knights') || game.includes('suicide squad') || game.includes('injustice')) {
             mode = 'superhero-mode';
         } else if (game.includes('dragon ball') || game.includes('seven deadly sins') || game.includes('jump force') || game.includes('bleach') || game.includes('tokyo ghoul') || game.includes('demon slayer') || game.includes('one punch man')) {
             mode = 'anime-mode';
-        } else if (game.includes('tekken') || game.includes('mortal kombat') || game.includes('street fighter') || game.includes('multiversus') || game.includes('vf5') || game.includes('smite')) {
+        } else if (game.includes('tekken') || game.includes('mortal kombat') || game.includes('street fighter') || game.includes('multiversus') || game.includes('vf5') || game.includes('smite') || game.includes('ufc')) {
             mode = 'fighting-mode';
         } else if (game.includes('abzu') || game.includes('fishing')) {
             mode = 'fishing-mode';
         } else if (game.includes('stray') || game.includes('endling') || game.includes('maneater') || game.includes('spirit of the north') || game.includes('nature') || game.includes('lost ember')) {
             mode = 'nature-mode';
-        } else if (game.includes('hogwarts') || game.includes('harry potter') || game.includes('elden ring') || game.includes('hades') || game.includes('sekiro') || game.includes('nioh') || game.includes('tiny tina') || game.includes('blasphemous') || game.includes('god of war')) {
+        } else if (game.includes('hogwarts') || game.includes('harry potter') || game.includes('elden ring') || game.includes('hades') || game.includes('sekiro') || game.includes('nioh') || game.includes('tiny tina') || game.includes('blasphemous') || game.includes('god of war') || game.includes('black myth') || game.includes('wo long')) {
             mode = 'fantasy-mode';
         } else if (game.includes('assassin') || game.includes('hitman') || game.includes('dishonored')) {
             mode = 'stealth-mode';
         } else if (game.includes('walking dead') || game.includes('world war z') || game.includes('zombie') || game.includes('dying light') || game.includes('days gone') || game.includes('back 4 blood')) {
             mode = 'zombie-mode';
-        } else if (game.includes('sonic') || game.includes('need for speed') || game.includes('racing') || game.includes('hot pursuit') || game.includes('forza')) {
+        } else if (game.includes('sonic') || game.includes('need for speed') || game.includes('racing') || game.includes('hot pursuit') || game.includes('forza') || game.includes('fast & furious')) {
             mode = 'speed-mode';
         }
 
-        // Apply mode class
         document.body.className = mode;
         
         // Ensure themes stay stable with CSS variables
-        document.documentElement.style.removeProperty('--theme-color');
-        document.documentElement.style.removeProperty('--theme-glow');
+        if (mode !== 'speed-mode') {
+            document.documentElement.style.removeProperty('--phoenix-color');
+            document.documentElement.style.removeProperty('--darkfire-color');
+        }
     }
     
     updateTwitchData();
