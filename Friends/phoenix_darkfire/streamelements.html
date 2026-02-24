@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         /* --- THEME COLOR VARIABLES --- */
-        /* These are the "Original Theme" defaults you set up */
         :root {
-            --theme-color: #336cf2; /* Original Darker Blue */
+            --theme-color: #336cf2; /* Water Blue #336cf2 as the primary default */
             --theme-glow: rgba(51, 108, 242, 0.6);
         }
 
@@ -30,20 +29,26 @@
             height: 100%;
         }
 
-        /* --- TOP BANNER: DARK & FIREY --- */
+        /* --- TOP BANNER: BLACK & SLOWLY TRANSPARENT --- */
         .top-banner {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 140px;
-            background: linear-gradient(180deg, rgba(0, 2, 10, 0.98) 0%, var(--theme-glow) 60%, transparent 100%);
+            height: 160px; /* Slightly taller for a smoother transition */
+            /* Banner is now black at top, fading slowly to transparent at the bottom */
+            background: linear-gradient(180deg, 
+                rgba(0, 0, 0, 1) 0%, 
+                rgba(0, 0, 0, 0.8) 40%, 
+                rgba(0, 0, 0, 0.4) 75%, 
+                transparent 100%);
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 80px;
             box-sizing: border-box;
-            border-bottom: 2px solid var(--theme-color);
+            /* Removed the colored border-bottom to keep color effects ONLY around text/wings */
+            border-bottom: none; 
             z-index: 100;
             transition: all 0.5s ease;
         }
@@ -54,7 +59,7 @@
             gap: 15px;
         }
 
-        /* --- FLAMING WINGS --- */
+        /* --- FLAMING WINGS (Color only in the glow) --- */
         .wing-icon {
             width: 180px;
             height: 100px;
@@ -74,13 +79,14 @@
             100% { opacity: 1.0; transform: scale(1.08) scaleX(var(--dir, 1)); }
         }
 
-        /* --- EERIE THEME FLAME TEXT --- */
+        /* --- EERIE THEME FLAME TEXT (Color only in the glow) --- */
         .title-text {
             font-size: 64px;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 10px;
             color: #f0faff;
+            /* Glow effect around text */
             text-shadow: 
                 0 0 10px #fff,
                 0 0 20px var(--theme-color),
@@ -96,7 +102,7 @@
             100% { transform: skewX(-1deg); }
         }
 
-        /* --- LOWER RIGHT: TWITCH HUD --- */
+        /* --- LOWER RIGHT: TWITCH HUD WITH RIPPLE/SHINE --- */
         .lower-right-hud {
             position: absolute;
             bottom: 40px;
@@ -111,6 +117,48 @@
             backdrop-filter: blur(10px);
             box-shadow: -10px 10px 30px rgba(0, 0, 0, 0.5);
             transition: border-color 0.5s ease;
+            overflow: hidden;
+        }
+
+        /* Shiny Sweep Effect */
+        .lower-right-hud::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: skewX(-25deg);
+            animation: shinySweep 4s infinite;
+        }
+
+        @keyframes shinySweep {
+            0% { left: -100%; }
+            20% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        .twitch-logo-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        /* Ripple Effect around Logo (Using theme color) */
+        .twitch-ripple {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 3px solid var(--theme-color);
+            animation: rippleEffect 2s infinite;
+            pointer-events: none;
+            box-shadow: 0 0 10px var(--theme-color);
+        }
+
+        @keyframes rippleEffect {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.6); opacity: 0; }
         }
 
         .twitch-logo {
@@ -118,7 +166,9 @@
             height: 80px;
             border-radius: 50%;
             border: 3px solid var(--theme-color);
-            box-shadow: 0 0 20px var(--theme-color);
+            box-shadow: 0 0 25px var(--theme-color);
+            position: relative;
+            z-index: 2;
             transition: all 0.5s ease;
         }
 
@@ -126,6 +176,7 @@
             display: flex;
             flex-direction: column;
             text-align: right;
+            z-index: 2;
         }
 
         .playing-label { 
@@ -172,7 +223,7 @@
         #time { font-size: 36px; font-weight: 900; display: block; letter-spacing: 3px; }
         #date { font-size: 18px; color: var(--theme-color); font-weight: 700; text-transform: uppercase; transition: color 0.5s ease; }
 
-        /* --- DYNAMIC MODE HIGHLIGHTS --- */
+        /* --- DYNAMIC MODES --- */
         .match-highlight {
             position: absolute;
             inset: 0;
@@ -182,20 +233,19 @@
             z-index: 50;
         }
 
-        /* Override Variables for Categorized Game Modes */
-        /* If no category matches, it stays on the Original Theme defaults defined above */
+        /* Specific Mode Overrides */
         body.action-mode { --theme-color: #ff0000; --theme-glow: rgba(255, 0, 0, 0.4); } 
         body.horror-mode { --theme-color: #8b0000; --theme-glow: rgba(139, 0, 0, 0.4); } 
         body.superhero-mode { --theme-color: #f0131e; --theme-glow: rgba(240, 19, 30, 0.4); } 
         body.anime-mode { --theme-color: #ff8c00; --theme-glow: rgba(255, 140, 0, 0.4); } 
         body.fighting-mode { --theme-color: #ffd700; --theme-glow: rgba(255, 215, 0, 0.4); } 
-        body.nature-mode { --theme-color: #00ffcc; --theme-glow: rgba(0, 255, 204, 0.4); } 
+        body.nature-mode { --theme-color: #336cf2; --theme-glow: rgba(51, 108, 242, 0.4); } 
+        body.fishing-mode { --theme-color: #336cf2; --theme-glow: rgba(51, 108, 242, 0.4); } 
         body.fantasy-mode { --theme-color: #a020f0; --theme-glow: rgba(160, 32, 240, 0.4); } 
         body.stealth-mode { --theme-color: #00ffff; --theme-glow: rgba(0, 255, 255, 0.4); } 
         body.zombie-mode { --theme-color: #4b5320; --theme-glow: rgba(75, 83, 32, 0.4); } 
         body.speed-mode { --theme-color: #1e90ff; --theme-glow: rgba(30, 144, 255, 0.4); } 
         
-        /* High Intensity Border Animations */
         body.action-mode .match-highlight { border-color: #ff0000; animation: fireBorder 2s infinite; }
         @keyframes fireBorder { 0%, 100% { box-shadow: inset 0 0 10px #ff0000; } 50% { box-shadow: inset 0 0 30px #ff8c00; } }
 
@@ -205,6 +255,7 @@
         /* Cursor Icons per mode */
         body.fighting-mode { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🥊</text></svg>'), auto; }
         body.nature-mode { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🍃</text></svg>'), auto; }
+        body.fishing-mode { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🎣</text></svg>'), auto; }
         body.speed-mode { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><text x="0" y="24" font-size="24">🏎️</text></svg>'), auto; }
 
         /* --- BLERP --- */
@@ -244,10 +295,14 @@
 
     <!-- Lower Right -->
     <div class="lower-right-hud">
-        <img class="twitch-logo" src="https://static-cdn.jtvnw.net/jtv_user_pictures/705599df-3e5f-4d6f-9c95-3ff34317d268-profile_image-70x70.png" alt="Phoenix Profile">
         <div class="game-info">
             <span class="playing-label">Currently Playing</span>
             <span class="current-game" id="game-name">Loading...</span>
+        </div>
+        <div class="twitch-logo-container">
+            <div class="twitch-ripple"></div>
+            <div class="twitch-ripple" style="animation-delay: 1s;"></div>
+            <img class="twitch-logo" src="https://static-cdn.jtvnw.net/jtv_user_pictures/705599df-3e5f-4d6f-9c95-3ff34317d268-profile_image-70x70.png" alt="Phoenix Profile">
         </div>
     </div>
 
@@ -286,7 +341,7 @@
         const game = gameName.toLowerCase();
         let mode = 'default-mode';
 
-        // Categorized Mapping from the provided list
+        // Categorized Mapping
         if (game.includes('doom') || game.includes('infamous') || game.includes('prototype')) {
             mode = 'action-mode';
         } else if (game.includes('dead by daylight') || game.includes('resident evil') || game.includes('evil dead') || game.includes('texas chain saw') || game.includes('vampyr') || game.includes('until dawn') || game.includes('akai') || game.includes('alan wake') || game.includes('the medium')) {
@@ -297,7 +352,9 @@
             mode = 'anime-mode';
         } else if (game.includes('tekken') || game.includes('mortal kombat') || game.includes('street fighter') || game.includes('multiversus') || game.includes('vf5') || game.includes('smite')) {
             mode = 'fighting-mode';
-        } else if (game.includes('abzu') || game.includes('stray') || game.includes('endling') || game.includes('maneater') || game.includes('spirit of the north') || game.includes('nature') || game.includes('lost ember')) {
+        } else if (game.includes('abzu') || game.includes('fishing')) {
+            mode = 'fishing-mode';
+        } else if (game.includes('stray') || game.includes('endling') || game.includes('maneater') || game.includes('spirit of the north') || game.includes('nature') || game.includes('lost ember')) {
             mode = 'nature-mode';
         } else if (game.includes('hogwarts') || game.includes('harry potter') || game.includes('elden ring') || game.includes('hades') || game.includes('sekiro') || game.includes('nioh') || game.includes('tiny tina') || game.includes('blasphemous') || game.includes('god of war')) {
             mode = 'fantasy-mode';
@@ -309,7 +366,12 @@
             mode = 'speed-mode';
         }
 
+        // Apply mode class
         document.body.className = mode;
+        
+        // Ensure themes stay stable with CSS variables
+        document.documentElement.style.removeProperty('--theme-color');
+        document.documentElement.style.removeProperty('--theme-glow');
     }
     
     updateTwitchData();
