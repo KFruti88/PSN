@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Werewolf Hub | Multi-Project Dashboard</title>
+    <style>
+        /* Base Styles */
+        html {
+            /* Ensures the background covers the full browser window */
+            background-color: #050505; 
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Gradient background with deep blacks and subtle glows */
+            background-color: #000;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(100, 100, 100, 0.1), transparent 50%),
+                radial-gradient(circle at 50% 100%, rgba(40, 40, 60, 0.2), transparent 50%),
+                linear-gradient(135deg, #050505, #1a1a1a, #050505);
+            background-attachment: fixed;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 40px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Forces the body to be at least the height of the screen */
+            min-height: 100vh; 
+            box-sizing: border-box;
+        }
+
+        /* 90% Width Constraint */
+        .container {
+            width: 90%;
+            max-width: 1400px;
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 40px;
+        }
+
+        h1 {
+            color: #ff4500;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        /* Project Cards */
+        .card {
+            background: #1a1a1a; /* Darker card for better contrast */
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 25px;
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #ff4500;
+            box-shadow: 0 8px 25px rgba(255, 69, 0, 0.2);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #fff;
+            font-size: 1.5rem;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #bbb;
+        }
+
+        .card-tags {
+            margin: 10px 0 20px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            background: #333;
+            color: #ff4500;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #444;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #ff4500;
+            color: white;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #e03e00;
+        }
+
+        /* Affiliate/Footer Section */
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #666;
+            width: 100%;
+        }
+
+        .affiliate-link {
+            color: #ff4500;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 600px) {
+            .container { width: 95%; }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Werewolf Project Hub</h1>
+            <p>Centralizing Gaming, Media, and Design Projects</p>
+        </header>
+
+        <main class="dashboard-grid">
+            
+            <div class="card">
+                <div>
+                    <h2>Farming Simulator</h2>
+                    <div class="card-tags">
+                        <span class="tag">FS22</span><span class="tag">FS25 Coming Soon</span><span class="tag">G-Portal</span>
+                    </div>
+                    <p>Management for our FS22 G-Portal dedicated server. Hub for the team's farming operations.</p>
+                </div>
+                <a href="https://github.com/KFruti88/Farming-Simulator" class="btn">View Farm Stats</a>
+            </div>
+
+            <div class="card">
+                <div>
+                    <h2>Movie Collection</h2>
+                    <div class="card-tags">
+                        <span class="tag">1000+ Titles</span><span class="tag">Library</span>
+                    </div>
+                    <p>A full digital catalog of my Movies Anywhere collection. Browse the complete list of available films.</p>
+                </div>
+                <a href="https://github.com/KFruti88/Movies-Anywhere" class="btn">Browse Movies</a>
+            </div>
+
+            <div class="card">
+                <div>
+                    <h2>Overlay Design</h2>
+                    <div class="card-tags">
+                        <span class="tag">Portfolio</span><span class="tag">Twitch/OBS</span>
+                    </div>
+                    <p>Showcasing my custom skeleton game layouts and stream overlays. Available for professional use.</p>
+                </div>
+                <a href="https://github.com/KFruti88/Skeleton-Game-Layouts" class="btn">View Designs</a>
+            </div>
+
+        </main>
+
+        <footer>
+            <p>Need new gear? Check out <a href="https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" class="affiliate-link">Today's Amazon Deals</a></p>
+            <p>© 2026 Werewolf Projects | Affiliate ID: Werewolf3788-20</p>
+        </footer>
+    </div>
+
+</body>
+</html>
