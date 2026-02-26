@@ -1,20 +1,13 @@
 <!-- 
-  Project: theHunter: Call of the Wild - Base Game Master Tracker
+  Project: theHunter: Call of the Wild - Global Master Tracker (v2.5.1)
   Lead Developer: Werewolf3788 (GitHub: KFruti88)
-  Collaborators: Raymystyro (OneLIVIDMAN), terrdog420
-  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync + Storage & Wiki Data
+  Collaborators: Raymystyro (lonewolf), terrdog420 (DarkWing Dog)
+  Source: Surgical JSON Sync & Per-User Cloud Isolation
   Platform: WordPress Compatible (#wp-custom-wrapper)
-  
-  Updated: 
-  - Full English Localization
-  - Fixed "permission-denied" errors (Rule 1 & 3 implemented)
-  - Focused on Base Game (Layton Lake & Hirschfelden)
-  - 90% Responsive Width & Stackable Design
-  - v1.2.8
 -->
 
 <div id="wp-custom-wrapper">
-    <!-- Firebase SDKs - Loaded early for stability -->
+    <!-- Firebase SDKs - Compatibility Version for broad browser support -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -23,13 +16,17 @@
     <div class="cotw-dashboard">
         <header class="tracker-header">
             <div class="header-top">
-                <h1>COTW: Base Tracker</h1>
+                <div class="flex flex-col items-start text-left">
+                    <h1>COTW: Master Tracker</h1>
+                    <div id="twitch-status" class="twitch-status">Twitch: Checking Status...</div>
+                </div>
                 <div class="header-controls">
-                    <span id="version-tag" class="text-[9px] opacity-30 mr-2">v1.2.8</span>
-                    <button id="sync-btn" onclick="syncWithPSN()" class="sync-button">🔄 Sync PSN Status</button>
+                    <span id="version-tag" class="text-[9px] opacity-30 mr-2">v2.5.1</span>
+                    <button id="sync-btn" onclick="syncWithPSN()" class="sync-button">🔄 Sync Profile</button>
                 </div>
             </div>
-            <p id="stats-summary">User: Werewolf3788 | Initializing Cloud Systems...</p>
+            
+            <p id="stats-summary" class="status-text">Lead Dev: Werewolf3788 | Registry: Booting...</p>
             
             <div class="psn-card-container">
                 <a href="https://psnprofiles.com/Werewolf3788" target="_blank">
@@ -38,453 +35,421 @@
             </div>
         </header>
 
-        <!-- Hall of Fame - Responsive Grid -->
-        <div class="section-title text-red-500 border-red-500">🏆 Base Game Hall of Fame</div>
+        <!-- GLOBAL HARVEST SUITE -->
+        <div class="section-title game-stats-title flex justify-between">
+            <span>🏆 Lifetime Harvest Ranks</span>
+            <span id="cloud-status" style="font-size: 0.6rem; color: #f39c12;">Cloud: Connecting...</span>
+        </div>
+        <div class="mission-card-simple mb-4 p-4">
+            <div id="rank-rows-root" class="rank-grid"></div>
+        </div>
+
+        <!-- PLATFORM PROGRESS CENTER -->
+        <div class="section-title border-blue-500/50 text-blue-400 flex justify-between items-center">
+            <span>🎮 Platform Progress Report</span>
+            <div class="flex items-center gap-2">
+                <span id="active-plat-badge" class="plat-badge">PS5</span>
+                <select id="platform-selector" onchange="switchPlatform(this.value)" class="platform-select-dropdown">
+                    <option value="ps5">PlayStation 5</option>
+                    <option value="ps4">PlayStation 4</option>
+                    <option value="xbox">Xbox Series / One</option>
+                    <option value="pc">PC (Steam/Epic)</option>
+                </select>
+            </div>
+        </div>
+        <div class="mission-card-simple mb-6 p-4 text-left">
+            <div class="flex justify-between items-center mb-2">
+                <span id="active-platform-name" class="text-[10px] font-black uppercase text-blue-300">PlayStation 5</span>
+                <span id="platform-percent" class="text-[10px] font-bold text-blue-400">0%</span>
+            </div>
+            <div class="progress-bar-bg mb-4">
+                <div id="platform-bar" class="progress-bar-fill bg-blue-500" style="width: 0%"></div>
+            </div>
+            <div id="platform-trophy-stats" class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1"></div>
+        </div>
+
+        <!-- DYNAMIC RESERVE ENGINE -->
+        <div class="section-title border-emerald-500/50 text-emerald-400 flex justify-between items-center">
+            <span>🗺️ <span id="display-map-name">Reserve</span> Intel & Missions</span>
+            <select id="map-selector" onchange="switchMap(this.value)" class="map-select-dropdown">
+                <option>Loading Maps...</option>
+            </select>
+        </div>
+
+        <div class="grid-container mb-8 text-left">
+            <div class="mission-card-simple p-4">
+                <p class="section-sub">Map Species Harvests</p>
+                <div id="species-harvest-root"></div>
+                
+                <p class="section-sub mt-6">G.O. Grind (Map Specific)</p>
+                <div id="go-grind-root"></div>
+                
+                <div class="upload-grid mt-6">
+                    <button onclick="triggerUpload('diamond')" class="upload-btn border-cyan-500/40">
+                        <span class="text-cyan-400">💎 Sync Diamond Image</span>
+                    </button>
+                    <button onclick="triggerUpload('greatone')" class="upload-btn border-red-500/40">
+                        <span class="text-red-400">👑 Sync G.O. Image</span>
+                    </button>
+                </div>
+                <input type="file" id="trophy-upload" class="hidden" style="display:none" accept="image/*" onchange="handleImageUpload(this)">
+            </div>
+            
+            <div class="mission-card-simple p-4 mission-scroll-container">
+                <p class="section-sub" id="mission-warden-label">Reserve Missions</p>
+                <div id="mission-engine-root"></div>
+            </div>
+        </div>
+
+        <!-- HALL OF FAME IMAGE ARCHIVE -->
+        <div class="section-title text-emerald-500 border-emerald-500">🖼️ Harvest Image Archive</div>
         <div id="hall-of-fame" class="hof-grid mb-8">
-            <div id="hof-greatone" class="hidden relative group rounded-xl overflow-hidden border border-red-500/30 aspect-video bg-black/40">
-                <img id="img-greatone" src="" class="w-full h-full object-cover" alt="Great One">
-                <div class="absolute top-2 left-2 px-2 py-1 bg-red-600 text-[10px] font-black uppercase rounded">Great One</div>
-            </div>
-            <div id="hof-diamond" class="hidden relative group rounded-xl overflow-hidden border border-cyan-500/30 aspect-video bg-black/40">
-                <img id="img-diamond" src="" class="w-full h-full object-cover" alt="Diamond">
-                <div class="absolute top-2 left-2 px-2 py-1 bg-cyan-600 text-[10px] font-black uppercase rounded">Diamond</div>
-            </div>
-        </div>
-
-        <!-- Base Game Reserve Species Counters -->
-        <div class="section-title border-emerald-500/50 text-emerald-400">🏹 Species Harvests (Base Maps)</div>
-        <div class="mission-card-simple mb-8 p-0 overflow-hidden">
-            <div class="flex flex-wrap bg-emerald-950/30 border-b border-white/5" id="map-tabs">
-                <!-- Map tabs (Layton/Hirsch) injected via JS -->
-            </div>
-            <div class="p-4" id="species-harvest-root">
-                <p class="text-center opacity-40 py-4 text-xs italic">Select a base map above.</p>
-            </div>
-        </div>
-
-        <!-- Species Integrity Guide -->
-        <div class="section-title border-yellow-500/50 text-yellow-500">🐾 Species Integrity Guide (Classes 1-9)</div>
-        <div class="mission-card-simple mb-8 p-4">
-            <div class="species-class-bar" id="species-grid">
-                <button onclick="toggleSpeciesList(1)">Cl 1</button>
-                <button onclick="toggleSpeciesList(2)">Cl 2</button>
-                <button onclick="toggleSpeciesList(3)">Cl 3</button>
-                <button onclick="toggleSpeciesList(4)">Cl 4</button>
-                <button onclick="toggleSpeciesList(5)">Cl 5</button>
-                <button onclick="toggleSpeciesList(6)">Cl 6</button>
-                <button onclick="toggleSpeciesList(7)">Cl 7</button>
-                <button onclick="toggleSpeciesList(8)">Cl 8</button>
-                <button onclick="toggleSpeciesList(9)">Cl 9</button>
-            </div>
-            <div id="species-data-expansion" class="hidden mt-4 p-3 bg-black/40 border border-white/10 rounded text-[11px] leading-relaxed">
-                <div id="species-content"></div>
-            </div>
-        </div>
-
-        <!-- Mission Sections -->
-        <div id="dlc-sections-container"></div>
-
-        <!-- Hunting Profile -->
-        <div class="section-title game-stats-title">Hunting Profile (Cloud Synced)</div>
-        <div id="game-stats-container">
-            <div class="mission-card-simple">
-                <div class="mission-row mb-4">
-                    <span class="mission-text">Cloud Status:</span>
-                    <span id="cloud-status" class="count-display" style="font-size: 0.7rem; color: #f39c12;">Connecting...</span>
+            <div class="hof-item-container">
+                <div class="hof-aspect-box border-red-500/40" onclick="triggerUpload('greatone')">
+                    <img id="img-greatone" src="https://placehold.co/600x400/200000/ff0000?text=NO+G.O.+ARCHIVE" class="hof-img" alt="G.O. Archive">
+                    <div class="absolute top-2 left-2 px-2 py-1 bg-red-600 text-[9px] font-black uppercase rounded">G.O. Archive</div>
                 </div>
-
-                <div class="cloud-rows-container space-y-2">
-                    <div id="rank-rows-root"></div>
-                </div>
-
-                <!-- Cloud Image Manager -->
-                <div class="mt-6 border-t border-emerald-500/20 pt-4">
-                    <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em] mb-4 text-center">Cloud Upload Center</p>
-                    <div class="upload-grid">
-                        <button onclick="triggerUpload('diamond')" class="upload-btn border-cyan-500/40 hover:bg-cyan-900/40">
-                            <i class="text-cyan-400 text-lg">💎</i>
-                            <span class="text-[9px] font-bold text-cyan-200 uppercase">Upload Diamond</span>
-                        </button>
-                        <button onclick="triggerUpload('greatone')" class="upload-btn border-red-500/40 hover:bg-red-900/40">
-                            <i class="text-red-400 text-lg">👑</i>
-                            <span class="text-[9px] font-bold text-red-200 uppercase">Upload Great One</span>
-                        </button>
-                    </div>
-                    <input type="file" id="trophy-upload" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
-                    <div id="upload-progress" class="hidden w-full bg-emerald-950 h-1 mt-4 rounded overflow-hidden">
-                        <div id="progress-bar" class="bg-emerald-400 h-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
-                </div>
-
-                <div class="mission-row border-t border-white/5 mt-4 pt-4">
-                    <span class="mission-text">Longest Vital Organ Hit</span>
-                    <div class="mission-controls">
-                        <span id="stat-longestShot" class="count-display" style="color: #f1c40f; min-width: 80px;">0.00 yds</span>
-                        <button class="btn-sm" onclick="setLongestShot()" title="Update Record">SET</button>
-                    </div>
+            </div>
+            <div class="hof-item-container">
+                <div class="hof-aspect-box border-cyan-500/40" onclick="triggerUpload('diamond')">
+                    <img id="img-diamond" src="https://placehold.co/600x400/002020/00f2ff?text=NO+DIAMOND+ARCHIVE" class="hof-img" alt="Diamond Archive">
+                    <div class="absolute top-2 left-2 px-2 py-1 bg-cyan-600 text-[9px] font-black uppercase rounded">Diamond Archive</div>
                 </div>
             </div>
         </div>
-
-        <div class="section-title completed-title">Completed Tasks</div>
-        <div id="trophy-list-done"></div>
 
         <footer class="tracker-footer">
-            <div class="flex justify-center gap-4 mb-4">
-                <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank" class="hover:text-emerald-400 transition-colors">Today's Deals</a>
-                <a href="https://www.amazon.com/s?k=hunting&tag=psngaming-20" target="_blank" class="hover:text-emerald-400 transition-colors">Hunting Gear</a>
+            <div class="footer-links">
+                <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank">Today's Deals</a>
+                <a href="https://www.amazon.com/s?k=fishing&tag=psngaming-20" target="_blank">Hunting Gear</a>
+                <a href="https://www.amazon.com/s?k=farming&crid=3BPEBJSV4GEII&sprefix=farmin%2Caps%2C204&tag=psngaming-20" target="_blank">Farming Tools</a>
+                <a href="https://www.amazon.com/s?k=need+for+speed&crid=3I7R0TP9XV6CJ&sprefix=need+for+spee%2Caps%2C183&tag=psngaming-20" target="_blank">Gaming Gear</a>
+                <a href="https://www.amazon.com/gp/goldbox?tag=ourflorafb-20" target="_blank">Daily Deals</a>
             </div>
-            <p>Lead Developer: Werewolf3788 | Collaborators: Raymystyro, terrdog420</p>
+            <p>Lead Dev: Werewolf3788 | Source: KFruti88 GitHub | v2.5.1 Live Account Sync</p>
         </footer>
     </div>
 
     <style>
-        /* --- Base Layout --- */
-        #wp-custom-wrapper { background: transparent !important; padding: 20px 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff; display: flex; justify-content: center; width: 100%; }
-        .cotw-dashboard { width: 90%; margin: 0 auto; background: rgba(12, 18, 12, 0.98); border: 2px solid #2ecc71; border-radius: 16px; padding: 25px; box-shadow: 0 15px 60px rgba(0,0,0,0.95); box-sizing: border-box; }
+        #wp-custom-wrapper { background: transparent !important; padding: 20px 0; font-family: 'Segoe UI', Roboto, sans-serif; color: #ffffff; display: flex; justify-content: center; width: 100%; }
+        .cotw-dashboard { width: 95%; max-width: 1200px; background: rgba(8, 12, 8, 0.98); border: 2px solid #2ecc71; border-radius: 16px; padding: 25px; box-shadow: 0 20px 80px rgba(0,0,0,0.9); box-sizing: border-box; }
+        .tracker-header { text-align: center; border-bottom: 2px solid rgba(46,204,113,0.3); margin-bottom: 20px; padding-bottom: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; }
+        .tracker-header h1 { margin: 0; color: #2ecc71; text-transform: uppercase; letter-spacing: 3px; font-size: 1.6rem; font-weight: 900; }
+        .status-text { font-size: 0.8rem; margin: 8px 0; opacity: 0.7; font-weight: bold; text-align: center; text-transform: uppercase; }
+        .twitch-status { font-size: 0.65rem; color: #9146ff; font-weight: bold; background: rgba(145, 70, 255, 0.1); padding: 3px 10px; border-radius: 4px; border: 1px solid #9146ff; display: inline-block; margin-top: 5px; }
+        
+        .plat-badge { font-size: 0.6rem; border: 1px solid #2ecc71; padding: 2px 6px; border-radius: 4px; font-weight: 900; }
 
-        /* --- Components --- */
-        .tracker-header { text-align: center; border-bottom: 2px solid #2ecc71; margin-bottom: 25px; padding-bottom: 25px; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .tracker-header h1 { margin: 0; color: #2ecc71; text-transform: uppercase; letter-spacing: 3px; font-size: 1.8rem; font-weight: 900; }
-        .section-title { background: rgba(46, 204, 113, 0.1); padding: 12px 18px; margin: 30px 0 15px; border-left: 6px solid #2ecc71; font-weight: 800; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 1px; }
-        .completed-title { border-left-color: #27ae60; color: #2ecc71; }
+        .rank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+        .grid-container { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 900px) { .grid-container { grid-template-columns: 4fr 6fr; } }
+        
+        .hof-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .hof-aspect-box { position: relative; width: 100%; padding-top: 56.25%; overflow: hidden; border-radius: 12px; border: 1px solid; background: #000; cursor: pointer; transition: 0.3s; }
+        .hof-aspect-box:hover { transform: scale(1.02); border-color: #fff; }
+        .hof-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+
+        .mission-scroll-container { max-height: 850px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #2ecc71 rgba(0,0,0,0.3); }
+        .section-title { background: rgba(46, 204, 113, 0.1); padding: 10px 15px; margin: 25px 0 10px; border-left: 6px solid #2ecc71; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
         .game-stats-title { border-left-color: #f39c12; color: #f39c12; background: rgba(243, 156, 18, 0.1); }
-
-        .hof-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media (min-width: 768px) { .hof-grid { grid-template-columns: 1fr 1fr; } }
-        .upload-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        @media (min-width: 480px) { .upload-grid { grid-template-columns: 1fr 1fr; } }
-
-        .species-class-bar { display: flex; flex-wrap: wrap; gap: 4px; justify-content: space-between; }
-        .species-class-bar button { flex: 1 1 30%; min-width: 60px; padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #f1c40f; font-weight: bold; font-size: 10px; transition: all 0.2s; cursor: pointer; }
-        .species-class-bar button:hover { background: rgba(241, 196, 15, 0.2); border-color: #f1c40f; }
-
-        .trophy-card { background: rgba(20, 25, 20, 0.8); border: 1px solid #2a4a3a; border-radius: 12px; margin-bottom: 12px; }
-        .mission-card-simple { border-radius: 12px; background: rgba(20, 25, 20, 0.8); border: 1px solid #2a4a3a; }
-        .trophy-summary { padding: 15px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .trophy-info { display: flex; align-items: center; gap: 15px; }
-        .trophy-icon-img { width: 36px; height: 36px; border-radius: 6px; background: #000; object-fit: cover; border: 1px solid rgba(255,255,255,0.1); }
-        .stat-mini-icon { width: 24px; height: 24px; border-radius: 3px; object-fit: cover; }
-        .mission-details { display: none; padding: 15px 20px; background: rgba(0,0,0,0.5); border-top: 1px solid rgba(46, 204, 113, 0.2); border-radius: 0 0 12px 12px; }
-        .mission-details.active { display: block; }
-        .mission-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .mission-row:last-child { border-bottom: none; }
-        .btn-ctrl { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; width: 32px; height: 32px; cursor: pointer; border-radius: 6px; font-weight: 900; transition: all 0.2s; }
-        .btn-ctrl:active { transform: scale(0.9); }
-        .count-display { font-family: 'Courier New', Courier, monospace; min-width: 40px; text-align: center; color: #2ecc71; font-weight: 800; font-size: 1.1rem; }
-        .map-tab-btn { flex: 1; padding: 12px 10px; font-weight: 800; text-[10px] uppercase tracking-tighter border-r border-white/5 hover:bg-emerald-500/20 transition-all; text-center; border-bottom: 3px solid transparent; cursor: pointer; }
-        .map-tab-btn.active { background: #2ecc71; color: #111; border-bottom-color: #1a1a1a; }
-        .species-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(46, 204, 113, 0.1); border-radius: 10px; margin-bottom: 6px; }
-        .class-badge { background: #f1c40f; color: #111; font-weight: 900; text-[10px] px-2 py-0.5 rounded uppercase; margin-right: 10px; }
-        .sync-button { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; padding: 8px 20px; cursor: pointer; border-radius: 25px; font-size: 0.85rem; }
-        .tracker-footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #7f8c8d; padding-bottom: 30px; }
-        .upload-btn { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid; border-radius: 12px; cursor: pointer; transition: all 0.3s; }
-        .btn-sm { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; padding: 4px 12px; cursor: pointer; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
-        .psn-card-img { height: 60px; border-radius: 6px; border: 1px solid #333; }
-        .trophy-rank { font-size: 0.7rem; padding: 3px 10px; border-radius: 5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .rank-platinum { background: #e5e4e2; color: #111; }
-        .rank-gold { background: #ffd700; color: #111; }
-        .rank-silver { background: #c0c0c0; color: #111; }
-        .rank-bronze { background: #cd7f32; color: #111; }
+        .section-sub { font-size: 0.75rem; color: #2ecc71; text-transform: uppercase; font-weight: 900; margin-bottom: 12px; border-bottom: 1px solid rgba(46,204,113,0.2); padding-bottom: 5px; }
+        
+        .mission-row, .species-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 5px; }
+        .btn-ctrl { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; width: 30px; height: 30px; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.2s; }
+        .btn-ctrl:hover { background: #2ecc71; color: #111; }
+        .count-display { font-family: 'Courier New', monospace; color: #2ecc71; font-weight: 800; font-size: 1.1rem; margin: 0 10px; min-width: 25px; text-align: center; }
+        
+        .progress-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; transition: width 0.5s ease; }
+        
+        .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .upload-btn { background: rgba(255,255,255,0.05); border: 1px solid; border-radius: 10px; padding: 12px; cursor: pointer; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+        
+        .map-select-dropdown, .platform-select-dropdown { background: #000; color: #2ecc71; border: 1px solid #2ecc71; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; font-weight: 900; }
+        .psn-card-img { height: 50px; border-radius: 6px; border: 1px solid #333; margin-top: 15px; }
+        .tracker-footer { margin-top: 40px; text-align: center; font-size: 0.75rem; opacity: 0.7; padding-bottom: 20px; border-top: 1px solid rgba(46,204,113,0.2); padding-top: 20px; }
+        .footer-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 15px; margin-bottom: 10px; }
+        .footer-links a { color: #2ecc71; text-decoration: none; font-weight: bold; }
+        .boss-text { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.5); }
+        .rank-label { font-size: 9px; font-weight: 900; text-transform: uppercase; opacity: 0.6; }
+        .mission-group-label { font-size: 0.65rem; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 4px; color: #aaa; margin: 15px 0 5px; display: block; text-transform: uppercase; font-weight: bold; border-left: 3px solid #2ecc71; }
     </style>
 
     <script>
         const startApp = () => {
-            if (typeof firebase === 'undefined') {
-                setTimeout(startApp, 100);
-                return;
-            }
+            if (typeof firebase === 'undefined') { setTimeout(startApp, 100); return; }
 
-            const CACHE_KEY = Date.now();
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'global-master-sync';
+            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-            const speciesData = {
-                1: "Mallard, Canada Goose, European Rabbit, Jackrabbit.",
-                2: "Red Fox, Coyote, Siberian Musk Deer, Raccoon Dog.",
-                3: "Roe Deer, Axis Deer, Blackbuck, Springbok.",
-                4: "Whitetail Deer, Blacktail Deer, Fallow Deer, Warthog.",
-                5: "Mule Deer, Wild Boar, Puma, Feral Pig.",
-                6: "Red Deer, Reindeer, Blue Wildebeest, Gray Wolf.",
-                7: "Roosevelt Elk, Rocky Mountain Elk, Black Bear, Brown Bear.",
-                8: "Moose, Grizzly Bear.",
-                9: "European Bison, Plains Bison, Cape Buffalo, Water Buffalo."
-            };
-
-            const baseMapSpecies = {
-                layton: [
-                    { id: "l_mallard", name: "Mallard Duck", class: 1 },
-                    { id: "l_rabbit", name: "Whitetail Jackrabbit", class: 1 },
-                    { id: "l_coyote", name: "Coyote", class: 2 },
-                    { id: "l_blacktail", name: "Blacktail Deer", class: 4 },
-                    { id: "l_whitetail", name: "Whitetail Deer", class: 4 },
-                    { id: "l_bear", name: "Black Bear", class: 7 },
-                    { id: "l_elk", name: "Roosevelt Elk", class: 7 },
-                    { id: "l_moose", name: "Moose", class: 8 }
-                ],
-                hirsch: [
-                    { id: "h_goose", name: "Canada Goose", class: 1 },
-                    { id: "h_rabbit", name: "European Rabbit", class: 1 },
-                    { id: "h_fox", name: "Red Fox", class: 2 },
-                    { id: "h_roe", name: "Roe Deer", class: 3 },
-                    { id: "h_fallow", name: "Fallow Deer", class: 4 },
-                    { id: "h_boar", name: "Wild Boar", class: 5 },
-                    { id: "h_red", name: "Red Deer", class: 6 },
-                    { id: "h_bison", name: "European Bison", class: 9 }
-                ]
-            };
-
-            const trophyList = [
-                { id: "platinum", name: "theHunter (Platinum Path)", rank: "platinum", isDone: false, map: "base", missions: [{ id: "m_plat", label: "Base Game Trophies", target: 51, current: 24 }] },
-                { id: "boss_wurst", name: "Wurst (Hirschfelden Boar Boss)", rank: "gold", isDone: false, map: "base", missions: [{ id: "m_wurst", label: "Harvest Wurst", target: 1, current: 0 }] },
-                { id: "boss_mrblack", name: "Mr. Black (Layton Bear Boss)", rank: "gold", isDone: false, map: "base", missions: [{ id: "m_mrblack", label: "Harvest Mr. Black", target: 1, current: 0 }] },
-                { id: "layton_story", name: "Colton Locke's Story Arc", rank: "silver", isDone: false, map: "layton", missions: [{ id: "m_l_story", label: "Layton Main Missions", target: 28, current: 0 }] },
-                { id: "hirsch_story", name: "Cornelia Holzer's Story Arc", rank: "silver", isDone: false, map: "hirsch", missions: [{ id: "m_h_story", label: "Hirschfelden Main Missions", target: 28, current: 0 }] }
-            ];
-
-            const sharedAppId = (typeof __app_id !== 'undefined') ? __app_id : 'cotw-trophy-display';
-            const leadDevId = 'Werewolf3788';
-            const firebaseConfig = JSON.parse(__firebase_config);
-
-            firebase.initializeApp(firebaseConfig);
+            if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
             const auth = firebase.auth();
             const db = firebase.firestore();
             const storage = firebase.storage();
 
             let localTrophyData = {};
-            let activeMap = 'layton';
-            let activeUploadCategory = 'diamond';
+            let mapSkeleton = {};
+            let activeMapId = '';
+            let activePlatformId = 'ps5';
 
-            window.toggleSpeciesList = (classId) => {
-                const exp = document.getElementById('species-data-expansion');
-                const content = document.getElementById('species-content');
-                exp.classList.remove('hidden');
-                content.innerHTML = `<strong class="text-yellow-400 uppercase">Class ${classId} Targets:</strong><br>${speciesData[classId]}`;
+            const platformMeta = {
+                ps5: { name: "PlayStation 5", color: "#003791" },
+                ps4: { name: "PlayStation 4", color: "#003791" },
+                xbox: { name: "Xbox Series/One", color: "#107c10" },
+                pc: { name: "PC Master Race", color: "#ffffff" }
             };
 
-            window.switchMap = (mapId) => {
-                activeMap = mapId;
-                renderMapSpecies();
-                document.querySelectorAll('.map-tab-btn').forEach(b => b.classList.toggle('active', b.innerText.toLowerCase().includes(mapId)));
-            };
+            const achievementRanks = [
+                { k: 'p_plat', l: 'Platinum', c: 'slate-100', t: 1 },
+                { k: 'p_gold', l: 'Gold', c: 'yellow-400', t: 2 },
+                { k: 'p_silver', l: 'Silver', c: 'slate-300', t: 15 },
+                { k: 'p_bronze', l: 'Bronze', c: 'orange-400', t: 33 }
+            ];
 
-            const renderTabs = () => {
-                const container = document.getElementById('map-tabs');
-                container.innerHTML = `
-                    <button class="map-tab-btn ${activeMap === 'layton' ? 'active' : ''}" onclick="switchMap('layton')">Layton Lake</button>
-                    <button class="map-tab-btn ${activeMap === 'hirsch' ? 'active' : ''}" onclick="switchMap('hirsch')">Hirschfelden</button>
-                `;
-            };
-
-            const renderMapSpecies = () => {
-                const root = document.getElementById('species-harvest-root');
-                const list = baseMapSpecies[activeMap];
-                if (!list) return;
-                const counts = localTrophyData.speciesCounts || {};
-                
-                root.innerHTML = list.map(s => `
-                    <div class="species-row">
-                        <div class="flex items-center">
-                            <span class="class-badge">Cl ${s.class}</span>
-                            <span class="text-[11px] font-bold text-white/90">${s.name}</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateSpeciesCount('${s.id}', -1)">-</button>
-                            <span id="species-${s.id}" class="count-display text-emerald-400">${counts[s.id] || 0}</span>
-                            <button class="btn-ctrl" onclick="updateSpeciesCount('${s.id}', 1)">+</button>
-                        </div>
-                    </div>
-                `).join('');
-            };
-
-            const renderCard = (t, targetEl) => {
-                const card = document.createElement('div');
-                card.className = `trophy-card ${t.isDone ? 'done' : ''}`;
-                let mHtml = "";
-                if (t.missions) {
-                    t.missions.forEach(m => {
-                        mHtml += `
-                            <div class="mission-row">
-                                <span class="mission-text text-[11px]">${m.label} <small>(${m.target})</small></span>
-                                <div class="mission-controls">
-                                    <button class="btn-ctrl" onclick="updateMission('${m.id}', -1, ${m.target})">-</button>
-                                    <span id="val-${m.id}" class="count-display">${m.current}</span>
-                                    <button class="btn-ctrl" onclick="updateMission('${m.id}', 1, ${m.target})">+</button>
-                                </div>
-                            </div>`;
-                    });
-                }
-                card.innerHTML = `
-                    <div class="trophy-summary" onclick="toggleDetails('${t.id}')">
-                        <div class="trophy-info">
-                            <img src="https://img.psnprofiles.com/trophy/s/6622/ab71d597-4a98-4891-9f93-5e26fbd42d03.png" class="trophy-icon-img" alt="Icon">
-                            <span class="trophy-rank rank-${t.rank}">${t.rank}</span>
-                            <span class="trophy-name text-xs">${t.name}</span>
-                        </div>
-                    </div>
-                    ${mHtml ? `<div id="details-${t.id}" class="mission-details">${mHtml}</div>` : ''}`;
-                targetEl.appendChild(card);
-            };
-
-            const initTracker = () => {
-                const container = document.getElementById('dlc-sections-container');
-                const doneList = document.getElementById('trophy-list-done');
-                if (!container || !doneList) return;
-                
-                container.innerHTML = ""; doneList.innerHTML = "";
-                const maps = ["base", "layton", "hirsch"];
-                const mapNames = { base: "General Goals", layton: "Layton Lake District", hirsch: "Hirschfelden Reserve" };
-
-                maps.forEach(mapId => {
-                    const list = trophyList.filter(t => t.map === mapId && !t.isDone);
-                    if (list.length > 0) {
-                        const section = document.createElement('div');
-                        section.innerHTML = `<div class="section-title border-emerald-500/50">${mapNames[mapId]}</div><div id="list-${mapId}"></div>`;
-                        container.appendChild(section);
-                        list.forEach(t => renderCard(t, document.getElementById(`list-${mapId}`)));
+            // --- SURGICAL REGISTRY ENGINE v2.5.1 ---
+            const extractMapsFromText = (text) => {
+                const maps = {};
+                let braceCount = 0;
+                let start = -1;
+                for (let i = 0; i < text.length; i++) {
+                    if (text[i] === '{') {
+                        if (braceCount === 0) start = i;
+                        braceCount++;
+                    } else if (text[i] === '}') {
+                        braceCount--;
+                        if (braceCount === 0 && start !== -1) {
+                            const jsonChunk = text.substring(start, i + 1);
+                            try {
+                                const parsed = JSON.parse(jsonChunk);
+                                if (parsed.name && (parsed.species || parsed.missions)) {
+                                    maps[parsed.id || parsed.name.toLowerCase().replace(/\s+/g, '_')] = parsed;
+                                } else {
+                                    Object.keys(parsed).forEach(key => {
+                                        if (parsed[key] && typeof parsed[key] === 'object' && parsed[key].name) {
+                                            maps[key] = parsed[key];
+                                        }
+                                    });
+                                }
+                            } catch (e) {}
+                            start = -1;
+                        }
                     }
-                });
-
-                trophyList.filter(t => t.isDone).forEach(t => renderCard(t, doneList));
-                renderRankRows();
-                renderTabs();
-                renderMapSpecies();
+                }
+                return maps;
             };
 
-            const renderRankRows = () => {
-                const root = document.getElementById('rank-rows-root');
-                if (!root) return;
-                const ranks = [
-                    { k: 'greatone', l: 'Great One Grind', c: 'red-500', i: 'https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png' },
-                    { k: 'diamond', l: 'Diamond Harvests', c: 'cyan-300', i: 'https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png' },
-                    { k: 'albino', l: 'Albino Trophies', c: 'slate-100', i: 'https://img.psnprofiles.com/trophy/s/6622/f838641a-821b-4654-9457-300e84f5539c.png' },
-                    { k: 'gold', l: 'Gold Harvests', c: 'yellow-400', i: 'https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png' },
-                    { k: 'silver', l: 'Silver Harvests', c: 'slate-300', i: 'https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png' },
-                    { k: 'bronze', l: 'Bronze Harvests', c: 'orange-400', i: 'https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png' }
-                ];
-                root.innerHTML = ranks.map(r => `
-                    <div class="mission-row p-3 bg-black/20 border border-white/5 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <img src="${r.i}" class="stat-mini-icon" alt="${r.k}">
-                            <span class="mission-text text-${r.c} font-bold uppercase tracking-tighter">${r.l}</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateCloudStat('${r.k}', -1)">-</button>
-                            <span id="stat-${r.k}" class="count-display text-${r.c}">${localTrophyData[r.k] || 0}</span>
-                            <button class="btn-ctrl" onclick="updateCloudStat('${r.k}', 1)">+</button>
-                        </div>
-                    </div>`).join('');
-            };
+            const loadRegistry = async () => {
+                const rawUrl = `https://raw.githubusercontent.com/KFruti88/PSN/main/Skeleton/thehunter/map_data.json`;
+                try {
+                    const response = await fetch(rawUrl);
+                    const text = await response.text();
+                    const foundMaps = extractMapsFromText(text);
+                    mapSkeleton = foundMaps;
+                    
+                    const selector = document.getElementById('map-selector');
+                    selector.innerHTML = "";
+                    const ids = Object.keys(foundMaps);
+                    ids.forEach((id, index) => {
+                        const opt = document.createElement('option');
+                        opt.value = id;
+                        opt.text = foundMaps[id].name;
+                        selector.add(opt);
+                        if (index === 0 && !activeMapId) activeMapId = id;
+                    });
 
-            // --- CLOUD FUNCTIONS (RULE 1 & 3) ---
-            window.updateCloudStat = async (k, delta) => {
-                if (!auth.currentUser) return;
-                const newCount = Math.max(0, (localTrophyData[k] || 0) + delta);
-                document.getElementById('stat-' + k).innerText = newCount;
-                // RULE 1 Path
-                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                await docRef.set({ [k]: newCount, lastUpdate: CACHE_KEY }, { merge: true });
-            };
-
-            window.updateSpeciesCount = async (sId, delta) => {
-                if (!auth.currentUser) return;
-                const curCounts = localTrophyData.speciesCounts || {};
-                const newVal = Math.max(0, (curCounts[sId] || 0) + delta);
-                document.getElementById('species-' + sId).innerText = newVal;
-                // RULE 1 Path
-                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                await docRef.set({ speciesCounts: { ...curCounts, [sId]: newVal }, lastUpdate: CACHE_KEY }, { merge: true });
-            };
-
-            window.updateMission = async (mId, delta, target) => {
-                if (!auth.currentUser) return;
-                let newVal = 0;
-                trophyList.forEach(t => { if (t.missions) t.missions.forEach(m => { if (m.id === mId) { m.current = Math.max(0, Math.min(target, m.current + delta)); newVal = m.current; } })});
-                initTracker();
-                // RULE 1 Path
-                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                const exProg = localTrophyData.missionProgress || {};
-                await docRef.set({ missionProgress: { ...exProg, [mId]: newVal }, lastUpdate: CACHE_KEY }, { merge: true });
-            };
-
-            window.triggerUpload = (cat) => { activeUploadCategory = cat; document.getElementById('trophy-upload').click(); };
-
-            window.handleImageUpload = async (input) => {
-                if (!auth.currentUser || !input.files[0]) return;
-                const file = input.files[0];
-                const pCont = document.getElementById('upload-progress');
-                pCont.classList.remove('hidden');
-                // Storage Path following similar logic
-                const sPath = `artifacts/${sharedAppId}/public/data/userImages/${auth.currentUser.uid}/${activeUploadCategory}/${Date.now()}_${file.name}`;
-                const task = storage.ref(sPath).put(file);
-                task.on('state_changed', (s) => document.getElementById('progress-bar').style.width = (s.bytesTransferred/s.totalBytes)*100 + '%', null, async () => {
-                    const url = await task.snapshot.ref.getDownloadURL();
-                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                    await docRef.set({ ['harvestImageUrl_' + activeUploadCategory]: url }, { merge: true });
-                    pCont.classList.add('hidden');
-                });
-            };
-
-            window.setLongestShot = async () => {
-                if (!auth.currentUser) return;
-                const current = localTrophyData['longestShot'] || "0.00 yds";
-                const val = window.prompt("Enter Longest Hit (Organ):", current);
-                if (val) {
-                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                    await docRef.set({ longestShot: val, lastUpdate: CACHE_KEY }, { merge: true });
+                    document.getElementById('stats-summary').innerText = `Registry: ${ids.length} Reserves Synced | Lead Dev: Werewolf3788`;
+                    renderAll();
+                } catch (e) {
+                    console.error("Registry Load Fail:", e);
                 }
             };
 
-            window.toggleDetails = (id) => { const el = document.getElementById('details-' + id); if (el) el.classList.toggle('active'); };
-            
-            window.syncWithPSN = async () => { 
-                const b = document.getElementById('sync-btn'); 
-                b.innerText = "🔄 Syncing..."; 
-                setTimeout(() => { b.innerText = "✅ Done"; setTimeout(() => b.innerText = "🔄 Sync PSN Status", 2000); }, 2000); 
-            };
+            // --- CLOUD SYNC & ISOLATION ---
+            const getPath = (user) => db.collection('artifacts').doc(appId).collection('public').doc('data').collection('userTrophies').doc(user.uid);
 
-            // --- AUTH & SYNC (RULE 3) ---
             const initAuth = async () => {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await auth.signInWithCustomToken(__initial_auth_token);
-                } else {
-                    await auth.signInAnonymously();
-                }
+                try {
+                    if (initialToken) await auth.signInWithCustomToken(initialToken);
+                    else await auth.signInAnonymously();
+                } catch (err) { console.error("Auth Fail", err); }
             };
 
             initAuth().then(() => {
                 auth.onAuthStateChanged(user => {
                     if (user) {
-                        document.getElementById('cloud-status').innerText = "Connected";
-                        document.getElementById('cloud-status').style.color = "#2ecc71";
+                        const cloudEl = document.getElementById('cloud-status');
+                        if (cloudEl) { cloudEl.innerText = "ACCOUNT SECURE (ONLINE)"; cloudEl.style.color = "#2ecc71"; }
                         
-                        // RULE 1: Strict Paths
-                        const docPath = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(user.uid);
-                        docPath.onSnapshot((doc) => {
+                        getPath(user).onSnapshot(doc => {
                             if (doc.exists) {
                                 localTrophyData = doc.data();
-                                if (localTrophyData.harvestImageUrl_diamond) { document.getElementById('img-diamond').src = localTrophyData.harvestImageUrl_diamond; document.getElementById('hof-diamond').classList.remove('hidden'); }
-                                if (localTrophyData.harvestImageUrl_greatone) { document.getElementById('img-greatone').src = localTrophyData.harvestImageUrl_greatone; document.getElementById('hof-greatone').classList.remove('hidden'); }
-                                if (localTrophyData.longestShot) document.getElementById('stat-longestShot').innerText = localTrophyData.longestShot;
-                                
-                                const prog = localTrophyData.missionProgress || {};
-                                trophyList.forEach(t => { if (t.missions) t.missions.forEach(m => { if (prog[m.id] !== undefined) m.current = prog[m.id]; })});
-                                
-                                initTracker();
-                                document.getElementById('stats-summary').innerText = `User: Werewolf3788 | Base Info Center Ready`;
+                                renderAll();
                             } else {
-                                docPath.set({ created: Date.now() }, { merge: true });
-                                initTracker();
+                                doc.ref.set({ created: Date.now(), maps: {} }, { merge: true });
                             }
-                        }, (error) => {
-                            console.error("Firestore Error:", error);
-                        });
+                        }, (err) => console.error("Firestore Error", err));
                     }
                 });
-            }).catch(error => {
-                console.error("Auth Error:", error);
             });
+
+            // --- UPDATE LOGIC ---
+            window.updateMapStat = async (category, statId, delta, limit = null) => {
+                const u = auth.currentUser; if (!u || !activeMapId) return;
+                const maps = localTrophyData.maps || {};
+                const mapData = maps[activeMapId] || {};
+                const catData = mapData[category] || {};
+                let newVal = (catData[statId] || 0) + delta;
+                if (newVal < 0) newVal = 0;
+                if (limit !== null && newVal > limit) newVal = limit;
+                getPath(u).set({ maps: { [activeMapId]: { [category]: { [statId]: newVal } } } }, { merge: true });
+            };
+
+            window.updateGlobalStat = async (key, delta) => {
+                const u = auth.currentUser; if (!u) return;
+                getPath(u).set({ [key]: Math.max(0, (localTrophyData[key] || 0) + delta) }, { merge: true });
+            };
+
+            window.updatePlatformStats = async (plat, key, delta, limit) => {
+                const u = auth.currentUser; if (!u) return;
+                const field = plat + '_stats';
+                const cur = localTrophyData[field] || {};
+                let newVal = (cur[key] || 0) + delta;
+                if (newVal < 0) newVal = 0; if (newVal > limit) newVal = limit;
+                getPath(u).set({ [field]: { ...cur, [key]: newVal } }, { merge: true });
+            };
+
+            // --- RENDER ENGINE ---
+            function renderAll() {
+                renderActiveMap();
+                renderPlatformReport();
+                renderRankRows();
+                if (localTrophyData.img_diamond) document.getElementById('img-diamond').src = localTrophyData.img_diamond;
+                if (localTrophyData.img_greatone) document.getElementById('img-greatone').src = localTrophyData.img_greatone;
+            }
+
+            const renderActiveMap = () => {
+                const data = mapSkeleton[activeMapId];
+                if (!data) return;
+                document.getElementById('display-map-name').innerText = data.name;
+                document.getElementById('mission-warden-label').innerText = `Missions (Warden: ${data.warden || 'N/A'})`;
+                
+                const mapProg = localTrophyData.maps?.[activeMapId] || {};
+                
+                // Species
+                const sCounts = mapProg.speciesCounts || {};
+                document.getElementById('species-harvest-root').innerHTML = (data.species || []).map(s => `
+                    <div class="species-row">
+                        <span class="text-[10px] font-bold uppercase">CL ${s.class} <strong>${s.name}</strong></span>
+                        <div class="flex items-center">
+                            <button class="btn-ctrl" onclick="updateMapStat('speciesCounts', '${s.id}', -1)">-</button>
+                            <span class="count-display">${sCounts[s.id] || 0}</span>
+                            <button class="btn-ctrl" onclick="updateMapStat('speciesCounts', '${s.id}', 1)">+</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // G.O.
+                const gProg = mapProg.grindProgress || {};
+                document.getElementById('go-grind-root').innerHTML = (data.grinds || []).map(g => `
+                    <div class="species-row border-red-500/30">
+                        <span class="text-[10px] text-red-400 font-black uppercase">G.O. <strong>${g.name.split(' ')[0]}</strong></span>
+                        <div class="flex items-center">
+                            <button class="btn-ctrl" onclick="updateMapStat('grindProgress', '${g.id}', -1)">-</button>
+                            <span class="count-display text-red-500">${gProg[g.id] || 0}</span>
+                            <button class="btn-ctrl" onclick="updateMapStat('grindProgress', '${g.id}', 1)">+</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Missions
+                const mProg = mapProg.missionProgress || {};
+                document.getElementById('mission-engine-root').innerHTML = (data.missions || []).map(group => `
+                    <span class="mission-group-label">${group.group}</span>
+                    ${group.items.map(m => `
+                        <div class="mission-row">
+                            <span class="text-[10px] font-bold uppercase ${m.boss ? 'boss-text' : ''}">${m.name}</span>
+                            <div class="flex items-center">
+                                <button class="btn-ctrl" onclick="updateMapStat('missionProgress', '${m.id}', -1, ${m.target})">-</button>
+                                <span class="count-display" style="min-width: 60px;">${mProg[m.id] || 0}/${m.target}</span>
+                                <button class="btn-ctrl" onclick="updateMapStat('missionProgress', '${m.id}', 1, ${m.target})">+</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                `).join('');
+            };
+
+            const renderPlatformReport = () => {
+                const platData = localTrophyData[activePlatformId + '_stats'] || {};
+                const platInfo = platformMeta[activePlatformId];
+                document.getElementById('active-platform-name').innerText = platInfo.name;
+                document.getElementById('active-platform-name').style.color = platInfo.color;
+                document.getElementById('active-plat-badge').innerText = activePlatformId.toUpperCase();
+                document.getElementById('active-plat-badge').style.borderColor = platInfo.color;
+                document.getElementById('active-plat-badge').style.color = platInfo.color;
+
+                document.getElementById('platform-trophy-stats').innerHTML = achievementRanks.map(r => `
+                    <div class="mission-row border-white/5">
+                        <span class="rank-label" style="color: ${r.c}">${r.l}</span>
+                        <div class="flex items-center">
+                            <button class="btn-ctrl" style="width: 24px; height: 24px; font-size: 0.7rem;" onclick="updatePlatformStats('${activePlatformId}', '${r.k}', -1, ${r.t})">-</button>
+                            <span class="count-display" style="font-size: 0.9rem; min-width: 35px;">${platData[r.k] || 0}/${r.t}</span>
+                            <button class="btn-ctrl" style="width: 24px; height: 24px; font-size: 0.7rem;" onclick="updatePlatformStats('${activePlatformId}', '${r.k}', 1, ${r.t})">+</button>
+                        </div>
+                    </div>
+                `).join('');
+                let total = 0; achievementRanks.forEach(r => total += (platData[r.k] || 0));
+                const pct = Math.round((total / 51) * 100);
+                document.getElementById('platform-bar').style.width = pct + '%';
+                document.getElementById('platform-percent').innerText = pct + '%';
+            };
+
+            const renderRankRows = () => {
+                const ranks = [{ k: 'greatone', l: 'G.O.', c: '#ff0000' }, { k: 'diamond', l: 'Diam', c: '#00f2ff' }, { k: 'mystical', l: 'Myst', c: '#a020f0' }, { k: 'albino', l: 'Rare', c: '#ffffff' }, { k: 'gold', l: 'Gold', c: '#f1c40f' }, { k: 'silver', l: 'Silv', c: '#cbd5e1' }, { k: 'bronze', l: 'Bronz', c: '#fb923c' }];
+                document.getElementById('rank-rows-root').innerHTML = ranks.map(r => `
+                    <div class="flex flex-col items-center p-2 bg-black/40 border border-white/5 rounded-lg">
+                        <span class="text-[9px] font-black uppercase mb-1" style="color:${r.c}">${r.l}</span>
+                        <div class="flex items-center">
+                            <button class="btn-ctrl" onclick="updateGlobalStat('${r.k}', -1)">-</button>
+                            <span class="count-display" style="color:${r.c}">${localTrophyData[r.k] || 0}</span>
+                            <button class="btn-ctrl" onclick="updateGlobalStat('${r.k}', 1)">+</button>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            // Global Overrides for HTML triggers
+            window.switchMap = (id) => { activeMapId = id; renderActiveMap(); };
+            window.switchPlatform = (id) => { activePlatformId = id; renderPlatformReport(); };
+            window.triggerUpload = (cat) => { document.getElementById('trophy-upload').setAttribute('data-cat', cat); document.getElementById('trophy-upload').click(); };
+            window.handleImageUpload = async (input) => {
+                const u = auth.currentUser; if (!u || !input.files[0]) return;
+                const cat = input.getAttribute('data-cat');
+                const path = `artifacts/${appId}/public/data/userImages/${u.uid}/${cat}_${Date.now()}`;
+                const task = storage.ref(path).put(input.files[0]);
+                task.on('state_changed', null, null, async () => {
+                    const url = await task.snapshot.ref.getDownloadURL();
+                    getPath(u).set({ [`img_${cat}`]: url }, { merge: true });
+                });
+            };
+
+            const checkTwitch = async () => {
+                try {
+                    const res = await fetch('https://decapi.me/twitch/game/werewolf3788');
+                    const game = await res.text();
+                    document.getElementById('twitch-status').innerText = `Twitch: Playing ${game || 'Offline'}`;
+                } catch(e) { }
+            };
+
+            loadRegistry();
+            checkTwitch();
         };
 
         window.onload = startApp;
+        window.syncWithPSN = () => {
+            const btn = document.getElementById('sync-btn'); btn.innerText = "🔄 Syncing...";
+            setTimeout(() => { btn.innerText = "✅ Done"; setTimeout(() => btn.innerText = "🔄 Sync Profile", 2000); }, 1500);
+        };
     </script>
 </div>
