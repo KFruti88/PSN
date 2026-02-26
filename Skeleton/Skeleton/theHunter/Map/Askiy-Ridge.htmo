@@ -1,1 +1,449 @@
+<!-- 
+  Project: theHunter: Call of the Wild - Askiy Ridge (Alberta) Master Tracker
+  Lead Developer: Werewolf3788 (GitHub: KFruti88)
+  Collaborators: Raymystyro (OneLIVIDMAN), terrdog420
+  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync & Wiki Data
+  Platform: WordPress Compatible (#wp-custom-wrapper)
+  
+  Updated: 
+  - Base Game Global Stats vs. Mission isolation (v1.3.5)
+  - Trophy Rating tracking in Hall of Fame
+  - Fixed Askiy Ridge Map Visuals & 19 Species Roster
+  - Real-time Cloud Sync for Harvests & Missions (Rule 1 & 3)
+-->
 
+<div id="wp-custom-wrapper">
+    <!-- Firebase SDKs - Loaded early for stability -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+    <div class="cotw-dashboard">
+        <header class="tracker-header">
+            <div class="header-top">
+                <h1>COTW: Askiy Ridge Hub</h1>
+                <div class="header-controls">
+                    <span id="version-tag" class="text-[9px] opacity-30 mr-2">v1.3.5</span>
+                    <button id="sync-btn" onclick="syncWithPSN()" class="sync-button">🔄 Sync PSN Status</button>
+                </div>
+            </div>
+            <p id="stats-summary">User: Werewolf3788 | Initializing Alberta Preserve Cloud...</p>
+            
+            <div class="psn-card-container">
+                <a href="https://psnprofiles.com/Werewolf3788" target="_blank">
+                    <img src="https://card.psnprofiles.com/1/Werewolf3788.png" border="0" alt="Werewolf PSN Card" class="psn-card-img">
+                </a>
+            </div>
+        </header>
+
+        <!-- Hall of Fame with Trophy Rating Tracking -->
+        <div class="section-title text-red-500 border-red-500">🏆 Askiy Hall of Fame & Ratings</div>
+        <div id="hall-of-fame" class="hof-grid mb-8">
+            <!-- Great One Slot -->
+            <div id="hof-greatone" class="hidden relative group rounded-xl overflow-hidden border border-red-500/30 aspect-video bg-black/40">
+                <img id="img-greatone" src="" class="w-full h-full object-cover" alt="Great One">
+                <div class="absolute top-2 left-2 px-2 py-1 bg-red-600 text-[10px] font-black uppercase rounded">Great One</div>
+                <div class="absolute bottom-2 right-2 flex flex-col items-end gap-1">
+                    <div id="val-rating-greatone" class="px-2 py-1 bg-black/80 text-red-400 font-bold text-[10px] rounded border border-red-500/30">Rating: 0.00</div>
+                    <button onclick="setTrophyRating('greatone')" class="btn-sm bg-red-900/40 border-red-500/50 text-[8px]">SET SCORE</button>
+                </div>
+            </div>
+            <!-- Diamond Slot -->
+            <div id="hof-diamond" class="hidden relative group rounded-xl overflow-hidden border border-cyan-500/30 aspect-video bg-black/40">
+                <img id="img-diamond" src="" class="w-full h-full object-cover" alt="Diamond">
+                <div class="absolute top-2 left-2 px-2 py-1 bg-cyan-600 text-[10px] font-black uppercase rounded">Diamond</div>
+                <div class="absolute bottom-2 right-2 flex flex-col items-end gap-1">
+                    <div id="val-rating-diamond" class="px-2 py-1 bg-black/80 text-cyan-400 font-bold text-[10px] rounded border border-cyan-500/30">Rating: 0.00</div>
+                    <button onclick="setTrophyRating('diamond')" class="btn-sm bg-cyan-900/40 border-cyan-500/50 text-[8px]">SET SCORE</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reserve View & Species Counters -->
+        <div class="section-title border-emerald-500/50 text-emerald-400">🗺️ Askiy Ridge Reserve View</div>
+        <div class="mission-card-simple mb-8 p-0 overflow-hidden">
+            <div class="map-visual-container">
+                <img id="reserve-map-img" src="https://static.wikia.nocookie.net/thehuntercotw/images/3/3c/Askiy_Ridge_Map.jpg" alt="Askiy Ridge Map" class="map-img">
+                <div class="map-overlay-title">
+                    <span>Alberta, Canada</span>
+                </div>
+            </div>
+
+            <div class="p-4">
+                <div class="mb-4 p-2 bg-red-950/20 border border-red-500/20 rounded text-[9px] text-red-300 uppercase font-black text-center">
+                    Species Count: 19 | Great Ones: 5 | Unique: 8
+                </div>
+                <div id="active-map-info" class="mb-4 flex justify-between items-center border-b border-white/5 pb-2">
+                    <span class="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Reserve Species Tracking</span>
+                    <span id="map-boss-tag" class="text-[9px] text-white/20 italic">No Boss on Map</span>
+                </div>
+                <div id="species-harvest-root" class="space-y-1">
+                    <!-- Species injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Mission Progress Section -->
+        <div class="section-title border-blue-500/50 text-blue-400">📋 Askiy Story Mission Log</div>
+        <div id="mission-log-root" class="mb-8">
+            <!-- Missions injected via JS -->
+        </div>
+
+        <!-- Species Integrity Guide -->
+        <div class="section-title border-yellow-500/50 text-yellow-500">🐾 Integrity & Ammo Reference</div>
+        <div class="mission-card-simple mb-8 p-4">
+            <div class="species-class-bar" id="species-grid">
+                <button onclick="toggleSpeciesList(1)">Cl 1</button>
+                <button onclick="toggleSpeciesList(2)">Cl 2</button>
+                <button onclick="toggleSpeciesList(3)">Cl 3</button>
+                <button onclick="toggleSpeciesList(4)">Cl 4</button>
+                <button onclick="toggleSpeciesList(5)">Cl 5</button>
+                <button onclick="toggleSpeciesList(6)">Cl 6</button>
+                <button onclick="toggleSpeciesList(7)">Cl 7</button>
+                <button onclick="toggleSpeciesList(8)">Cl 8</button>
+                <button onclick="toggleSpeciesList(9)">Cl 9</button>
+            </div>
+            <div id="species-data-expansion" class="hidden mt-4 p-3 bg-black/40 border border-white/10 rounded text-[11px] leading-relaxed">
+                <div id="species-content"></div>
+            </div>
+        </div>
+
+        <!-- Hunting Profile (Base Game Tracking) -->
+        <div class="section-title game-stats-title">Base Game Tracking (Hunting Profile)</div>
+        <div id="game-stats-container">
+            <div class="mission-card-simple">
+                <div class="mission-row mb-4">
+                    <span class="mission-text text-white/40 italic">Global stats for Gold, Diamond, and Great One grinds</span>
+                    <span id="cloud-status" class="count-display" style="font-size: 0.7rem; color: #f39c12;">Connecting...</span>
+                </div>
+                
+                <!-- Rank Rows for Base Game Tracking -->
+                <div id="rank-rows-root" class="space-y-2"></div>
+                
+                <div class="mt-6 border-t border-emerald-500/20 pt-4">
+                    <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em] mb-4 text-center">Cloud Upload Center</p>
+                    <div class="upload-grid">
+                        <button onclick="triggerUpload('diamond')" class="upload-btn border-cyan-500/40 hover:bg-cyan-900/40">
+                            <i class="text-cyan-400 text-lg">💎</i>
+                            <span class="text-[9px] font-bold text-cyan-200 uppercase">Upload Diamond</span>
+                        </button>
+                        <button onclick="triggerUpload('greatone')" class="upload-btn border-red-500/40 hover:bg-red-900/40">
+                            <i class="text-red-400 text-lg">👑</i>
+                            <span class="text-[9px] font-bold text-red-200 uppercase">Upload Great One</span>
+                        </button>
+                    </div>
+                    <input type="file" id="trophy-upload" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
+                    <div id="upload-progress" class="hidden w-full bg-emerald-950 h-1 mt-4 rounded overflow-hidden">
+                        <div id="progress-bar" class="bg-emerald-400 h-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="mission-row border-t border-white/5 mt-4 pt-4">
+                    <span class="mission-text">Longest Vital Organ Hit</span>
+                    <div class="mission-controls">
+                        <span id="stat-longestShot" class="count-display" style="color: #f1c40f; min-width: 80px;">0.00 yds</span>
+                        <button class="btn-sm" onclick="setLongestShot()" title="Update Record">SET</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="tracker-footer">
+            <div class="flex justify-center gap-4 mb-4">
+                <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank" class="hover:text-emerald-400 transition-colors">Today's Deals</a>
+                <a href="https://www.amazon.com/s?k=hunting&tag=psngaming-20" target="_blank" class="hover:text-emerald-400 transition-colors">Hunting Gear</a>
+            </div>
+            <p>Lead Developer: Werewolf3788 | Collaborators: Raymystyro, terrdog420</p>
+        </footer>
+    </div>
+
+    <style>
+        /* --- Base Layout --- */
+        #wp-custom-wrapper { background: transparent !important; padding: 20px 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff; display: flex; justify-content: center; width: 100%; }
+        .cotw-dashboard { width: 90%; margin: 0 auto; background: rgba(12, 18, 12, 0.98); border: 2px solid #2ecc71; border-radius: 16px; padding: 25px; box-shadow: 0 15px 60px rgba(0,0,0,0.95); box-sizing: border-box; }
+
+        /* --- Header --- */
+        .tracker-header { text-align: center; border-bottom: 2px solid #2ecc71; margin-bottom: 25px; padding-bottom: 25px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .tracker-header h1 { margin: 0; color: #2ecc71; text-transform: uppercase; letter-spacing: 3px; font-size: 1.8rem; font-weight: 900; }
+        
+        /* --- Map Visual --- */
+        .map-visual-container { position: relative; width: 100%; height: 300px; overflow: hidden; background: #000; border-bottom: 1px solid rgba(46, 204, 113, 0.3); }
+        .map-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; opacity: 0.7; }
+        .map-visual-container:hover .map-img { transform: scale(1.05); opacity: 0.9; }
+        .map-overlay-title { position: absolute; bottom: 20px; left: 20px; z-index: 2; }
+        .map-overlay-title span { font-size: 1.5rem; font-weight: 900; text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.8); border-left: 5px solid #2ecc71; padding-left: 15px; }
+
+        /* --- Components --- */
+        .section-title { background: rgba(46, 204, 113, 0.1); padding: 12px 18px; margin: 30px 0 15px; border-left: 6px solid #2ecc71; font-weight: 800; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 1px; }
+        .game-stats-title { border-left-color: #f39c12; color: #f39c12; background: rgba(243, 156, 18, 0.1); }
+
+        .hof-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 768px) { .hof-grid { grid-template-columns: 1fr 1fr; } .map-visual-container { height: 450px; } }
+        .upload-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        @media (min-width: 480px) { .upload-grid { grid-template-columns: 1fr 1fr; } }
+
+        .species-class-bar { display: flex; flex-wrap: wrap; gap: 4px; justify-content: space-between; }
+        .species-class-bar button { flex: 1 1 30%; min-width: 60px; padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #f1c40f; font-weight: bold; font-size: 10px; transition: all 0.2s; cursor: pointer; }
+        .species-class-bar button:hover { background: rgba(241, 196, 15, 0.2); border-color: #f1c40f; }
+
+        .trophy-card { background: rgba(20, 25, 20, 0.8); border: 1px solid #2a4a3a; border-radius: 12px; margin-bottom: 12px; }
+        .mission-card-simple { border-radius: 12px; background: rgba(20, 25, 20, 0.8); border: 1px solid #2a4a3a; }
+
+        .mission-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .mission-row:last-child { border-bottom: none; }
+
+        .btn-ctrl { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; width: 32px; height: 32px; cursor: pointer; border-radius: 6px; font-weight: 900; transition: all 0.2s; }
+        .btn-ctrl:active { transform: scale(0.9); background: #2ecc71; color: #000; }
+        .count-display { font-family: 'Courier New', Courier, monospace; min-width: 45px; text-align: center; color: #2ecc71; font-weight: 800; font-size: 1.1rem; }
+        
+        .species-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(46, 204, 113, 0.1); border-radius: 10px; margin-bottom: 4px; }
+        .class-badge { background: #f1c40f; color: #111; font-weight: 900; text-[10px] px-2 py-0.5 rounded uppercase; margin-right: 10px; }
+
+        .sync-button { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; padding: 8px 20px; cursor: pointer; border-radius: 25px; font-size: 0.85rem; }
+        .tracker-footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #7f8c8d; padding-bottom: 30px; }
+        .upload-btn { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid; border-radius: 12px; cursor: pointer; transition: all 0.3s; }
+        .btn-sm { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; padding: 4px 12px; cursor: pointer; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
+        
+        .psn-card-img { height: 60px; border-radius: 6px; border: 1px solid #333; }
+        .stat-mini-icon { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; }
+    </style>
+
+    <script>
+        const startApp = () => {
+            if (typeof firebase === 'undefined') {
+                setTimeout(startApp, 100);
+                return;
+            }
+
+            const CACHE_KEY = Date.now();
+
+            // --- ASKIY RIDGE DATA ---
+            const askiyData = {
+                name: "Askiy Ridge",
+                species: [
+                    { id: "ak_pheasant", name: "Ring-Necked Pheasant", class: 1 },
+                    { id: "ak_canada_goose", name: "Canada Goose", class: 1 },
+                    { id: "ak_snow_goose", name: "Snow Goose", class: 1 },
+                    { id: "ak_dusky_grouse", name: "Dusky Grouse", class: 1 },
+                    { id: "ak_mallard", name: "Mallard", class: 1 },
+                    { id: "ak_wood_duck", name: "Wood Duck", class: 1 },
+                    { id: "ak_pintail", name: "Northern Pintail", class: 1 },
+                    { id: "ak_beaver", name: "North American Beaver", class: 2 },
+                    { id: "ak_pronghorn", name: "Pronghorn", class: 3 },
+                    { id: "ak_mt_goat", name: "Mountain Goat", class: 4 },
+                    { id: "ak_whitetail", name: "Whitetail Deer", class: 4 },
+                    { id: "ak_bighorn", name: "Rocky Mtn Bighorn Sheep", class: 5 },
+                    { id: "ak_mule", name: "Mule Deer", class: 5 },
+                    { id: "ak_wolf", name: "Gray Wolf", class: 6 },
+                    { id: "ak_caribou", name: "Woodland Caribou", class: 6 },
+                    { id: "ak_bear", name: "Black Bear", class: 7 },
+                    { id: "ak_elk", name: "Manitoban Elk", class: 7 },
+                    { id: "ak_moose", name: "Moose", class: 8 },
+                    { id: "ak_bison", name: "Wood Bison", class: 9 }
+                ],
+                missions: [
+                    { id: "m_ak_story", label: "Askiy Story Arcs", target: 12 },
+                    { id: "m_ak_side", label: "Alberta Side Missions", target: 15 },
+                    { id: "m_ak_explore", label: "Reserve Exploration", target: 10 }
+                ]
+            };
+
+            const integrityInfo = {
+                1: "Birds, Ducks, Geese, Pheasants, Rabbits.",
+                2: "Beavers, Foxes, Coyotes, Raccoons.",
+                3: "Pronghorn, Roe Deer, Blackbuck.",
+                4: "Mountain Goat, Whitetail Deer, Ibex.",
+                5: "Mule Deer, Bighorn Sheep, Wild Boar, Puma.",
+                6: "Gray Wolf, Caribou, Red Deer, Reindeer.",
+                7: "Black Bear, Elk, Brown Bear.",
+                8: "Moose, Grizzly Bear.",
+                9: "Wood Bison, Buffalo, Lion."
+            };
+
+            // --- FIREBASE INIT (RULE 1 & 3) ---
+            const sharedAppId = (typeof __app_id !== 'undefined') ? __app_id : 'cotw-askiy-tracker';
+            const leadDevId = 'Werewolf3788';
+            const firebaseConfig = JSON.parse(__firebase_config);
+
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            const db = firebase.firestore();
+            const storage = firebase.storage();
+
+            let localTrophyData = {};
+            let activeUploadCategory = 'diamond';
+
+            // --- UI FUNCTIONS ---
+            window.toggleSpeciesList = (classId) => {
+                const exp = document.getElementById('species-data-expansion');
+                const content = document.getElementById('species-content');
+                exp.classList.remove('hidden');
+                content.innerHTML = `<strong class="text-yellow-400 uppercase">Class ${classId} Targets:</strong><br>${integrityInfo[classId]}`;
+            };
+
+            const renderAskiyStats = () => {
+                const counts = localTrophyData.speciesCounts || {};
+                const missionProg = localTrophyData.missionProgress || {};
+
+                // Species List
+                const sRoot = document.getElementById('species-harvest-root');
+                sRoot.innerHTML = askiyData.species.map(s => `
+                    <div class="species-row">
+                        <div class="flex items-center">
+                            <span class="class-badge">Cl ${s.class}</span>
+                            <span class="text-[11px] font-bold text-white/90">${s.name}</span>
+                        </div>
+                        <div class="mission-controls">
+                            <button class="btn-ctrl" onclick="updateSpeciesCount('${s.id}', -1)">-</button>
+                            <span id="species-${s.id}" class="count-display text-emerald-400">${counts[s.id] || 0}</span>
+                            <button class="btn-ctrl" onclick="updateSpeciesCount('${s.id}', 1)">+</button>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Missions
+                const mRoot = document.getElementById('mission-log-root');
+                mRoot.innerHTML = askiyData.missions.map(m => `
+                    <div class="trophy-card">
+                        <div class="mission-row">
+                            <span class="mission-text text-[11px] font-bold">${m.label} <small>(${m.target})</small></span>
+                            <div class="mission-controls">
+                                <button class="btn-ctrl" onclick="updateMission('${m.id}', -1, ${m.target})">-</button>
+                                <span id="val-${m.id}" class="count-display">${missionProg[m.id] || 0}</span>
+                                <button class="btn-ctrl" onclick="updateMission('${m.id}', 1, ${m.target})">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Rank Rows (Base Game Tracking)
+                const rRoot = document.getElementById('rank-rows-root');
+                const ranks = [
+                    { k: 'greatone', l: 'Base: Great One Grind', c: 'red-500', i: 'https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png' },
+                    { k: 'diamond', l: 'Base: Diamond Harvests', c: 'cyan-300', i: 'https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png' },
+                    { k: 'gold', l: 'Base: Gold Harvests', c: 'yellow-400', i: 'https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png' }
+                ];
+                rRoot.innerHTML = ranks.map(r => `
+                    <div class="mission-row p-3 bg-black/20 border border-white/5 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <img src="${r.i}" class="stat-mini-icon" alt="${r.k}">
+                            <span class="mission-text text-${r.c} font-bold uppercase tracking-tighter">${r.l}</span>
+                        </div>
+                        <div class="mission-controls">
+                            <button class="btn-ctrl" onclick="updateCloudStat('${r.k}', -1)">-</button>
+                            <span id="stat-${r.k}" class="count-display text-${r.c}">${localTrophyData[r.k] || 0}</span>
+                            <button class="btn-ctrl" onclick="updateCloudStat('${r.k}', 1)">+</button>
+                        </div>
+                    </div>`).join('');
+            };
+
+            // --- CLOUD FUNCTIONS (RULE 1) ---
+            window.updateCloudStat = async (k, delta) => {
+                if (!auth.currentUser) return;
+                const newCount = Math.max(0, (localTrophyData[k] || 0) + delta);
+                document.getElementById('stat-' + k).innerText = newCount;
+                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
+                await docRef.set({ [k]: newCount, lastUpdate: CACHE_KEY }, { merge: true });
+            };
+
+            window.updateSpeciesCount = async (sId, delta) => {
+                if (!auth.currentUser) return;
+                const curCounts = localTrophyData.speciesCounts || {};
+                const newVal = Math.max(0, (curCounts[sId] || 0) + delta);
+                document.getElementById('species-' + sId).innerText = newVal;
+                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
+                await docRef.set({ speciesCounts: { ...curCounts, [sId]: newVal }, lastUpdate: CACHE_KEY }, { merge: true });
+            };
+
+            window.updateMission = async (mId, delta, target) => {
+                if (!auth.currentUser) return;
+                const curProg = localTrophyData.missionProgress || {};
+                const newVal = Math.max(0, Math.min(target, (curProg[mId] || 0) + delta));
+                document.getElementById('val-' + mId).innerText = newVal;
+                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
+                await docRef.set({ missionProgress: { ...curProg, [mId]: newVal }, lastUpdate: CACHE_KEY }, { merge: true });
+            };
+
+            window.setTrophyRating = async (cat) => {
+                const current = localTrophyData[`rating_${cat}`] || "0.00";
+                const val = window.prompt(`Enter Trophy Rating for your ${cat}:`, current);
+                if (val) {
+                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
+                    await docRef.set({ [`rating_${cat}`]: val }, { merge: true });
+                }
+            };
+
+            window.triggerUpload = (cat) => { activeUploadCategory = cat; document.getElementById('trophy-upload').click(); };
+
+            window.handleImageUpload = async (input) => {
+                if (!auth.currentUser || !input.files[0]) return;
+                const file = input.files[0];
+                const pCont = document.getElementById('upload-progress');
+                pCont.classList.remove('hidden');
+                const sPath = `artifacts/${sharedAppId}/public/data/userImages/${auth.currentUser.uid}/${activeUploadCategory}/${Date.now()}_${file.name}`;
+                const task = storage.ref(sPath).put(file);
+                task.on('state_changed', (s) => document.getElementById('progress-bar').style.width = (s.bytesTransferred/s.totalBytes)*100 + '%', null, async () => {
+                    const url = await task.snapshot.ref.getDownloadURL();
+                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
+                    await docRef.set({ ['harvestImageUrl_' + activeUploadCategory]: url }, { merge: true });
+                    pCont.classList.add('hidden');
+                });
+            };
+
+            window.setLongestShot = async () => {
+                const current = localTrophyData['longestShot'] || "0.00 yds";
+                const val = window.prompt("Enter Longest Hit record:", current);
+                if (val) {
+                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
+                    await docRef.set({ longestShot: val, lastUpdate: CACHE_KEY }, { merge: true });
+                }
+            };
+
+            window.syncWithPSN = async () => { 
+                const b = document.getElementById('sync-btn'); 
+                b.innerText = "🔄 Syncing..."; 
+                setTimeout(() => { b.innerText = "✅ Done"; setTimeout(() => b.innerText = "🔄 Sync PSN Status", 2000); }, 2000); 
+            };
+
+            // --- AUTH & SYNC ---
+            const initAuth = async () => {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await auth.signInWithCustomToken(__initial_auth_token);
+                } else { await auth.signInAnonymously(); }
+            };
+
+            initAuth().then(() => {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        document.getElementById('cloud-status').innerText = "Connected";
+                        document.getElementById('cloud-status').style.color = "#2ecc71";
+                        const docPath = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(user.uid);
+                        docPath.onSnapshot((doc) => {
+                            if (doc.exists) {
+                                localTrophyData = doc.data();
+                                if (localTrophyData.harvestImageUrl_diamond) { document.getElementById('img-diamond').src = localTrophyData.harvestImageUrl_diamond; document.getElementById('hof-diamond').classList.remove('hidden'); }
+                                if (localTrophyData.harvestImageUrl_greatone) { document.getElementById('img-greatone').src = localTrophyData.harvestImageUrl_greatone; document.getElementById('hof-greatone').classList.remove('hidden'); }
+                                if (localTrophyData.longestShot) document.getElementById('stat-longestShot').innerText = localTrophyData.longestShot;
+                                
+                                // Ratings Sync
+                                document.getElementById('val-rating-greatone').innerText = `Rating: ${localTrophyData.rating_greatone || "0.00"}`;
+                                document.getElementById('val-rating-diamond').innerText = `Rating: ${localTrophyData.rating_diamond || "0.00"}`;
+                                
+                                renderAskiyStats();
+                                document.getElementById('stats-summary').innerText = `User: Werewolf3788 | Askiy Tracker Active`;
+                            } else {
+                                docPath.set({ created: Date.now() }, { merge: true });
+                            }
+                        }, error => {
+                            console.error("Firestore error:", error);
+                        });
+                    }
+                });
+            });
+        };
+
+        window.onload = startApp;
+    </script>
+</div>
