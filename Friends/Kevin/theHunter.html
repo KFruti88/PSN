@@ -1,0 +1,423 @@
+<!-- 
+  Project: theHunter: Call of the Wild - Master Trophy Tracker
+  Lead Developer: Werewolf3788 (GitHub: KFruti88)
+  Collaborators: Raymystyro (OneLIVIDMAN), terrdog420
+  Source: PSN Profile (Werewolf3788) & In-Game Stats
+  Platform: WordPress Compatible (#wp-custom-wrapper) / CodePen / GitHub
+  
+  Note: Skeleton version focused on Lead Dev stats. 
+  Images use PSNProfiles direct links for maximum reliability.
+-->
+
+<div id="wp-custom-wrapper">
+    <div class="cotw-dashboard">
+        <header class="tracker-header">
+            <div class="header-top">
+                <h1>COTW: Master Tracker</h1>
+                <button id="sync-btn" onclick="syncWithPSN()" class="sync-button">🔄 Sync PSN Status</button>
+            </div>
+            <p id="stats-summary">User: Werewolf3788 | Initializing Tracking Skeleton...</p>
+            
+            <div class="psn-card-container">
+                <a href="https://psnprofiles.com/Werewolf3788" target="_blank">
+                    <img src="https://card.psnprofiles.com/1/Werewolf3788.png" border="0" alt="Werewolf PSN Card" class="psn-card-img">
+                </a>
+            </div>
+        </header>
+
+        <div class="section-title">Active Grinds & Skill Challenges</div>
+        <div id="trophy-list-active"></div>
+
+        <div class="section-title game-stats-title">Hunting Profile (Recent Reset)</div>
+        <div id="game-stats-container">
+            <div class="mission-card-simple">
+                <div class="mission-row">
+                    <span class="mission-text">Harvest Breakdown (49 Total)</span>
+                    <span class="count-display">12 Gold | 16 Silver | 17 Bronze</span>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Detection Stats</span>
+                    <span class="count-display" style="font-size: 0.8rem;">👂 2526 | 👀 634 | 👃 5</span>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Shooting Accuracy (71%)</span>
+                    <span class="count-display">75 Hits / 105 Shots</span>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Weapon Mastery</span>
+                    <span class="count-display" style="font-size: 0.8rem;">Rifle: 78% | Shotgun: 42% | Handgun/Bow: 0%</span>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Longest Vital Organ Hit</span>
+                    <span class="count-display" style="color: #f1c40f;">184.82 yds</span>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Diamond Harvests (Manual Tally)</span>
+                    <div class="mission-controls">
+                        <button class="btn-ctrl" onclick="updateStat('diamonds', -1)">-</button>
+                        <span id="stat-diamonds" class="count-display">0</span>
+                        <button class="btn-ctrl" onclick="updateStat('diamonds', 1)">+</button>
+                    </div>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Great One Grind</span>
+                    <div class="mission-controls">
+                        <button class="btn-ctrl" onclick="updateStat('greatones', -1)">-</button>
+                        <span id="stat-greatones" class="count-display">0</span>
+                        <button class="btn-ctrl" onclick="updateStat('greatones', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title completed-title">Harvested Trophies (Completed)</div>
+        <div id="trophy-list-done"></div>
+
+        <footer class="tracker-footer">
+            <p>Support the hunt: <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank">Today's Deals</a> | <a href="https://www.amazon.com/s?k=hunting&tag=psngaming-20" target="_blank">Hunting Gear</a></p>
+            <p style="margin-top: 10px; font-size: 0.7rem;">Lead Dev: Werewolf3788 | Collaborators: Raymystyro, terrdog420</p>
+        </footer>
+    </div>
+
+    <style>
+        #wp-custom-wrapper {
+            background: transparent !important;
+            padding: 20px;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+        }
+
+        .cotw-dashboard {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(12, 18, 12, 0.98);
+            border: 2px solid #2ecc71;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.9);
+        }
+
+        .tracker-header {
+            text-align: center;
+            border-bottom: 2px solid #2ecc71;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tracker-header h1 { margin: 0; color: #2ecc71; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
+        
+        .sync-button {
+            background: #1a2a1a;
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+            padding: 6px 18px;
+            cursor: pointer;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        .sync-button:hover { background: #2ecc71; color: #111; }
+
+        .psn-card-container {
+            margin-top: 15px;
+            display: flex; gap: 15px; justify-content: center;
+        }
+
+        .psn-card-img { height: 55px; border-radius: 4px; border: 1px solid #444; }
+
+        .section-title {
+            background: rgba(46, 204, 113, 0.1);
+            padding: 10px 15px;
+            margin: 25px 0 12px;
+            border-left: 5px solid #2ecc71;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .completed-title { border-left-color: #27ae60; color: #2ecc71; }
+        .game-stats-title { border-left-color: #f39c12; color: #f39c12; background: rgba(243, 156, 18, 0.1); }
+
+        .trophy-card, .mission-card-simple {
+            background: rgba(25, 35, 25, 0.7);
+            border: 1px solid #2a4a3a;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .mission-card-simple { padding: 12px 20px; }
+
+        .trophy-summary {
+            padding: 12px 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trophy-card.done { border-color: #27ae60; opacity: 0.85; background: rgba(20, 30, 20, 0.5); }
+
+        .trophy-info { display: flex; align-items: center; gap: 12px; }
+        .trophy-icon-img { 
+            width: 32px; height: 32px; border-radius: 4px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #111; object-fit: cover;
+        }
+        .trophy-rank { font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .rank-platinum { background: #e5e4e2; color: #111; }
+        .rank-gold { background: #ffd700; color: #111; }
+        .rank-silver { background: #c0c0c0; color: #111; }
+        .rank-bronze { background: #cd7f32; color: #111; }
+
+        .mission-details { display: none; padding: 12px 20px; background: rgba(0,0,0,0.4); border-top: 1px solid #2a4a3a; }
+        .mission-details.active { display: block; }
+
+        .mission-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .mission-row:last-child { border-bottom: none; }
+
+        .mission-controls { display: flex; align-items: center; gap: 12px; }
+        .btn-ctrl { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; width: 28px; height: 28px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .count-display { font-family: 'Courier New', Courier, monospace; min-width: 50px; text-align: center; color: #2ecc71; font-weight: bold; }
+        
+        .status-indicator { font-weight: bold; width: 24px; text-align: center; font-size: 1.1rem; }
+        .status-complete { color: #2ecc71; }
+        .status-working { color: #f39c12; }
+
+        .tracker-footer { margin-top: 40px; text-align: center; font-size: 0.75rem; color: #7f8c8d; }
+        .tracker-footer a { color: #2ecc71; text-decoration: none; }
+    </style>
+
+    <script>
+        const PROXY = "https://images.weserv.nl/?url=";
+        
+        // Verified PSNProfiles Icons
+        const GAME_ICON = "https://img.psnprofiles.com/trophy/s/6622/ab71d597-4a98-4891-9f93-5e26fbd42d03.png";
+        const ARC_ICON = "https://img.psnprofiles.com/trophy/s/6622/716af6c9-1cf7-4d32-b567-7c06503e9be6.png";
+        const PHOTO_ICON = "https://img.psnprofiles.com/trophy/s/6622/926946c4-009b-4da6-b01b-2773be793e61.png";
+        const TRAVEL_ICON = "https://img.psnprofiles.com/trophy/s/6622/62637094-d904-493b-9c5f-0a56453e3146.png";
+        const MARK_ICON = "https://img.psnprofiles.com/trophy/s/6622/0c34b625-1c04-4343-bf57-606cad61b625.png";
+        const PARK_ICON = "https://img.psnprofiles.com/trophy/s/6622/c37a9f07-6ed9-435a-9a2d-93915f1a70e3.png";
+        const TRACK_ICON = "https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png";
+        const SKILL_ICON = "https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png";
+        const CALL_WILD_ICON = "https://img.psnprofiles.com/trophy/s/6622/475f711c-00ad-489f-ac9f-7465c2a4a038.png";
+        
+        // Specific Asset fallbacks
+        const OLD_FASHIONED_ICON = "https://img.psnprofiles.com/trophy/s/6622/8ede5fa5-ca04-4e3d-979c-172557421a7a.png";
+        const SCARECROW_ICON = "https://img.psnprofiles.com/trophy/s/6622/b144053a-de8b-4343-9e4a-89dc9d66eaa9.png";
+        const GOLDMEMBER_ICON = "https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png";
+        const DIAMOND_ICON = "https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png";
+
+        const FALLBACK_ICON = "https://www.playstation.com/etc.clientlibs/global_layouts/clientlibs/clientlib-base/resources/img/favicon/apple-icon-180x180.png";
+
+        const trophyList = [
+            { id: "platinum", name: "theHunter (Platinum)", rank: "platinum", isDone: false, missions: [{ id: "m_plat", label: "Base Trophies", target: 51, current: 24 }] },
+            { id: "jager", name: "Jäger Arc", rank: "gold", isDone: false, missions: [{ id: "m_jager", label: "Gerlinde Jäger Missions", target: 1, current: 0 }] },
+            { id: "sommer", name: "Sommer Arc", rank: "gold", isDone: false, missions: [{ id: "m_sommer", label: "Robert Sommer Missions", target: 1, current: 0 }] },
+            { id: "vualez", name: "Vualez Arc", rank: "gold", isDone: false, missions: [{ id: "m_vualez", label: "Fiona Vualez Missions", target: 1, current: 0 }] },
+            { id: "bhandari", name: "Bhandari Arc", rank: "gold", isDone: false, missions: [{ id: "m_bhandari", label: "Vinay Bhandari Missions", target: 1, current: 0 }] },
+            { id: "fleischer", name: "Fleischer Arc", rank: "gold", isDone: false, missions: [{ id: "m_fleischer", label: "Albertina Fleischer Missions", target: 1, current: 0 }] },
+            { id: "tressler", name: "Tressler Arc", rank: "gold", isDone: false, missions: [{ id: "m_tressler", label: "Marwin Tressler Missions", target: 1, current: 0 }] },
+            { id: "hope", name: "Hope Arc", rank: "gold", isDone: false, missions: [{ id: "m_hope", label: "Richard Hope Missions", target: 1, current: 0 }] },
+            { id: "trampfine", name: "Trampfine Arc", rank: "gold", isDone: false, missions: [{ id: "m_trampfine", label: "Jonathan Trampfine Missions", target: 1, current: 0 }] },
+            { id: "connors", name: "Connors Arc", rank: "gold", isDone: false, missions: [{ id: "m_connors", label: "Emily Connors Missions", target: 1, current: 0 }] },
+            { id: "beatty", name: "Beatty Arc", rank: "gold", isDone: false, missions: [{ id: "m_beatty", label: "Paul Beatty Missions", target: 1, current: 0 }] },
+            
+            { id: "cotw_callers", name: "Call Of The Wild", rank: "silver", isDone: false, missions: [{ id: "m_callers", label: "Use All Callers Once", target: 1, current: 0 }] },
+            { id: "medved_park", name: "Medved-Taiga National Park Arc", rank: "silver", isDone: false, missions: [{ id: "m_medved", label: "All Medved Missions", target: 1, current: 0 }] },
+            { id: "globetrotter", name: "Globetrotter", rank: "bronze", isDone: false, isTravel: true, missions: [{ id: "m_regions", label: "All Regions Visited", target: 1, current: 0 }] },
+            { id: "moby", name: "Moby Deer", rank: "gold", isDone: false, missions: [{ id: "m_moby", label: "Albino Deer (Layton/Hirsch)", target: 1, current: 0 }] },
+            { id: "paparazzi", name: "Wildlife Paparazzi", rank: "gold", isDone: false, isPhoto: true, missions: [{ id: "m_paparazzi", label: "Photo Every Species", target: 14, current: 0 }] },
+            
+            { id: "old_fashioned", name: "The Old Fashioned Way", rank: "silver", isDone: false, missions: [{ id: "m_unscoped", label: "Down Animal (Unscoped Rifle)", target: 1, current: 0 }] },
+            { id: "persistence", name: "Persistence Is Futile", rank: "bronze", isDone: false, missions: [{ id: "m_track100", label: "100 Tracks (Same Animal)", target: 100, current: 0 }] },
+            { id: "staytarget", name: "Stay On Target", rank: "bronze", isDone: false, missions: [{ id: "m_track50", label: "50 Tracks (Same Animal)", target: 50, current: 0 }] },
+            
+            { id: "zombie", name: "This Is Not A Zombie Game", rank: "silver", isDone: false, isSkill: true, missions: [{ id: "m_brain", label: "Brain Shot Kills", target: 10, current: 0 }] },
+            { id: "makeitcount", name: "Make It Count", rank: "bronze", isDone: false, isSkill: true, missions: [{ id: "m_last", label: "Kill with Last Round", target: 1, current: 0 }] },
+            { id: "hitting_mark", name: "Hitting the Mark", rank: "bronze", isDone: false, isSkill: true, missions: [{ id: "m_challenge", label: "Complete Challenge Target", target: 1, current: 0 }] },
+            { id: "carolina_hits", name: "Carolina's Greatest Hits, Shot-For-Shot", rank: "silver", isDone: false, isSkill: true, missions: [{ id: "m_all_chal", label: "All Challenge Targets", target: 1, current: 0 }] },
+
+            // COMPLETED
+            { id: "mile1", name: "The Mile", rank: "bronze", isDone: true, isTravel: true, missions: [] },
+            { id: "mile10", name: "The Scandinavian Mile", rank: "bronze", isDone: true, isTravel: true, missions: [] },
+            { id: "marathon", name: "The Marathon", rank: "silver", isDone: true, isTravel: true, missions: [] },
+            { id: "ultramarathon", name: "The Ultramarathon", rank: "gold", isDone: true, isTravel: true, missions: [] },
+            { id: "mark50", name: "Novice Marksman (50m)", rank: "bronze", isDone: true, isSkill: true, missions: [] },
+            { id: "mark100", name: "Skilled Marksman (100m)", rank: "bronze", isDone: true, isSkill: true, missions: [] },
+            { id: "mark200", name: "Expert Marksman (200m)", rank: "silver", isDone: true, isSkill: true, missions: [] },
+            { id: "mark400", name: "Legendary Marksman (400m)", rank: "gold", isDone: true, isSkill: true, missions: [] },
+            { id: "diamonds", name: "Diamonds Are Forever", rank: "gold", isDone: true, missions: [] },
+            { id: "goldmember", name: "Goldmember", rank: "silver", isDone: true, missions: [] },
+            { id: "gobble", name: "Gobble Gobble (50 Turkeys)", rank: "silver", isDone: true, missions: [] },
+            { id: "dino", name: "When they ruled the earth", rank: "silver", isDone: true, isPhoto: true, missions: [] },
+            { id: "sr_reaction", name: "A Dangerous Reaction (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "sr_bear", name: "Bear with Me (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "sr_haunts", name: "Old Haunts (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "sr_peace", name: "Inner Peace (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "sr_ascent", name: "The Ascent (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "grizzly", name: "Grizzled Veteran", rank: "bronze", isDone: true, missions: [] },
+            { id: "vurhonga_senior", name: "Experienced Senior Warden", rank: "silver", isDone: true, missions: [] },
+            { id: "potty", name: "Potty Humor", rank: "bronze", isDone: true, missions: [] },
+            { id: "scare", name: "Scarecrow", rank: "bronze", isDone: true, missions: [
+                { id: "m_scare_val", label: "Animals Scared", target: 1000, current: 3165 }
+            ] },
+            { id: "seeingbelieving", name: "Seeing Is Believing", rank: "silver", isDone: true, missions: [] },
+            { id: "stalker", name: "Stalker", rank: "silver", isDone: true, missions: [] }
+        ];
+
+        function initTracker() {
+            const activeList = document.getElementById('trophy-list-active');
+            const doneList = document.getElementById('trophy-list-done');
+            activeList.innerHTML = ""; doneList.innerHTML = "";
+
+            const completedCount = trophyList.filter(t => t.isDone && t.id !== 'platinum').length;
+            const plat = trophyList.find(t => t.id === 'platinum');
+            if (plat) {
+                plat.missions[0].current = completedCount;
+                plat.isDone = completedCount >= plat.missions[0].target;
+            }
+
+            trophyList.forEach(t => {
+                const card = document.createElement('div');
+                card.className = `trophy-card ${t.isDone ? 'done' : ''}`;
+                
+                let missionHtml = "";
+                if (t.missions) {
+                    t.missions.forEach(m => {
+                        const isMComplete = m.current >= m.target;
+                        const hideControls = t.isDone || t.id === 'platinum';
+                        missionHtml += `
+                            <div class="mission-row">
+                                <span class="mission-text">${m.label} <small>(${m.target})</small></span>
+                                <div class="mission-controls">
+                                    ${hideControls ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', -1, ${m.target})">-</button>`}
+                                    <span id="val-${m.id}" class="count-display">${m.current}</span>
+                                    ${hideControls ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', 1, ${m.target})">+</button>`}
+                                    <span id="status-${m.id}" class="status-indicator ${isMComplete ? 'status-complete' : 'status-working'}">
+                                        ${isMComplete ? '✓' : '—'}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                let iconToUse = GAME_ICON;
+                const lowerName = t.name.toLowerCase();
+                
+                if (lowerName === "call of the wild") {
+                    iconToUse = CALL_WILD_ICON;
+                } else if (lowerName === "the old fashioned way") {
+                    iconToUse = OLD_FASHIONED_ICON;
+                } else if (lowerName === "scarecrow") {
+                    iconToUse = SCARECROW_ICON;
+                } else if (lowerName === "goldmember") {
+                    iconToUse = GOLDMEMBER_ICON;
+                } else if (lowerName === "diamonds are forever") {
+                    iconToUse = DIAMOND_ICON;
+                } else if (t.isSkill || lowerName.includes("marksman") || lowerName.includes("zombie") || lowerName.includes("make it count") || lowerName.includes("shot-for-shot")) {
+                    iconToUse = SKILL_ICON;
+                } else if (t.isPhoto || lowerName.includes("camera") || lowerName.includes("picture") || lowerName.includes("photograph")) {
+                    iconToUse = PHOTO_ICON;
+                } else if (lowerName.includes("hitting the mark")) {
+                    iconToUse = MARK_ICON;
+                } else if (lowerName.includes("persistence") || lowerName.includes("target") || lowerName.includes("potty") || lowerName.includes("stalker") || lowerName.includes("believing")) {
+                    iconToUse = TRACK_ICON;
+                } else if (lowerName.includes("park")) {
+                    iconToUse = PARK_ICON;
+                } else if (t.isTravel || lowerName.includes("mile") || lowerName.includes("marathon") || lowerName.includes("globetrotter")) {
+                    iconToUse = TRAVEL_ICON;
+                } else if (t.name.includes("Arc")) {
+                    iconToUse = ARC_ICON;
+                }
+
+                card.innerHTML = `
+                    <div class="trophy-summary" onclick="toggleDetails('${t.id}')">
+                        <div class="trophy-info">
+                            <img src="${iconToUse}" 
+                                 class="trophy-icon-img" 
+                                 referrerpolicy="no-referrer"
+                                 alt="Icon" 
+                                 onerror="this.onerror=null;this.src='${FALLBACK_ICON}';">
+                            <span class="trophy-rank rank-${t.rank}">${t.rank}</span>
+                            <span class="trophy-name">${t.name}</span>
+                        </div>
+                        <span id="arrow-${t.id}">${t.isDone ? '✓' : '▼'}</span>
+                    </div>
+                    ${missionHtml ? `<div id="details-${t.id}" class="mission-details">${missionHtml}</div>` : ''}
+                `;
+                
+                if (t.isDone) doneList.appendChild(card);
+                else activeList.appendChild(card);
+            });
+
+            updateGlobalStats();
+        }
+
+        function updateGlobalStats() {
+            const totalBase = 51;
+            const completedBase = trophyList.filter(t => t.isDone && t.id !== 'platinum' && !t.id.includes('sr_') && !['GRIZZLY', 'GOBBLE', 'DINO', 'VURHONGA_SENIOR'].includes(t.id.toUpperCase())).length;
+            const percentage = Math.round((completedBase / totalBase) * 100);
+            document.getElementById('stats-summary').innerText = `User: Werewolf3788 | ${completedBase}/${totalBase} Base Trophies (${percentage}%)`;
+        }
+
+        async function syncWithPSN() {
+            const btn = document.getElementById('sync-btn');
+            btn.innerText = "🔄 Loading Feeds...";
+            try {
+                const proxy = 'https://api.allorigins.win/get?url=';
+                const feedUrl = encodeURIComponent('https://psntrophyleaders.com/user/view/Werewolf3788/rss');
+                await fetch(proxy + feedUrl);
+                btn.innerText = "✅ Synced";
+                setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000);
+            } catch (e) {
+                btn.innerText = "❌ Error";
+                setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000);
+            }
+        }
+
+        function toggleDetails(id) {
+            const el = document.getElementById(`details-${id}`);
+            if (!el) return;
+            el.classList.toggle('active');
+            document.getElementById(`arrow-${id}`).innerText = el.classList.contains('active') ? '▲' : '▼';
+        }
+
+        function updateMission(mId, change, target) {
+            trophyList.forEach(t => {
+                if (t.missions) {
+                    t.missions.forEach(m => {
+                        if (m.id === mId) {
+                            m.current += change;
+                            if (m.current < 0) m.current = 0;
+                            if (m.current >= target) {
+                                m.current = target;
+                                if (t.id !== 'platinum') t.isDone = true;
+                            }
+                        }
+                    });
+                }
+            });
+            initTracker();
+        }
+
+        function updateStat(id, change) {
+            const el = document.getElementById('stat-' + id);
+            let val = parseInt(el.innerText);
+            val = Math.max(0, val + change);
+            el.innerText = val;
+        }
+
+        window.onload = initTracker;
+    </script>
+</div>
