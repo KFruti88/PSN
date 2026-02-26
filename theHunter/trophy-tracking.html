@@ -2,7 +2,7 @@
   Project: theHunter: Call of the Wild - Master Trophy Tracker
   Lead Developer: Werewolf3788 (GitHub: KFruti88)
   Collaborators: Raymystyro (OneLIVIDMAN), terrdog420
-  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync + Storage
+  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync + Storage & Wiki Mission Data
   Platform: WordPress Compatible (#wp-custom-wrapper) / CodePen / GitHub
 -->
 
@@ -36,7 +36,7 @@
             </div>
         </div>
 
-        <div class="section-title">Active Grinds & Skill Challenges</div>
+        <div class="section-title">Active Grinds & Map Mission Logs</div>
         <div id="trophy-list-active"></div>
 
         <div class="section-title game-stats-title">Hunting Profile (Cloud Synced)</div>
@@ -47,9 +47,7 @@
                     <span id="cloud-status" class="count-display" style="font-size: 0.7rem; color: #f39c12;">Connecting...</span>
                 </div>
 
-                <!-- Unified Cloud Synced Rows -->
                 <div class="cloud-rows-container space-y-2">
-                    <!-- Great One -->
                     <div class="mission-row p-3 bg-red-900/10 border border-red-600/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png" class="stat-mini-icon" alt="GO">
@@ -62,7 +60,6 @@
                         </div>
                     </div>
 
-                    <!-- Diamond -->
                     <div class="mission-row p-3 bg-cyan-900/10 border border-cyan-500/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png" class="stat-mini-icon" alt="D">
@@ -75,7 +72,6 @@
                         </div>
                     </div>
 
-                    <!-- Albino -->
                     <div class="mission-row p-3 bg-slate-100/10 border border-slate-300/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/f838641a-821b-4654-9457-300e84f5539c.png" class="stat-mini-icon" alt="A">
@@ -88,7 +84,6 @@
                         </div>
                     </div>
 
-                    <!-- Gold -->
                     <div class="mission-row p-3 bg-yellow-900/10 border border-yellow-600/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png" class="stat-mini-icon" alt="G">
@@ -101,7 +96,6 @@
                         </div>
                     </div>
 
-                    <!-- Silver -->
                     <div class="mission-row p-3 bg-slate-700/10 border border-slate-500/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png" class="stat-mini-icon" style="filter: grayscale(1) brightness(1.5);" alt="S">
@@ -114,7 +108,6 @@
                         </div>
                     </div>
 
-                    <!-- Bronze -->
                     <div class="mission-row p-3 bg-orange-900/10 border border-orange-700/30 rounded-xl mb-4">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png" class="stat-mini-icon" alt="B">
@@ -128,7 +121,6 @@
                     </div>
                 </div>
 
-                <!-- Image Upload Center -->
                 <div class="mt-6 border-t border-emerald-500/20 pt-4">
                     <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em] mb-4 text-center">Cloud Upload Center</p>
                     <div class="grid grid-cols-2 gap-3">
@@ -148,7 +140,6 @@
                     </div>
                 </div>
 
-                <!-- Adjustable Statistics -->
                 <div class="mission-row border-t border-white/5 mt-4 pt-4">
                     <span class="mission-text">Longest Vital Organ Hit</span>
                     <div class="mission-controls">
@@ -178,7 +169,6 @@
         </footer>
     </div>
 
-    <!-- Firebase SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -308,7 +298,6 @@
     </style>
 
     <script>
-        // --- FIREBASE CONFIGURATION ---
         const firebaseConfig = (typeof __firebase_config !== 'undefined') 
             ? JSON.parse(__firebase_config) 
             : {
@@ -328,7 +317,6 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        // --- ICONS ---
         const PROXY = "https://images.weserv.nl/?url=";
         const GAME_ICON = "https://img.psnprofiles.com/trophy/s/6622/ab71d597-4a98-4891-9f93-5e26fbd42d03.png";
         const ARC_ICON = "https://img.psnprofiles.com/trophy/s/6622/716af6c9-1cf7-4d32-b567-7c06503e9be6.png";
@@ -345,6 +333,39 @@
 
         const trophyList = [
             { id: "platinum", name: "theHunter (Platinum)", rank: "platinum", isDone: false, missions: [{ id: "m_plat", label: "Base Trophies", target: 51, current: 24 }] },
+            
+            { id: "srp_missions", name: "Silver Ridge Peaks Main Missions", rank: "silver", isDone: false, missions: [
+                { id: "m_srp_1", label: "A Rockies Start", target: 1, current: 0 },
+                { id: "m_srp_2", label: "The Poisoned Chalice", target: 1, current: 0 },
+                { id: "m_srp_3", label: "Up High, Down Low", target: 1, current: 0 },
+                { id: "m_srp_4", label: "A Dangerous Reaction", target: 1, current: 0 },
+                { id: "m_srp_5", label: "An Ill-Advised Retreat", target: 1, current: 0 },
+                { id: "m_srp_6", label: "Bear With Me", target: 1, current: 0 },
+                { id: "m_srp_7", label: "Out of Her Comfort Zone", target: 1, current: 0 },
+                { id: "m_srp_8", label: "Plans are Derailed", target: 1, current: 0 },
+                { id: "m_srp_9", label: "Old Haunts", target: 1, current: 0 },
+                { id: "m_srp_10", label: "Sawbones", target: 1, current: 0 },
+                { id: "m_srp_11", label: "Lock It Down", target: 1, current: 0 },
+                { id: "m_srp_12", label: "Inner Peace, Outer Chaos", target: 1, current: 0 },
+                { id: "m_srp_13", label: "Setting Up", target: 1, current: 0 },
+                { id: "m_srp_14", label: "Whodunnit?", target: 1, current: 0 },
+                { id: "m_srp_15", label: "The Ascent", target: 1, current: 0 },
+                { id: "m_cabins", label: "Cabins Found", target: 19, current: 1 },
+                { id: "m_lookouts", label: "Lookout Towers Visited", target: 15, current: 1 }
+            ] },
+
+            { id: "layton_lake", name: "Layton Lake District Missions", rank: "silver", isDone: false, missions: [
+                { id: "m_layton_main", label: "Main Story Missions", target: 10, current: 0 },
+                { id: "m_layton_side", label: "Side Missions Completed", target: 50, current: 0 }
+            ] },
+            { id: "hirschfelden", name: "Hirschfelden Hunting Reserve Missions", rank: "silver", isDone: false, missions: [
+                { id: "m_hirsch_main", label: "Main Story Missions", target: 11, current: 0 },
+                { id: "m_hirsch_side", label: "Side Missions Completed", target: 60, current: 0 }
+            ] },
+            { id: "vurhonga", name: "Vurhonga Savanna Missions", rank: "silver", isDone: false, missions: [
+                { id: "m_vurh_main", label: "Main Story Missions", target: 16, current: 0 }
+            ] },
+
             { id: "jager", name: "Jäger Arc", rank: "gold", isDone: false, missions: [{ id: "m_jager", label: "Gerlinde Jäger Missions", target: 1, current: 0 }] },
             { id: "sommer", name: "Sommer Arc", rank: "gold", isDone: false, missions: [{ id: "m_sommer", label: "Robert Sommer Missions", target: 1, current: 0 }] },
             { id: "vualez", name: "Vualez Arc", rank: "gold", isDone: false, missions: [{ id: "m_vualez", label: "Fiona Vualez Missions", target: 1, current: 0 }] },
@@ -356,14 +377,7 @@
             { id: "connors", name: "Connors Arc", rank: "gold", isDone: false, missions: [{ id: "m_connors", label: "Emily Connors Missions", target: 1, current: 0 }] },
             { id: "beatty", name: "Beatty Arc", rank: "gold", isDone: false, missions: [{ id: "m_beatty", label: "Paul Beatty Missions", target: 1, current: 0 }] },
             
-            // Silver Ridge Peaks Missions
-            { id: "srp_exploration", name: "Silver Ridge Peaks Missions", rank: "silver", isDone: false, missions: [
-                { id: "m_cabins", label: "Cabins Found", target: 19, current: 1 },
-                { id: "m_lookouts", label: "Lookout Towers Visited", target: 15, current: 1 }
-            ] },
-            
             { id: "cotw_callers", name: "Call Of The Wild", rank: "silver", isDone: false, missions: [{ id: "m_callers", label: "Use All Callers Once", target: 1, current: 0 }] },
-            { id: "medved_park", name: "Medved-Taiga National Park Arc", rank: "silver", isDone: false, missions: [{ id: "m_medved", label: "All Medved Missions", target: 1, current: 0 }] },
             { id: "globetrotter", name: "Globetrotter", rank: "silver", isDone: false, isTravel: true, missions: [{ id: "m_regions", label: "All Regions Visited", target: 1, current: 0 }] },
             { id: "moby", name: "Moby Deer", rank: "gold", isDone: false, missions: [{ id: "m_moby", label: "Albino Deer (Layton/Hirsch)", target: 1, current: 0 }] },
             { id: "paparazzi", name: "Wildlife Paparazzi", rank: "gold", isDone: false, isPhoto: true, missions: [{ id: "m_paparazzi", label: "Photo Every Species", target: 14, current: 0 }] },
@@ -401,7 +415,6 @@
             { id: "stalker", name: "Stalker", rank: "silver", isDone: true, missions: [] }
         ];
 
-        // --- CORE RENDERING ---
         function initTracker() {
             const activeList = document.getElementById('trophy-list-active');
             const doneList = document.getElementById('trophy-list-done');
@@ -454,7 +467,7 @@
                 else if (t.isPhoto || lowerName.includes("camera") || lowerName.includes("picture") || lowerName.includes("photograph")) iconToUse = PHOTO_ICON;
                 else if (lowerName.includes("hitting the mark")) iconToUse = MARK_ICON;
                 else if (lowerName.includes("persistence") || lowerName.includes("target") || lowerName.includes("potty") || lowerName.includes("stalker") || lowerName.includes("believing")) iconToUse = TRACK_ICON;
-                else if (lowerName.includes("park")) iconToUse = PARK_ICON;
+                else if (lowerName.includes("park") || lowerName.includes("lake") || lowerName.includes("district") || lowerName.includes("reserve") || lowerName.includes("savanna") || lowerName.includes("peaks")) iconToUse = PARK_ICON;
                 else if (t.isTravel || lowerName.includes("mile") || lowerName.includes("marathon") || lowerName.includes("globetrotter")) iconToUse = TRAVEL_ICON;
                 else if (t.name.includes("Arc")) iconToUse = ARC_ICON;
 
@@ -485,7 +498,6 @@
             if (summary) summary.innerText = `User: Werewolf3788 | ${completedBase}/${totalBase} Base Trophies (${percentage}%)`;
         }
 
-        // --- DATABASE SYNC LOGIC ---
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -506,7 +518,6 @@
                     cloudStatusEl.innerText = "Connected";
                     cloudStatusEl.style.color = "#2ecc71";
                 }
-                
                 const docPath = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
                 docPath.onSnapshot((doc) => {
                         if (doc.exists) {
@@ -563,18 +574,14 @@
 
         async function handleImageUpload(input) {
             if (!auth.currentUser || !input.files[0]) return;
-            
             const category = activeUploadCategory;
             const file = input.files[0];
             const progressBar = document.getElementById('progress-bar');
             const progressContainer = document.getElementById('upload-progress');
-            
             progressContainer.classList.remove('hidden');
-            
             const storagePath = `artifacts/${sharedAppId}/public/data/userImages/${leadDevId}/${category}/${Date.now()}_${file.name}`;
             const storageRef = storage.ref(storagePath);
             const uploadTask = storageRef.put(file);
-
             uploadTask.on('state_changed', 
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
@@ -584,10 +591,7 @@
                 async () => {
                     const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
                     const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
-                    await docRef.set({ 
-                        ['harvestImageUrl_' + category]: downloadURL,
-                        lastUpdated: Date.now() 
-                    }, { merge: true });
+                    await docRef.set({ ['harvestImageUrl_' + category]: downloadURL, lastUpdated: Date.now() }, { merge: true });
                     progressContainer.classList.add('hidden');
                     progressBar.style.width = '0%';
                 }
