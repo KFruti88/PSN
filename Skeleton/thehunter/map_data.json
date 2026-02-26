@@ -1,3 +1,5 @@
+
+
 {
   "emerald_coast": {
     "id": "emerald_coast",
@@ -108,4 +110,24 @@
       }
     ]
   }
-}
+},
+"sundarpatan": {
+    "id": "sundarpatan",
+    "name": "Sundarpatan Nepal",
+    "warden": "Warden Name",
+    "species": [
+      { "id": "sn_tiger", "name": "Bengal Tiger", "class": 9 },
+      { "id": "sn_tahr", "name": "Himalayan Tahr", "class": 4 }
+    ],
+    "grinds": [
+      { "id": "sn_go_tiger", "name": "Bengal Tiger G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Main Story",
+        "items": [
+          { "id": "sn_m1", "name": "First Mission Name", "target": 1 }
+        ]
+      }
+    ]
+  }
