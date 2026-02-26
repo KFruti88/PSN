@@ -10,5 +10,10 @@
   "missions": [
     { "group": "Main Story", "items": [{ "id": "e_m_1", "name": "Crocodile Hunt", "target": 1 }] }
   ]
+},
+{
+  "askiy_ridge": { "name": "Askiy Ridge", "species": [...], "missions": [...] },
+  "layton_lake": { "name": "Layton Lake", "species": [...], "missions": [...] },
+  "silver_ridge": { "name": "Silver Ridge Peaks", "species": [...], "missions": [...] }
 }
 4.  **Automatic Updates:** Whenever you push a change to that JSON on GitHub, the website tracker will reflect the new data immediately when the page is refreshed.
