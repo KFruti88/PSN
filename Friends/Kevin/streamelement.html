@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Werewolf Command Center V9.1 - Smart Visibility Overlay</title>
+    
+    <!-- External Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/comfy.js@latest/dist/comfy.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        /* ==========================================================================
+           WEREWOLF SMART OVERLAY V9.1 - AUTO-HIDING HUD ENGINE
+           Lead Developer: Werewolf3788 (GitHub: KFruti88)
+           ========================================================================== */
+        @import url(https://fonts.googleapis.com/css?family=Roboto:700,900);
+
+        :root {
+            --accent-color: #FF5F1F; 
+            --bg-opacity: rgba(0, 0, 0, 0.85);
+            --tier-gold: #ffd700;
+            --tier-diamond: #b9f2ff;
+            --tier-bronze: #cd7f32;
+            --tier-silver: #c0c0c0;
+            --tier-legendary: #bf40bf; 
+            --ticker-speed: 25s;
+        }
+
+        * { box-sizing: border-box; }
+        html, body { height: 100vh; width: 100vw; margin: 0; padding: 0; overflow: hidden; background: transparent !important; font-family: 'Roboto', sans-serif; transition: all 0.5s ease; }
+        #wp-custom-wrapper { position: relative; width: 100%; height: 100%; background: transparent !important; }
+
+        /* --- THEME DEFINITIONS --- */
+        body.theme-rdr2 { --accent-color: #ff0000; } 
+        body.theme-rivals { --accent-color: #FFD700; } 
+        body.theme-farming { --accent-color: #b50000; } 
+        body.theme-ron { --accent-color: #cc0000; --bg-opacity: rgba(0,0,0,0.95); }
+        body.theme-angler { --accent-color: #00d4ff; }
+        body.theme-hunter { --accent-color: #FF5F1F; }
+        body.theme-wayhunter { --accent-color: #2ecc71; }
+        body.theme-gta { --accent-color: #6c5ce7; }
+        body.theme-truck { --accent-color: #fab1a0; }
+        body.theme-test { animation: rgbGlow 5s linear infinite; }
+        
+        @keyframes rgbGlow {
+            0% { --accent-color: #ff0000; } 20% { --accent-color: #ff00ff; }
+            40% { --accent-color: #0000ff; } 60% { --accent-color: #00ffff; }
+            80% { --accent-color: #00ff00; } 100% { --accent-color: #ffff00; }
+        }
+
+        /* --- SCREEN CORNERS --- */
+        .corner {
+            position: fixed; width: 60px; height: 60px;
+            border: 6px solid var(--accent-color);
+            filter: drop-shadow(0 0 12px var(--accent-color));
+            z-index: 9999; pointer-events: none; transition: all 0.5s ease;
+        }
+        .top-left { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+        .top-right { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+        .bottom-left { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
+        .bottom-right { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
+
+        /* --- CENTRAL HUB (Hidden by Default) --- */
+        #central-hub {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 400px; padding: 20px; background: var(--bg-opacity);
+            border: 2px solid var(--accent-color); border-radius: 15px;
+            text-align: center; display: none; z-index: 8500;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 15px var(--accent-color);
+        }
+        .hub-title { font-size: 24px; font-weight: 900; color: var(--accent-color); text-transform: uppercase; margin-bottom: 10px; }
+        .hub-info { color: white; font-size: 16px; font-weight: 700; line-height: 1.4; }
+        .hub-qr { margin-top: 15px; border-radius: 8px; border: 2px solid #fff; width: 120px; height: 120px; margin-left: auto; margin-right: auto; }
+
+        /* --- SCROLLING TICKER --- */
+        #ticker-wrap {
+            position: absolute; top: 25px; left: 50%; transform: translateX(-50%);
+            width: 65%; height: 44px; background: var(--bg-opacity);
+            border: 2px solid var(--accent-color); border-radius: 22px;
+            overflow: hidden; display: none; z-index: 9000; box-shadow: 0 0 15px var(--accent-color);
+        }
+        .ticker-content {
+            display: inline-block; white-space: nowrap; padding-left: 100%;
+            line-height: 40px; font-weight: 900; color: #fff;
+            text-transform: uppercase; font-size: 20px; letter-spacing: 2px;
+        }
+        .scrolling { animation: tickerScroll var(--ticker-speed) linear infinite; }
+        @keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-220%); } }
+
+        /* --- LIVE CATCH PANEL (GAME-SPECIFIC) --- */
+        #catch-panel { position: absolute; right: 25px; top: 110px; display: none; flex-direction: column; gap: 6px; }
+        .catch-box {
+            background: var(--bg-opacity); border-right: 4px solid var(--accent-color);
+            padding: 6px 14px; border-radius: 4px; min-width: 140px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.6);
+        }
+        .catch-label { font-size: 11px; color: #aaa; text-transform: uppercase; font-weight: 900; }
+        .catch-val { font-size: 18px; font-weight: 900; color: #fff; }
+        .color-legendary { color: var(--tier-legendary); text-shadow: 0 0 8px var(--tier-legendary); }
+        .color-diamond { color: var(--tier-diamond); text-shadow: 0 0 8px var(--tier-diamond); }
+        .color-gold { color: var(--tier-gold); text-shadow: 0 0 5px var(--tier-gold); }
+        .color-silver { color: var(--tier-silver); text-shadow: 0 0 5px var(--tier-silver); }
+        .color-bronze { color: var(--tier-bronze); text-shadow: 0 0 5px var(--tier-bronze); }
+
+        /* --- EXPLORATION HUD (GAME-SPECIFIC) --- */
+        #exploration-hud { position: absolute; left: 25px; top: 110px; display: none; flex-direction: column; gap: 5px; }
+        .hud-pill {
+            background: var(--bg-opacity); border-left: 4px solid var(--accent-color);
+            padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: 900; color: #fff;
+            box-shadow: -4px 4px 12px rgba(0,0,0,0.6);
+        }
+
+        /* --- CHAT LOG & ALERTS --- */
+        #alert-container { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); width: 450px; text-align: center; z-index: 5000; }
+        .alert-box { display: none; background: var(--bg-opacity); border: 3px solid var(--accent-color); border-radius: 10px; padding: 15px; box-shadow: 0 0 20px var(--accent-color); animation: alertSlide 8s ease-in-out forwards; }
+        .alert-title { color: #FFD700; font-size: 32px; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 10px var(--accent-color); }
+        .alert-user { color: white; font-size: 26px; margin-top: 5px; font-weight: 900; }
+
+        #log { position: absolute; bottom: 25px; left: 25px; width: 320px; display: flex; flex-direction: column-reverse; gap: 4px; }
+        .chat-row { display: flex; animation: chatFade 0.4s ease-out forwards; }
+        .chat-meta { background: var(--bg-opacity); border-left: 3px solid var(--accent-color); padding: 6px; font-size: 12px; font-weight: 900; min-width: 90px; text-align: right; }
+        .chat-msg { background: rgba(0,0,0,0.5); padding: 6px; font-size: 12px; color: #fff; flex: 1; word-break: break-word; font-weight: 700; }
+
+        /* --- BRAND FOOTER --- */
+        .brand-footer { position: absolute; bottom: 25px; right: 25px; display: flex; align-items: center; gap: 15px; }
+        #game-name-display { font-size: 22px; font-weight: 900; color: white; text-transform: uppercase; text-shadow: 0 0 10px #000, 0 0 5px var(--accent-color); }
+        .main-logo { height: 85px; width: 85px; border-radius: 50%; background: #000; border: 4px solid var(--accent-color); filter: drop-shadow(0 0 10px var(--accent-color)); }
+
+        @keyframes alertSlide { 0% { opacity: 0; transform: translateY(-80px) scale(0.8); } 10% { opacity: 1; transform: translateY(0) scale(1.05); } 85% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
+        @keyframes chatFade { from { opacity: 0; transform: translateX(-15px); } to { opacity: 1; transform: translateX(0); } }
+
+        #dev-controls { position: fixed; bottom: 5px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; opacity: 0.02; transition: opacity 0.3s; z-index: 10000; }
+        #dev-controls:hover { opacity: 1; }
+        .dev-btn { background: #111; color: #fff; border: 1px solid #444; padding: 4px 10px; cursor: pointer; font-size: 10px; border-radius: 4px; font-weight: 900; }
+    </style>
+</head>
+<body class="theme-angler">
+
+<div id="wp-custom-wrapper">
+    <div class="corner top-left"></div>
+    <div class="corner top-right"></div>
+    <div class="corner bottom-left"></div>
+    <div class="corner bottom-right"></div>
+
+    <!-- UPDATE TICKER -->
+    <div id="ticker-wrap">
+        <div id="ticker-text" class="ticker-content">COMMAND CENTER ONLINE...</div>
+    </div>
+
+    <!-- CENTRAL HUB (SESSION OBJECTIVES) -->
+    <div id="central-hub">
+        <div class="hub-title">SESSION OBJECTIVE</div>
+        <div id="hub-message" class="hub-info">Locating the final Bigfoot reports in Golden Ridge Reserve.</div>
+        <img class="hub-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" alt="Support QR">
+        <div style="font-size: 10px; color: var(--accent-color); margin-top: 10px; font-weight: 900;">SCAN TO SUPPORT THE PACK 🐺</div>
+    </div>
+
+    <!-- EXPLORATION HUD -->
+    <div id="exploration-hud">
+        <div class="hud-pill">POI: <span id="hud-poi">50 / 97</span></div>
+        <div class="hud-pill">COLLECT: <span id="hud-coll">56 / 74</span></div>
+        <div class="hud-pill">TOWERS: <span id="hud-towers">17 / 22</span></div>
+    </div>
+
+    <!-- LIVE CATCH PANEL -->
+    <div id="catch-panel">
+        <div class="catch-box" style="border-color: var(--tier-legendary);"><span class="catch-label">Legendary</span><span id="db-legendary" class="catch-val color-legendary">0</span></div>
+        <div class="catch-box" style="border-color: var(--tier-diamond);"><span class="catch-label">Diamond</span><span id="db-diamond" class="catch-val color-diamond">0</span></div>
+        <div class="catch-box" style="border-color: var(--tier-gold);"><span class="catch-label">Gold</span><span id="db-gold" class="catch-val color-gold">0</span></div>
+        <div class="catch-box" style="border-color: var(--tier-silver);"><span class="catch-label">Silver</span><span id="db-silver" class="catch-val color-silver">0</span></div>
+        <div class="catch-box" style="border-color: var(--tier-bronze);"><span class="catch-label">Bronze</span><span id="db-bronze" class="catch-val color-bronze">0</span></div>
+    </div>
+
+    <!-- ALERTS & BRANDING -->
+    <div id="alert-container"><div id="flashy-alert" class="alert-box"><div id="alert-type" class="alert-title"></div><div id="alert-user" class="alert-user"></div></div></div>
+    <div class="brand-footer">
+        <div style="display: flex; flex-direction: column; align-items: flex-end;">
+            <div id="game-name-display">LOADING...</div>
+            <div style="font-size: 11px; color: #fff; background: var(--bg-opacity); padding: 4px 8px; border-radius: 4px; border-left: 3px solid var(--accent-color); margin-top: 5px;">psngaming-20</div>
+        </div>
+        <img src="https://raw.githubusercontent.com/KFruti88/Universal-Stream-Overlay/main/images/werewolf3788.png" class="main-logo" alt="Werewolf Logo">
+    </div>
+
+    <!-- CHAT LOG -->
+    <div id="log"></div>
+
+    <!-- HIDDEN DEV CONTROLS -->
+    <div id="dev-controls">
+        <button class="dev-btn" onclick="toggleHub()">Toggle Hub</button>
+        <button class="dev-btn" onclick="updateLocal('poi', 1)">+ POI</button>
+        <button class="dev-btn" onclick="updateLocal('coll', 1)">+ Coll</button>
+        <button class="dev-btn" onclick="updateLocal('towers', 1)">+ Tower</button>
+        <button class="dev-btn" onclick="syncWithPSN()">Sync PSN</button>
+    </div>
+</div>
+
+<script>
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+        authDomain: "angler-squad-tracker.firebaseapp.com",
+        projectId: "angler-squad-tracker",
+        storageBucket: "angler-squad-tracker.firebasestorage.app",
+        messagingSenderId: "325679067980",
+        appId: "1:325679067980:web:57edbad70fe12b988355e9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    let localStats = { poi: 50, coll: 56, towers: 17, lastTrophies: 16 };
+    let dbStats = { Legendary: -1, Diamond: -1, Gold: -1, Silver: -1, Bronze: -1 };
+
+    function toggleHub() {
+        const hub = document.getElementById('central-hub');
+        hub.style.display = (hub.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function triggerTicker(msg) {
+        const wrap = document.getElementById('ticker-wrap');
+        const text = document.getElementById('ticker-text');
+        wrap.style.display = 'block';
+        text.classList.remove('scrolling');
+        void text.offsetWidth;
+        text.innerText = `UPDATE: ${msg.toUpperCase()} --- COMMAND CENTER V9.1 --- ${msg.toUpperCase()}`;
+        text.classList.add('scrolling');
+        setTimeout(() => { wrap.style.display = 'none'; }, 25000); 
+    }
+
+    // --- SMART VISIBILITY ENGINE ---
+    async function updateGameName() {
+        try {
+            const res = await fetch('https://decapi.me/twitch/game/werewolf3788');
+            const game = await res.text();
+            document.getElementById('game-name-display').innerText = game || "OFFLINE";
+            
+            const body = document.body;
+            const hud = document.getElementById('exploration-hud');
+            const panel = document.getElementById('catch-panel');
+            const hub = document.getElementById('central-hub');
+
+            body.className = ""; // Reset
+
+            // HIDE HUDs IF NOT PLAYING ANGLER OR HUNTER
+            const isHuntingGame = game.includes("Angler") || game.includes("Hunter");
+            hud.style.display = isHuntingGame ? 'flex' : 'none';
+            panel.style.display = isHuntingGame ? 'flex' : 'none';
+            if (!isHuntingGame) hub.style.display = 'none'; // Force hide the central hub if active
+
+            // THEME APPLYING
+            if (game.includes("Red Dead")) body.classList.add("theme-rdr2");
+            else if (game.includes("Farming")) body.classList.add("theme-farming");
+            else if (game.includes("Ready or Not")) body.classList.add("theme-ron");
+            else if (game.includes("Angler")) body.classList.add("theme-angler");
+            else if (game.includes("Hunter")) body.classList.add("theme-hunter");
+            else if (game.includes("Way of the Hunter")) body.classList.add("theme-wayhunter");
+            else if (game.includes("GTA") || game.includes("Grand Theft Auto")) body.classList.add("theme-gta");
+            else if (game.includes("Truck")) body.classList.add("theme-truck");
+        } catch (e) {}
+    }
+
+    function startDatabaseListener() {
+        auth.signInAnonymously().then(() => {
+            db.collection('catches').doc('Werewolf3788').onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    ['Legendary', 'Diamond', 'Gold', 'Silver', 'Bronze'].forEach(tier => {
+                        const newVal = data[tier] || 0;
+                        const oldVal = dbStats[tier];
+                        if (oldVal !== -1 && newVal > oldVal) triggerTicker(`WEREWOLF3788 CAUGHT A ${tier.toUpperCase()} RANK!`);
+                        dbStats[tier] = newVal;
+                        const el = document.getElementById(`db-${tier.toLowerCase()}`);
+                        if (el) el.innerText = newVal;
+                    });
+                }
+            });
+        });
+    }
+
+    ComfyJS.onChat = (user, message, flags, self, extra) => {
+        if (self) return;
+        const log = document.getElementById('log');
+        const row = document.createElement('div'); row.className = "chat-row";
+        row.innerHTML = `<span class="chat-meta" style="color: ${extra.userColor || '#FFF'}">${user}</span><span class="chat-msg">${message}</span>`;
+        log.prepend(row);
+        if (log.children.length > 6) log.removeChild(log.lastChild);
+    };
+
+    function updateLocal(key, delta) {
+        localStats[key] += delta;
+        document.getElementById(`hud-${key}`).innerText = (key === 'poi') ? `${localStats.poi} / 97` : (key === 'coll') ? `${localStats.coll} / 74` : `${localStats.towers} / 22`;
+        triggerTicker(`${key.toUpperCase()} UPDATED! NEW TOTAL: ${localStats[key]}`);
+    }
+
+    async function syncWithPSN() {
+        triggerTicker("Syncing PSN Data...");
+        try {
+            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://psnprofiles.com/trophies/23508-call-of-the-wild-the-angler/Werewolf3788')}`);
+            const data = await res.json();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.contents, 'text/html');
+            const count = doc.querySelectorAll('.completed-date').length;
+            if (count > localStats.lastTrophies) {
+                triggerTicker(`NEW PSN TROPHY! TOTAL: ${count}/51`);
+                localStats.lastTrophies = count;
+            } else triggerTicker("PSN Sync Complete.");
+        } catch (e) { triggerTicker("PSN Sync Failed."); }
+    }
+
+    window.onload = () => {
+        updateGameName();
+        startDatabaseListener();
+        ComfyJS.Init("werewolf3788");
+        setInterval(updateGameName, 30000); // Check game every 30s
+    };
+</script>
+</body>
+</html>
