@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- 
+    SQUAD COMMS MODULE
+    Instructions: Copy everything from <style> to </script> into your WordPress Code Module.
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squad Comms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <style>
+        body { background-color: #0a0f0a; color: #e7e5e4; font-family: sans-serif; }
+        #wp-custom-wrapper { background: transparent !important; }
+        .message-glow { text-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
+    </style>
+</head>
+<body>
+    <div id="comms-app" class="min-h-screen p-4 md:p-8 flex flex-col items-center max-w-4xl mx-auto">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-black text-emerald-500 tracking-tighter mb-2 flex items-center justify-center gap-3">
+                <i data-lucide="radio" class="w-8 h-8 md:w-12 md:h-12"></i>
+                SQUAD COMMS
+            </h1>
+            <p class="text-emerald-800 font-mono uppercase tracking-[0.3em] text-xs">Priority Transmission Channel</p>
+        </div>
+
+        <!-- Active Message Display -->
+        <div id="message-display" class="w-full bg-stone-900/40 border border-emerald-900/30 rounded-2xl p-8 mb-8 text-center min-h-[120px] flex items-center justify-center backdrop-blur-sm relative overflow-hidden group">
+            <div class="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+            <p id="current-message" class="text-xl md:text-3xl font-bold text-stone-200 message-glow whitespace-pre-wrap leading-relaxed">Initializing...</p>
+            <p id="timestamp" class="absolute bottom-3 right-4 text-[10px] font-mono text-emerald-700 uppercase tracking-widest"></p>
+        </div>
+
+        <!-- Input Controls -->
+        <div class="w-full bg-black/20 border border-stone-800 rounded-xl p-6 backdrop-blur-md">
+            <label class="block text-xs font-mono text-stone-500 uppercase tracking-widest mb-2">Update Transmission</label>
+            <textarea id="message-input" rows="3" class="w-full bg-stone-900/80 border border-stone-700 rounded-lg p-4 text-stone-200 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all placeholder-stone-600 font-mono text-sm" placeholder="Type new message here..."></textarea>
+            
+            <div class="flex gap-4 mt-4 justify-end">
+                <button onclick="clearMessage()" class="px-6 py-2 rounded-lg border border-red-900/30 text-red-400 hover:bg-red-900/20 hover:text-red-300 transition-colors text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Clear
+                </button>
+                <button onclick="sendMessage()" class="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20 transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer">
+                    <i data-lucide="send" class="w-4 h-4"></i> Send Update
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+            authDomain: "angler-squad-tracker.firebaseapp.com",
+            projectId: "angler-squad-tracker",
+            storageBucket: "angler-squad-tracker.firebasestorage.app",
+            messagingSenderId: "325679067980",
+            appId: "1:325679067980:web:57edbad70fe12b988355e9"
+        };
+        const appId = (typeof __app_id !== 'undefined') ? __app_id : 'cotw-trophy-display';
+
+        // Init
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        const msgDisplay = document.getElementById('current-message');
+        const timeDisplay = document.getElementById('timestamp');
+        const msgInput = document.getElementById('message-input');
+
+        // Logic
+        function renderMessage(data) {
+            if (data && data.text) {
+                msgDisplay.innerText = data.text;
+                msgDisplay.classList.remove('italic', 'text-stone-600');
+                msgDisplay.classList.add('text-stone-200');
+                
+                if (data.updatedAt) {
+                    const date = new Date(data.updatedAt);
+                    timeDisplay.innerText = "UPDATED: " + date.toLocaleDateString() + " " + date.toLocaleTimeString();
+                }
+            } else {
+                msgDisplay.innerText = "No active communications.";
+                msgDisplay.classList.add('italic', 'text-stone-600');
+                msgDisplay.classList.remove('text-stone-200');
+                timeDisplay.innerText = "STATUS: IDLE";
+            }
+        }
+
+        async function sendMessage() {
+            const text = msgInput.value.trim();
+            if (!text) return;
+
+            try {
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('comms').doc('motd').set({
+                    text: text,
+                    updatedAt: Date.now(),
+                    author: 'admin'
+                });
+                msgInput.value = '';
+            } catch (e) {
+                console.error(e);
+                alert("Transmission Failed: " + e.message);
+            }
+        }
+
+        async function clearMessage() {
+            if(!confirm("Clear current message?")) return;
+            try {
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('comms').doc('motd').delete();
+            } catch (e) { console.error(e); }
+        }
+
+        // Auth & Listen
+        auth.signInAnonymously().then(() => {
+            db.collection('artifacts').doc(appId).collection('public').doc('data').collection('comms').doc('motd')
+                .onSnapshot(doc => {
+                    renderMessage(doc.data());
+                });
+        });
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
