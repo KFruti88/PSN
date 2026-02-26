@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ANGLER OPS | TACTICAL HUB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -13,199 +14,135 @@
             --diamond-glow: rgba(185, 242, 255, 0.4);
             --glass: rgba(10, 20, 40, 0.85);
             --border: rgba(255, 255, 255, 0.1);
-            --water-bg: #001a33;
+            --water-blue: #0ea5e9;
             --legendary: #bf55ff;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        body {
-            background-color: var(--water-bg);
+        #wp-custom-wrapper {
+            background: radial-gradient(circle at center, #001a33 0%, #000814 100%);
+            min-height: 100vh;
             color: #eee;
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            overflow-x: hidden;
             position: relative;
+            overflow-x: hidden;
+            cursor: none; 
         }
 
-        /* Interactive Water Layer */
         #water-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: 1;
             pointer-events: none;
         }
 
-        /* 90% Overall Container Width */
-        .dashboard-container {
-            width: 90%;
-            max-width: 1800px;
-            margin: 0 auto;
-            padding: 20px 0;
-            position: relative;
-            z-index: 1;
+        #custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 44px;
+            height: 44px;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
             display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Tactical Header */
-        .header-panel {
-            width: 100%;
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            margin-bottom: 25px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-        }
-
-        .header-panel h1 {
-            margin: 0;
-            font-size: clamp(1.8rem, 6vw, 3rem);
-            font-weight: 900;
-            letter-spacing: 6px;
-            color: var(--gold);
-            text-shadow: 0 0 20px var(--gold-glow);
-            text-transform: uppercase;
-        }
-
-        .dev-badge {
-            display: inline-block;
-            margin-top: 10px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--diamond);
-            background: rgba(185, 242, 255, 0.1);
-            padding: 6px 18px;
-            border-radius: 20px;
-            border: 1px solid var(--diamond-glow);
-            letter-spacing: 1px;
-        }
-
-        /* Team Grid */
-        .team-grid {
-            width: 100%;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .team-card {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            padding: 18px;
-            border-radius: 12px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-            text-decoration: none; /* Removes underline for <a> */
-            color: inherit;
-            transition: transform 0.2s, border-color 0.2s;
-            cursor: pointer;
-        }
-
-        .team-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--gold);
-            background: rgba(20, 30, 50, 0.9);
-        }
-
-        .team-card .handle { font-weight: 900; color: var(--gold); font-size: 1.1rem; }
-        .team-card .role { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-
-        .status-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-            padding: 4px 10px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #aaa;
-        }
-
-        .status-badge.active {
-            border-color: #9146ff;
-            color: #fff;
-            background: rgba(145, 70, 255, 0.3);
-            box-shadow: 0 0 15px rgba(145, 70, 255, 0.4);
-        }
-
-        /* Intel Grid - Universal Stacking (Desktop & Mobile) */
-        .intel-grid {
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 30px;
-            margin-bottom: 25px;
-            justify-items: center;
-        }
-
-        /* Map Section - 80% width on Desktop */
-        .map-section {
-            background: #000;
-            border: 1px solid var(--border);
-            overflow: hidden;
-            width: 80%;
-            max-width: 1440px;
-            height: 750px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            position: relative;
-            border-radius: 20px;
-        }
-
-        iframe { width: 100%; height: 100%; border: none; }
-
-        /* Data Section */
-        .data-section {
-            background: var(--glass);
-            backdrop-filter: blur(25px);
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-            width: 80%;
-            max-width: 1440px;
-        }
-
-        .section-title {
-            color: var(--gold);
-            font-size: 1.1rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--gold);
-        }
-
-        /* Tactical Tables */
-        .species-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; table-layout: fixed; }
-        .species-table th { text-align: left; font-size: 0.7rem; text-transform: uppercase; color: #888; padding-bottom: 12px; border-bottom: 1px solid #444; }
-        .species-table td { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; vertical-align: middle; }
-        
-        .name-col { text-align: left !important; font-weight: 900; color: #fff; width: 25%; overflow: hidden; text-overflow: ellipsis; }
-        .hook-setup-col { text-align: center !important; width: 50%; }
-        .weight-col { text-align: right !important; width: 25%; color: var(--diamond); font-weight: 900; }
-
-        .setup-container {
-            display: flex;
-            flex-wrap: wrap;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            font-size: 28px;
+            filter: drop-shadow(0 0 8px var(--water-blue));
+            transition: transform 0.1s ease-out;
         }
+
+        .ticker-wrap {
+            width: 100%;
+            background: rgba(191, 85, 255, 0.15);
+            border-bottom: 1px solid var(--legendary);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            white-space: nowrap;
+            padding: 10px 0;
+            position: relative;
+            z-index: 100;
+        }
+
+        .ticker {
+            display: inline-block;
+            animation: ticker 40s linear infinite;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--legendary);
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .dashboard-container {
+            width: 92%;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px 0 100px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-panel { text-align: center; padding: 30px; margin-bottom: 25px; }
+        .header-panel h1 {
+            margin: 0;
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 900;
+            letter-spacing: 10px;
+            color: var(--gold);
+            text-shadow: 0 0 25px var(--gold-glow);
+            text-transform: uppercase;
+        }
+
+        .map-section { 
+            height: 700px; 
+            border-radius: 20px; 
+            overflow: hidden; 
+            margin-bottom: 30px; 
+            position: relative;
+            background: #000;
+        }
+        
+        .map-section iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .species-table-container { 
+            width: 100%; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .species-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 800px; }
+        .species-table th { text-align: left; font-size: 0.75rem; text-transform: uppercase; color: #888; padding: 15px 10px; border-bottom: 1px solid #333; }
+        .species-table td { padding: 15px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; vertical-align: middle; }
+
+        .name-col { font-weight: 900; color: #fff; width: 25%; overflow: hidden; text-overflow: ellipsis; }
+        .setup-col { width: 55%; text-align: center; }
+        .weight-col { width: 20%; text-align: right; color: var(--diamond); font-weight: 900; }
 
         .hook-tag {
             background: #000;
@@ -214,456 +151,334 @@
             padding: 4px 8px;
             border-radius: 4px;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: bold;
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            white-space: nowrap;
         }
-
-        .hook-tag::before { content: "🔹"; font-size: 0.6rem; }
 
         .bait-text {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #ddd;
-            font-weight: 500;
             background: rgba(255, 255, 255, 0.05);
-            padding: 2px 8px;
+            padding: 3px 8px;
             border-radius: 4px;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-left: 5px;
         }
 
-        /* Legendary Row */
-        .legendary-section-title { color: var(--legendary); border-bottom: 2px solid var(--legendary); margin-top: 20px; }
+        @media (max-width: 768px) {
+            #wp-custom-wrapper { cursor: auto; }
+            #custom-cursor { display: none; }
+            .dashboard-container { width: 95%; }
+            .map-section { height: 450px; }
+            .name-col { width: 35%; font-size: 0.8rem; }
+            .setup-col { width: 40%; }
+            .weight-col { width: 25%; font-size: 0.75rem; }
+        }
+
+        .status-badge.active { background: rgba(145, 70, 255, 0.3); color: #fff; border-color: #9146ff; box-shadow: 0 0 15px rgba(145, 70, 255, 0.4); }
+        .fish-card { border-top: 4px solid var(--water-blue); transition: all 0.3s ease; }
+        .fish-card:hover { transform: translateY(-5px); }
+        .legendary-badge { background: linear-gradient(135deg, #bf55ff, #7c3aed); font-size: 0.65rem; padding: 3px 10px; border-radius: 4px; font-weight: 900; }
         .legendary-row td { color: var(--legendary); font-weight: 900; }
-        
-        .legendary-tag {
-            background: #000;
-            color: #fff;
-            border: 1px solid var(--legendary);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-        }
-        .legendary-tag::before { content: "🟣"; font-size: 0.6rem; }
-
-        .legendary-bait {
-            font-size: 0.75rem;
-            color: #eee;
-            background: rgba(191, 85, 255, 0.15);
-            padding: 2px 8px;
-            border-radius: 4px;
-            border: 1px solid rgba(191, 85, 255, 0.3);
-        }
-
-        /* Footer Affiliate */
-        .affiliate-section {
-            width: 100%;
-            text-align: center;
-            padding: 20px 0 60px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .amazon-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            max-width: 600px;
-            background: linear-gradient(135deg, #ff9900, #ffcc00);
-            color: #000 !important;
-            text-decoration: none;
-            padding: 22px 40px;
-            border-radius: 15px;
-            font-weight: 900; 
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-shadow: 0 1px 2px rgba(255,255,255,0.4);
-        }
-
-        .amazon-btn:hover { transform: translateY(-5px); filter: brightness(1.1); box-shadow: 0 20px 40px rgba(255, 153, 0, 0.3); }
-
-        /* Responsive Breakpoints */
-        @media (max-width: 850px) {
-            .team-grid { grid-template-columns: 1fr; }
-            .dashboard-container { width: 90%; margin: 0 auto; }
-            
-            .map-section { 
-                width: 100%;
-                height: 0;
-                padding-bottom: 100%; 
-                border-radius: 15px;
-                background: #000;
-                margin: 0 auto;
-            }
-            .map-section iframe {
-                position: absolute;
-                top: 0;
-                left: 0;
-            }
-
-            .data-section { 
-                width: 100%; 
-                padding: 15px; 
-            }
-            
-            .name-col { width: 30%; font-size: 0.8rem; }
-            .hook-setup-col { width: 45%; }
-            .weight-col { width: 25%; font-size: 0.8rem; }
-            
-            .bait-text, .legendary-bait { font-size: 0.65rem; }
-            .hook-tag, .legendary-tag { font-size: 0.7rem; padding: 2px 5px; }
-
-            .amazon-btn {
-                padding: 18px 25px;
-                font-size: 0.95rem;
-                letter-spacing: 1px;
-            }
-        }
+        .legendary-tag { border-color: var(--legendary); color: #fff; background: #000; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid var(--legendary); }
     </style>
 </head>
 <body>
 
-<canvas id="water-canvas"></canvas>
-
-<div class="dashboard-container">
-    <header class="header-panel">
-        <h1>ANGLER OPS</h1>
-        <div class="dev-badge">TACTICAL INTEL HUB // LEAD DEV: WEREWOLF3788</div>
-    </header>
-
-    <div class="team-grid">
-        <a href="https://www.twitch.tv/werewolf3788" target="_blank" class="team-card">
-            <span class="handle">Werewolf3788</span>
-            <span class="role">Lead Developer</span>
-            <div class="status-badge" id="status-werewolf3788">LINKING...</div>
-        </a>
-        <a href="https://www.twitch.tv/raymystyro" target="_blank" class="team-card">
-            <span class="handle">Raymystyro</span>
-            <span class="role">Field Recon</span>
-            <div class="status-badge" id="status-raymystyro">LINKING...</div>
-        </a>
-        <a href="https://www.twitch.tv/terrdog420" target="_blank" class="team-card">
-            <span class="handle">terrdog420</span>
-            <span class="role">Intel Ops</span>
-            <div class="status-badge" id="status-terrdog420">LINKING...</div>
-        </a>
+<div id="wp-custom-wrapper">
+    <div class="ticker-wrap">
+        <div class="ticker" id="ticker-content">
+            INITIALIZING TACTICAL SCAN... STANDBY FOR ACTIVE LEGENDARY INTEL...
+        </div>
     </div>
 
-    <div class="intel-grid">
-        <section class="map-section">
+    <div id="custom-cursor">🎣</div>
+    <canvas id="water-canvas"></canvas>
+
+    <div class="dashboard-container">
+        <header class="glass-panel header-panel mb-8">
+            <h1>ANGLER OPS</h1>
+            <div class="flex flex-col items-center gap-2 mt-4">
+                <span class="font-mono text-[0.75rem] tracking-[0.3em] text-sky-400 uppercase">LEAD DEV: werewolf3788 // CONTRIBUTOR: terrdog420</span>
+                <div class="flex items-center gap-4 bg-black/40 px-6 py-2 rounded-full border border-white/10 mt-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="rotation-timer" class="font-mono text-sm font-bold text-emerald-400 tracking-tighter">00:00:00:00</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Twitch Status Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <a href="https://www.twitch.tv/werewolf3788" target="_blank" class="glass-panel team-card p-6 flex flex-col items-center gap-2 group transition-all hover:bg-slate-800/80">
+                <span class="text-gold font-black text-xl">Werewolf3788</span>
+                <span class="text-[0.65rem] uppercase tracking-widest text-slate-500 font-bold">Lead Developer</span>
+                <div class="status-badge px-3 py-1 rounded font-mono text-[0.65rem] border border-white/10" id="status-werewolf3788">LINKING...</div>
+            </a>
+            <a href="https://www.twitch.tv/terrdog420" target="_blank" class="glass-panel team-card p-6 flex flex-col items-center gap-2 group transition-all hover:bg-slate-800/80">
+                <span class="text-gold font-black text-xl">terrdog420</span>
+                <span class="text-[0.65rem] uppercase tracking-widest text-slate-500 font-bold">Intel Ops</span>
+                <div class="status-badge px-3 py-1 rounded font-mono text-[0.65rem] border border-white/10" id="status-terrdog420">LINKING...</div>
+            </a>
+            <a href="https://www.twitch.tv/raymystyro" target="_blank" class="glass-panel team-card p-6 flex flex-col items-center gap-2 group transition-all hover:bg-slate-800/80">
+                <span class="text-gold font-black text-xl">Raymystyro</span>
+                <span class="text-[0.65rem] uppercase tracking-widest text-slate-500 font-bold">Field Recon</span>
+                <div class="status-badge px-3 py-1 rounded font-mono text-[0.65rem] border border-white/10" id="status-raymystyro">LINKING...</div>
+            </a>
+        </div>
+
+        <!-- ACTIVE LEGENDARY PINNED -->
+        <section class="mb-12">
+            <h2 class="font-black text-sm tracking-[0.4em] text-sky-400 uppercase mb-6 px-2 flex items-center gap-2">
+                <span class="w-2 h-2 bg-sky-400 rounded-full"></span> Active Weekly Targets
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="active-fish-grid">
+                <!-- Sync data here -->
+            </div>
+        </section>
+
+        <!-- FULL SIZE MAP -->
+        <section class="glass-panel map-section mb-12">
             <iframe src="https://app.theangler.org/map/golden-ridge-reserve?x=14305.54956&y=24953.64746&z=15" title="Tactical Map" allowfullscreen></iframe>
         </section>
 
-        <section class="data-section">
-            <div class="section-title">DIAMOND INTEL [IMPERIAL]</div>
-            <table class="species-table">
-                <thead>
-                    <tr>
-                        <th class="name-col">Specimen</th>
-                        <th class="hook-setup-col">Setup [Hook & Bait]</th>
-                        <th class="weight-col">Min LB</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="name-col">Black Crappie</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#5</span>
-                                <span class="bait-text">Marshmallow</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">2.75 lb</td>
-                    </tr>
-                    <tr>
-                        <td class="name-col">Bluegill</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#5</span>
-                                <span class="bait-text">Redworm</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">2.20 lb</td>
-                    </tr>
-                    <tr>
-                        <td class="name-col">Brook Trout</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#2</span>
-                                <span class="bait-text">Spinner</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">9.04 lb</td>
-                    </tr>
-                    <tr>
-                        <td class="name-col">Burbot</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#4</span>
-                                <span class="bait-text">Liver</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">18.74 lb</td>
-                    </tr>
-                    <tr>
-                        <td class="name-col">Channel Catfish</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#3/0</span>
-                                <span class="bait-text">Cheese</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">26.46 lb</td>
-                    </tr>
-                    <tr>
-                        <td class="name-col">Cutthroat Trout</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#2</span>
-                                <span class="bait-text">Spinner</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">14.99 lb</td>
-                    </tr>
-                    <tr>
-                        <td class="name-col">Golden Trout</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#3</span>
-                                <span class="bait-text">Eggs</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">10.36 lb</td>
-                    </tr>
-                    <tr>
-                        <td class="name-col">Freshwater Drum</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#2/0</span>
-                                <span class="bait-text">Corn</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">39.68 lb</td>
-                    </tr>
-                    <tr>
-                        <td class="name-col">Lake Trout</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#4/0</span>
-                                <span class="bait-text">Large Spoon</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">50.71 lb</td>
-                    </tr>
-                    <tr>
-                        <td class="name-col">Largemouth Bass</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="hook-tag">#1/0</span>
-                                <span class="bait-text">Popper</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">11.02 lb</td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- SPECIES INTEL (Diamond) -->
+        <div class="grid grid-cols-1 gap-12 mb-12">
+            <section class="glass-panel p-8">
+                <h3 class="font-black text-gold text-sm tracking-widest uppercase border-b border-gold/30 pb-4 mb-6">Diamond Specimen Intel</h3>
+                <div class="species-table-container">
+                    <table class="species-table">
+                        <thead>
+                            <tr><th class="name-col">Specimen</th><th class="setup-col">Setup [Hook & Bait/Lure]</th><th class="weight-col">Diamond Min</th></tr>
+                        </thead>
+                        <tbody>
+                            <!-- Golden Ridge (USA) -->
+                            <tr><td class="name-col">Largemouth Bass</td><td class="setup-col"><span class="hook-tag">#1/0</span><span class="bait-text">Popper / Frog / Shad</span></td><td class="weight-col">11.02 lb</td></tr>
+                            <tr><td class="name-col">Smallmouth Bass</td><td class="setup-col"><span class="hook-tag">#1/0</span><span class="bait-text">Spinner / Crankbait</span></td><td class="weight-col">6.61 lb</td></tr>
+                            <tr><td class="name-col">Lake Trout</td><td class="setup-col"><span class="hook-tag">#4/0</span><span class="bait-text">Large Spoon</span></td><td class="weight-col">50.71 lb</td></tr>
+                            <tr><td class="name-col">Rainbow Trout</td><td class="setup-col"><span class="hook-tag">#2</span><span class="bait-text">Spinner / Eggs</span></td><td class="weight-col">14.99 lb</td></tr>
+                            <tr><td class="name-col">Walleye</td><td class="setup-col"><span class="hook-tag">#2/0</span><span class="bait-text">Jig Head + Shad / Leech</span></td><td class="weight-col">17.42 lb</td></tr>
+                            <tr><td class="name-col">Channel Catfish</td><td class="setup-col"><span class="hook-tag">#3/0</span><span class="bait-text">Cheese / Liver</span></td><td class="weight-col">26.46 lb</td></tr>
+                            <tr><td class="name-col">Northern Pike</td><td class="setup-col"><span class="hook-tag">#4/0</span><span class="bait-text">Swimbait / Jerkbait</span></td><td class="weight-col">27.01 lb</td></tr>
+                            <tr><td class="name-col">Mountain Whitefish</td><td class="setup-col"><span class="hook-tag">#7</span><span class="bait-text">Redworm / Marshmallow</span></td><td class="weight-col">5.51 lb</td></tr>
+                            <tr><td class="name-col">Yellow Perch</td><td class="setup-col"><span class="hook-tag">#6</span><span class="bait-text">Minnow / Spinner</span></td><td class="weight-col">4.19 lb</td></tr>
+                            <tr><td class="name-col">Golden Trout</td><td class="setup-col"><span class="hook-tag">#4</span><span class="bait-text">Eggs / Fly</span></td><td class="weight-col">10.36 lb</td></tr>
+                            <!-- Norway -->
+                            <tr><td class="name-col">Atlantic Salmon</td><td class="setup-col"><span class="hook-tag">#3/0</span><span class="bait-text">Spinner / Spoon</span></td><td class="weight-col">33.07 lb</td></tr>
+                            <tr><td class="name-col">Asp</td><td class="setup-col"><span class="hook-tag">#1/0</span><span class="bait-text">Popper / Crankbait</span></td><td class="weight-col">11.02 lb</td></tr>
+                            <tr><td class="name-col">Zander</td><td class="setup-col"><span class="hook-tag">#2/0</span><span class="bait-text">Jig Head + Shad</span></td><td class="weight-col">19.84 lb</td></tr>
+                            <tr><td class="name-col">Burbot</td><td class="setup-col"><span class="hook-tag">#4</span><span class="bait-text">Liver / Minnow</span></td><td class="weight-col">18.74 lb</td></tr>
+                            <!-- Spain -->
+                            <tr><td class="name-col">Common Carp</td><td class="setup-col"><span class="hook-tag">#2/0</span><span class="bait-text">Bread / Corn / Doughball</span></td><td class="weight-col">70.55 lb</td></tr>
+                            <tr><td class="name-col">Wels Catfish</td><td class="setup-col"><span class="hook-tag">#6/0</span><span class="bait-text">Liver / Meat</span></td><td class="weight-col">154.32 lb</td></tr>
+                            <tr><td class="name-col">Iberian Barbel</td><td class="setup-col"><span class="hook-tag">#1</span><span class="bait-text">Cheese / Worm</span></td><td class="weight-col">13.23 lb</td></tr>
+                            <!-- Africa -->
+                            <tr><td class="name-col">African Tigerfish</td><td class="setup-col"><span class="hook-tag">#4/0</span><span class="bait-text">Jerkbait / Spoon</span></td><td class="weight-col">33.07 lb</td></tr>
+                            <tr><td class="name-col">Amur Catfish</td><td class="setup-col"><span class="hook-tag">#5/0</span><span class="bait-text">Liver / Meat</span></td><td class="weight-col">66.14 lb</td></tr>
+                            <!-- Japan -->
+                            <tr><td class="name-col">Sockeye Salmon</td><td class="setup-col"><span class="hook-tag">#1/0</span><span class="bait-text">Spinner / Spoon</span></td><td class="weight-col">15.43 lb</td></tr>
+                            <tr><td class="name-col">Kokanee Salmon</td><td class="setup-col"><span class="hook-tag">#4</span><span class="bait-text">Spinner / Fly</span></td><td class="weight-col">4.41 lb</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-            <div class="section-title legendary-section-title">LEGENDARY OPS [IMPERIAL]</div>
-            <table class="species-table">
-                <thead>
-                    <tr><th class="name-col">Target</th><th class="hook-setup-col">Setup [Hook & Bait]</th><th class="weight-col">Weight</th></tr>
-                </thead>
-                <tbody>
-                    <tr class="legendary-row">
-                        <td class="name-col">Sidewinder</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="legendary-tag">#4 - #4/0</span>
-                                <span class="legendary-bait">Large Spoon</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">110.69 lb</td>
-                    </tr>
-                    <tr class="legendary-row">
-                        <td class="name-col">Speilfinne</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="legendary-tag">#6 - #4/0</span>
-                                <span class="legendary-bait">Spinner</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">80.58 lb</td>
-                    </tr>
-                    <tr class="legendary-row">
-                        <td class="name-col">Mamlambo</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="legendary-tag">#2/0 - #4/0</span>
-                                <span class="legendary-bait">Minnow</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">79.01 lb</td>
-                    </tr>
-                    <tr class="legendary-row">
-                        <td class="name-col">El Matador</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="legendary-tag">#2/0 - #4/0</span>
-                                <span class="legendary-bait">Corn</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">90.15 lb</td>
-                    </tr>
-                    <tr class="legendary-row">
-                        <td class="name-col">Big Larry</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="legendary-tag">#2 - #4/0</span>
-                                <span class="legendary-bait">Cheese</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">64.44 lb</td>
-                    </tr>
-                    <tr class="legendary-row">
-                        <td class="name-col">Groot Slang</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="legendary-tag">#3/0 - #4/0</span>
-                                <span class="legendary-bait">Frog</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">66.14 lb</td>
-                    </tr>
-                    <tr class="legendary-row">
-                        <td class="name-col">Kamo Mermani</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="legendary-tag">#3/0 - #4/0</span>
-                                <span class="legendary-bait">Marshmallow</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">55.20 lb</td>
-                    </tr>
-                    <tr class="legendary-row">
-                        <td class="name-col">Goldstein</td>
-                        <td class="hook-setup-col">
-                            <div class="setup-container">
-                                <span class="legendary-tag">#7 - #2/0</span>
-                                <span class="legendary-bait">Popper</span>
-                            </div>
-                        </td>
-                        <td class="weight-col">27.32 lb</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-    </div>
+            <!-- LEGENDARY ARCHIVE -->
+            <section class="glass-panel p-8">
+                <h3 class="font-black text-purple-400 text-sm tracking-widest uppercase border-b border-purple-400/30 pb-4 mb-6">Legendary Archive Intelligence</h3>
+                <div class="species-table-container">
+                    <table class="species-table">
+                        <thead>
+                            <tr><th class="name-col">Target</th><th class="setup-col">Setup [Hook & Bait]</th><th class="weight-col">Weight</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="legendary-row"><td class="name-col">Sidewinder</td><td class="setup-col"><span class="legendary-tag">#4/0</span><span class="bait-text">Large Spoon</span></td><td class="weight-col">110.69 lb</td></tr>
+                            <tr class="legendary-row"><td class="name-col">Speilfinne</td><td class="setup-col"><span class="legendary-tag">#4/0</span><span class="bait-text">Spinner</span></td><td class="weight-col">80.58 lb</td></tr>
+                            <tr class="legendary-row"><td class="name-col">Mamlambo</td><td class="setup-col"><span class="legendary-tag">#4/0</span><span class="bait-text">Minnow</span></td><td class="weight-col">79.01 lb</td></tr>
+                            <tr class="legendary-row"><td class="name-col">El Matador</td><td class="setup-col"><span class="legendary-tag">#4/0</span><span class="bait-text">Corn</span></td><td class="weight-col">90.15 lb</td></tr>
+                            <tr class="legendary-row"><td class="name-col">Big Larry</td><td class="setup-col"><span class="legendary-tag">#4/0</span><span class="bait-text">Cheese</span></td><td class="weight-col">64.44 lb</td></tr>
+                            <tr class="legendary-row"><td class="name-col">Groot Slang</td><td class="setup-col"><span class="legendary-tag">#4/0</span><span class="bait-text">Frog</span></td><td class="weight-col">66.14 lb</td></tr>
+                            <tr class="legendary-row"><td class="name-col">Kamo Mermani</td><td class="setup-col"><span class="legendary-tag">#4/0</span><span class="bait-text">Marshmallow</span></td><td class="weight-col">55.20 lb</td></tr>
+                            <tr class="legendary-row"><td class="name-col">Goldstein</td><td class="setup-col"><span class="legendary-tag">#2/0</span><span class="bait-text">Popper</span></td><td class="weight-col">27.32 lb</td></tr>
+                            <tr class="legendary-row"><td class="name-col">Store Henrik</td><td class="setup-col"><span class="legendary-tag">#2/0</span><span class="bait-text">Liver</span></td><td class="weight-col">41.89 lb</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
 
-    <div class="affiliate-section">
-        <a href="https://www.amazon.com/s?k=fishing&tag=werewolf3788-20" target="_blank" class="amazon-btn">
-            🛒 Support the Hub - Shop Fishing Gear
-        </a>
+        <!-- Footer -->
+        <footer class="flex flex-col md:flex-row gap-6 items-center justify-between">
+            <a href="https://www.amazon.com/s?k=fishing&tag=werewolf3788-20" target="_blank" class="w-full md:w-auto bg-gradient-to-r from-amber-500 to-yellow-400 px-10 py-5 rounded-xl font-black text-black uppercase tracking-widest text-sm shadow-xl hover:scale-105 transition text-center">
+                🛒 Support Hub - Shop Fishing Gear
+            </a>
+            <div class="flex flex-wrap gap-4 justify-center">
+                <a href="https://github.com/KFruti88" target="_blank" class="glass-panel px-6 py-2 text-[0.65rem] font-bold uppercase tracking-widest border-white/5 opacity-50 hover:opacity-100 transition">Source: KFruti88</a>
+                <a href="https://theangler.org" target="_blank" class="glass-panel px-6 py-2 text-[0.65rem] font-bold uppercase tracking-widest border-white/5 opacity-50 hover:opacity-100 transition">Hotspots: theangler.org</a>
+            </div>
+        </footer>
     </div>
 </div>
 
-<script>
-    /* 1. TWITCH STATUS LOGIC */
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const firebaseConfig = JSON.parse(__firebase_config);
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-angler-app';
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const fallbackRotation = [
+        { name: "Sidewinder", reserve: "USA", location: "SW Basins", method: "Size 2/0 Spoon", technique: "3x Constant", desc: "Lake Trout ghost.", color: "border-sky-400" },
+        { name: "Kalle Paul", reserve: "Norway", location: "Lily Pads", method: "Size 3/0 Swimbait", technique: "2x Twitch", desc: "Pike dominator.", color: "border-orange-400" },
+        { name: "El Matador", reserve: "Spain", location: "Big Reservoir", method: "Size 4/0 Cheese", technique: "Bottom", desc: "Stubborn Carp.", color: "border-red-400" }
+    ];
+
+    /* 1. TWITCH STATUS */
     const team = [
         { handle: 'werewolf3788', elId: 'status-werewolf3788' },
         { handle: 'raymystyro', elId: 'status-raymystyro' },
         { handle: 'terrdog420', elId: 'status-terrdog420' }
     ];
 
-    async function updateStatus() {
+    async function updateTwitch() {
         for (const m of team) {
             try {
                 const r = await fetch(`https://decapi.me/twitch/game/${m.handle}`);
                 const game = await r.text();
                 const el = document.getElementById(m.elId);
+                if (!el) continue;
                 if (game && !game.toLowerCase().includes('offline') && !game.toLowerCase().includes('not found')) {
                     el.innerText = `NOW PLAYING: ${game.toUpperCase()}`;
-                    el.parentElement.classList.add('active-link'); // Added hook for parent
-                    const badge = el;
-                    badge.classList.add('active');
+                    el.classList.add('active');
                 } else {
                     el.innerText = 'STATUS: OFFLINE';
                     el.classList.remove('active');
                 }
-            } catch (e) {
-                document.getElementById(m.elId).innerText = 'STATUS: OFFLINE';
-            }
+            } catch (e) { console.error(e); }
         }
     }
-    updateStatus();
-    setInterval(updateStatus, 120000);
+    updateTwitch();
+    setInterval(updateTwitch, 120000);
 
-    /* 2. INTERACTIVE WATER LOGIC */
+    /* 2. RIPPLE & CURSOR */
     const canvas = document.getElementById('water-canvas');
     const ctx = canvas.getContext('2d');
+    const cursor = document.getElementById('custom-cursor');
     let ripples = [];
+    let idleTimer, isMoving = false;
 
-    function initCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', initCanvas);
-    initCanvas();
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
 
     class Ripple {
-        constructor(x, y) {
-            this.x = x;
-            this.y = y;
-            this.r = 2;
-            this.opacity = 0.6;
-            this.growth = 2.5;
-        }
-        update() {
-            this.r += this.growth;
-            this.opacity -= 0.01;
-        }
+        constructor(x, y) { this.x = x; this.y = y; this.r = 2; this.opacity = 0.6; }
+        update() { this.r += 2.5; this.opacity -= 0.01; }
         draw() {
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(185, 242, 255, ${this.opacity})`;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.closePath();
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(185, 242, 255, ${this.opacity})`; ctx.lineWidth = 2; ctx.stroke();
         }
     }
 
-    function createRipple(e) {
+    const input = (e) => {
         const x = e.touches ? e.touches[0].clientX : e.clientX;
         const y = e.touches ? e.touches[0].clientY : e.clientY;
-        ripples.push(new Ripple(x, y));
-        if (ripples.length > 50) ripples.shift();
-    }
-
-    window.addEventListener('mousemove', createRipple);
-    window.addEventListener('touchmove', (e) => {
-        createRipple(e);
-    }, { passive: true });
+        if (cursor) {
+            cursor.style.left = `${x}px`; cursor.style.top = `${y}px`;
+            if (!isMoving) { isMoving = true; cursor.innerHTML = '🚤'; }
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(() => { isMoving = false; cursor.innerHTML = '🎣'; }, 150);
+        }
+        if(Math.random() > 0.8) ripples.push(new Ripple(x, y));
+    };
+    window.addEventListener('mousemove', input); window.addEventListener('touchmove', input);
 
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ripples.forEach((r, i) => {
-            r.update();
-            r.draw();
-            if (r.opacity <= 0) ripples.splice(i, 1);
-        });
+        ripples.forEach((r, i) => { r.update(); r.draw(); if (r.opacity <= 0) ripples.splice(i, 1); });
         requestAnimationFrame(animate);
     }
     animate();
+
+    /* 3. CLOUD SYNC & UI */
+    function renderActive(data) {
+        const grid = document.getElementById('active-fish-grid');
+        const ticker = document.getElementById('ticker-content');
+        
+        if (ticker) {
+            ticker.innerText = "ACTIVE LEGENDARIES: " + data.map(f => `${f.name} (${f.reserve})`).join(' --- ');
+        }
+        
+        if (grid) {
+            grid.innerHTML = data.map(fish => `
+                <div class="glass-panel fish-card p-8 flex flex-col h-full bg-slate-900/40">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="legendary-badge">Legendary</span>
+                        <span class="font-mono text-[0.6rem] text-slate-500 font-bold uppercase">${fish.reserve}</span>
+                    </div>
+                    <h4 class="text-2xl font-black text-white mb-2">${fish.name}</h4>
+                    <p class="text-xs text-sky-200/60 italic mb-8">"${fish.desc || fish.description}"</p>
+                    <div class="space-y-4 mt-auto">
+                        <div class="bg-black/40 p-4 rounded-xl border border-white/10">
+                            <span class="block text-[10px] uppercase text-sky-400 font-black mb-1">Tactical Setup</span>
+                            <p class="text-sm text-white">${fish.method}</p>
+                        </div>
+                        <div class="bg-black/40 p-4 rounded-xl border border-white/10">
+                            <span class="block text-[10px] uppercase text-emerald-400 font-black mb-1">Intel: Strategy</span>
+                            <p class="text-sm text-white">${fish.technique}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    function startTimer() {
+        const tick = () => {
+            const now = new Date();
+            const next = new Date();
+            next.setDate(now.getDate() + (3 + 7 - now.getDay()) % 7);
+            next.setHours(22, 0, 0, 0);
+            if (now > next) next.setDate(next.getDate() + 7);
+            const d = next - now;
+            const dd = Math.floor(d / 86400000);
+            const hh = Math.floor((d % 86400000) / 3600000);
+            const mm = Math.floor((d % 3600000) / 60000);
+            const ss = Math.floor((d % 60000) / 1000);
+            const timerEl = document.getElementById('rotation-timer');
+            if (timerEl) {
+                timerEl.innerText = `${dd.toString().padStart(2,'0')}:${hh.toString().padStart(2,'0')}:${mm.toString().padStart(2,'0')}:${ss.toString().padStart(2,'0')}`;
+            }
+        };
+        setInterval(tick, 1000); tick();
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token).catch(() => signInAnonymously(auth));
+            } else { await signInAnonymously(auth); }
+            return;
+        }
+        const ref = doc(db, 'artifacts', appId, 'public', 'data', 'rotation', 'current');
+        onSnapshot(ref, (snap) => {
+            if (snap.exists() && snap.data().fish) { 
+                renderActive(snap.data().fish); 
+            } else { 
+                renderActive(fallbackRotation); 
+            }
+        }, (err) => { 
+            console.error("Firestore sync error:", err);
+            renderActive(fallbackRotation); 
+        });
+    });
+
+    startTimer();
 </script>
 </body>
 </html>
