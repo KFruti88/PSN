@@ -2,7 +2,7 @@
   Project: theHunter: Call of the Wild - Master Trophy Tracker
   Lead Developer: Werewolf3788 (GitHub: KFruti88)
   Collaborators: Raymystyro (OneLIVIDMAN), terrdog420
-  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync
+  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync + Storage
   Platform: WordPress Compatible (#wp-custom-wrapper) / CodePen / GitHub
 -->
 
@@ -22,6 +22,20 @@
             </div>
         </header>
 
+        <div class="section-title text-red-500 border-red-500">🏆 Hall of Fame (Latest Cloud Entries)</div>
+        <div id="hall-of-fame" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <!-- Great One Slot -->
+            <div id="hof-greatone" class="hidden relative group rounded-xl overflow-hidden border border-red-500/30 aspect-video bg-black/40">
+                <img id="img-greatone" src="" class="w-full h-full object-cover" alt="Great One">
+                <div class="absolute top-2 left-2 px-2 py-1 bg-red-600 text-[10px] font-black uppercase rounded">Great One</div>
+            </div>
+            <!-- Diamond Slot -->
+            <div id="hof-diamond" class="hidden relative group rounded-xl overflow-hidden border border-cyan-500/30 aspect-video bg-black/40">
+                <img id="img-diamond" src="" class="w-full h-full object-cover" alt="Diamond">
+                <div class="absolute top-2 left-2 px-2 py-1 bg-cyan-600 text-[10px] font-black uppercase rounded">Diamond</div>
+            </div>
+        </div>
+
         <div class="section-title">Active Grinds & Skill Challenges</div>
         <div id="trophy-list-active"></div>
 
@@ -34,9 +48,9 @@
                 </div>
 
                 <!-- Unified Cloud Synced Rows -->
-                <div class="cloud-rows-container">
+                <div class="cloud-rows-container space-y-2">
                     <!-- Great One -->
-                    <div class="mission-row p-3 bg-red-900/10 border border-red-600/30 rounded-xl mb-2">
+                    <div class="mission-row p-3 bg-red-900/10 border border-red-600/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png" class="stat-mini-icon" alt="GO">
                             <span class="mission-text text-red-500 font-bold uppercase tracking-tighter">Great One Grind</span>
@@ -49,7 +63,7 @@
                     </div>
 
                     <!-- Diamond -->
-                    <div class="mission-row p-3 bg-cyan-900/10 border border-cyan-500/30 rounded-xl mb-2">
+                    <div class="mission-row p-3 bg-cyan-900/10 border border-cyan-500/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png" class="stat-mini-icon" alt="D">
                             <span class="mission-text text-cyan-300 font-bold uppercase tracking-tighter">Diamond Harvests</span>
@@ -61,8 +75,8 @@
                         </div>
                     </div>
 
-                    <!-- Albino (New Request) -->
-                    <div class="mission-row p-3 bg-slate-100/10 border border-slate-300/30 rounded-xl mb-2">
+                    <!-- Albino -->
+                    <div class="mission-row p-3 bg-slate-100/10 border border-slate-300/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/f838641a-821b-4654-9457-300e84f5539c.png" class="stat-mini-icon" alt="A">
                             <span class="mission-text text-slate-100 font-bold uppercase tracking-tighter">Albino Trophies</span>
@@ -75,7 +89,7 @@
                     </div>
 
                     <!-- Gold -->
-                    <div class="mission-row p-3 bg-yellow-900/10 border border-yellow-600/30 rounded-xl mb-2">
+                    <div class="mission-row p-3 bg-yellow-900/10 border border-yellow-600/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png" class="stat-mini-icon" alt="G">
                             <span class="mission-text text-yellow-400 font-bold uppercase tracking-tighter">Gold Harvests</span>
@@ -88,7 +102,7 @@
                     </div>
 
                     <!-- Silver -->
-                    <div class="mission-row p-3 bg-slate-700/10 border border-slate-500/30 rounded-xl mb-2">
+                    <div class="mission-row p-3 bg-slate-700/10 border border-slate-500/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png" class="stat-mini-icon" style="filter: grayscale(1) brightness(1.5);" alt="S">
                             <span class="mission-text text-slate-300 font-bold uppercase tracking-tighter">Silver Harvests</span>
@@ -111,6 +125,26 @@
                             <span id="stat-bronze" class="count-display text-orange-400">0</span>
                             <button class="btn-ctrl" onclick="updateCloudStat('bronze', 1)">+</button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Image Upload Center -->
+                <div class="mt-6 border-t border-emerald-500/20 pt-4">
+                    <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em] mb-4 text-center">Cloud Upload Center</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="triggerUpload('diamond')" class="flex flex-col items-center gap-2 p-3 bg-cyan-900/20 border border-cyan-500/40 rounded-xl hover:bg-cyan-900/40 transition-all group">
+                            <i class="text-cyan-400 text-lg group-hover:scale-110 transition-transform">💎</i>
+                            <span class="text-[9px] font-bold text-cyan-200 uppercase">Upload Diamond</span>
+                        </button>
+                        <button onclick="triggerUpload('greatone')" class="flex flex-col items-center gap-2 p-3 bg-red-900/20 border border-red-500/40 rounded-xl hover:bg-red-900/40 transition-all group">
+                            <i class="text-red-400 text-lg group-hover:scale-110 transition-transform">👑</i>
+                            <span class="text-[9px] font-bold text-red-200 uppercase">Upload Great One</span>
+                        </button>
+                    </div>
+                    <input type="file" id="trophy-upload" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
+                    
+                    <div id="upload-progress" class="hidden w-full bg-emerald-950 h-1 mt-4 rounded overflow-hidden">
+                        <div id="progress-bar" class="bg-emerald-400 h-full transition-all duration-300" style="width: 0%"></div>
                     </div>
                 </div>
 
@@ -148,6 +182,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
     <style>
         #wp-custom-wrapper {
@@ -267,6 +302,9 @@
 
         .tracker-footer { margin-top: 40px; text-align: center; font-size: 0.75rem; color: #7f8c8d; }
         .tracker-footer a { color: #2ecc71; text-decoration: none; }
+        
+        #hall-of-fame img { transition: transform 0.5s ease; cursor: zoom-in; }
+        #hall-of-fame img:hover { transform: scale(1.05); }
     </style>
 
     <script>
@@ -288,6 +326,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const storage = firebase.storage();
 
         // --- ICONS ---
         const PROXY = "https://images.weserv.nl/?url=";
@@ -298,18 +337,11 @@
         const MARK_ICON = "https://img.psnprofiles.com/trophy/s/6622/0c34b625-1c04-4343-bf57-606cad61b625.png";
         const TRACK_ICON = "https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png";
         const SKILL_ICON = "https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png";
-        const CALL_WILD_ICON = "https://img.psnprofiles.com/trophy/s/6622/475f711c-00ad-489f-ac9f-7465c2a4a038.png";
         const PARK_ICON = "https://img.psnprofiles.com/trophy/s/6622/c37a9f07-6ed9-435a-9a2d-93915f1a70e3.png";
-        
-        const OLD_FASHIONED_ICON = "https://img.psnprofiles.com/trophy/s/6622/8ede5fa5-ca04-4e3d-979c-172557421a7a.png";
-        const SCARECROW_ICON = "https://img.psnprofiles.com/trophy/s/6622/b144053a-de8b-4343-9e4a-89dc9d66eaa9.png";
-        const GOLDMEMBER_ICON = "https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png";
-        const DIAMOND_ICON = "https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png";
-        const CABIN_ICON = "https://img.psnprofiles.com/trophy/s/6622/c37a9f07-6ed9-435a-9a2d-93915f1a70e3.png"; 
-        
         const FALLBACK_ICON = "https://www.playstation.com/etc.clientlibs/global_layouts/clientlibs/clientlib-base/resources/img/favicon/apple-icon-180x180.png";
 
         let localTrophyData = {};
+        let activeUploadCategory = 'diamond';
 
         const trophyList = [
             { id: "platinum", name: "theHunter (Platinum)", rank: "platinum", isDone: false, missions: [{ id: "m_plat", label: "Base Trophies", target: 51, current: 24 }] },
@@ -323,7 +355,13 @@
             { id: "trampfine", name: "Trampfine Arc", rank: "gold", isDone: false, missions: [{ id: "m_trampfine", label: "Jonathan Trampfine Missions", target: 1, current: 0 }] },
             { id: "connors", name: "Connors Arc", rank: "gold", isDone: false, missions: [{ id: "m_connors", label: "Emily Connors Missions", target: 1, current: 0 }] },
             { id: "beatty", name: "Beatty Arc", rank: "gold", isDone: false, missions: [{ id: "m_beatty", label: "Paul Beatty Missions", target: 1, current: 0 }] },
-            { id: "srp_cabins", name: "Silver Ridge Peaks Cabins", rank: "silver", isDone: false, missions: [{ id: "m_cabins", label: "Cabins Found", target: 19, current: 0 }] },
+            
+            // Silver Ridge Peaks Missions
+            { id: "srp_exploration", name: "Silver Ridge Peaks Missions", rank: "silver", isDone: false, missions: [
+                { id: "m_cabins", label: "Cabins Found", target: 19, current: 1 },
+                { id: "m_lookouts", label: "Lookout Towers Visited", target: 15, current: 1 }
+            ] },
+            
             { id: "cotw_callers", name: "Call Of The Wild", rank: "silver", isDone: false, missions: [{ id: "m_callers", label: "Use All Callers Once", target: 1, current: 0 }] },
             { id: "medved_park", name: "Medved-Taiga National Park Arc", rank: "silver", isDone: false, missions: [{ id: "m_medved", label: "All Medved Missions", target: 1, current: 0 }] },
             { id: "globetrotter", name: "Globetrotter", rank: "silver", isDone: false, isTravel: true, missions: [{ id: "m_regions", label: "All Regions Visited", target: 1, current: 0 }] },
@@ -406,12 +444,12 @@
                 let iconToUse = GAME_ICON;
                 const lowerName = t.name.toLowerCase();
                 
-                if (lowerName === "call of the wild") iconToUse = CALL_WILD_ICON;
-                else if (lowerName === "the old fashioned way") iconToUse = OLD_FASHIONED_ICON;
-                else if (lowerName === "scarecrow") iconToUse = SCARECROW_ICON;
-                else if (lowerName === "goldmember") iconToUse = GOLDMEMBER_ICON;
-                else if (lowerName === "diamonds are forever") iconToUse = DIAMOND_ICON;
-                else if (lowerName.includes("cabin")) iconToUse = CABIN_ICON;
+                if (lowerName === "call of the wild") iconToUse = "https://img.psnprofiles.com/trophy/s/6622/475f711c-00ad-489f-ac9f-7465c2a4a038.png";
+                else if (lowerName === "the old fashioned way") iconToUse = "https://img.psnprofiles.com/trophy/s/6622/8ede5fa5-ca04-4e3d-979c-172557421a7a.png";
+                else if (lowerName === "scarecrow") iconToUse = "https://img.psnprofiles.com/trophy/s/6622/b144053a-de8b-4343-9e4a-89dc9d66eaa9.png";
+                else if (lowerName === "goldmember") iconToUse = "https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png";
+                else if (lowerName === "diamonds are forever") iconToUse = "https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png";
+                else if (lowerName.includes("cabin") || lowerName.includes("lookout") || lowerName.includes("tower")) iconToUse = PARK_ICON;
                 else if (t.isSkill || lowerName.includes("marksman") || lowerName.includes("zombie") || lowerName.includes("make it count") || lowerName.includes("shot-for-shot")) iconToUse = SKILL_ICON;
                 else if (t.isPhoto || lowerName.includes("camera") || lowerName.includes("picture") || lowerName.includes("photograph")) iconToUse = PHOTO_ICON;
                 else if (lowerName.includes("hitting the mark")) iconToUse = MARK_ICON;
@@ -477,72 +515,97 @@
                         }
                     }, error => {
                         console.error("Cloud sync error:", error);
-                        const cloudStatusEl = document.getElementById('cloud-status');
-                        if (cloudStatusEl) cloudStatusEl.innerText = "Sync Error";
                     });
             }
         });
 
         function syncUIWithData() {
             const mappings = {
-                'bronze': 'stat-bronze',
-                'silver': 'stat-silver',
-                'gold': 'stat-gold',
-                'diamond': 'stat-diamond',
-                'greatone': 'stat-greatone',
-                'albino': 'stat-albino',
-                'longestShot': 'stat-longestShot'
+                'bronze': 'stat-bronze', 'silver': 'stat-silver', 'gold': 'stat-gold',
+                'diamond': 'stat-diamond', 'greatone': 'stat-greatone', 'albino': 'stat-albino',
+                'longestShot': 'stat-longestShot',
+                'harvestImageUrl_diamond': 'img-diamond',
+                'harvestImageUrl_greatone': 'img-greatone'
             };
 
             Object.entries(mappings).forEach(([dbKey, htmlId]) => {
                 const val = localTrophyData[dbKey] || 0;
                 const el = document.getElementById(htmlId);
-                if (el) {
-                    if (dbKey === 'longestShot') {
-                        el.innerText = (typeof val === 'string' && !val.includes('yds')) ? val + ' yds' : val;
-                    } else {
-                        el.innerText = val;
-                    }
+                if (!el) return;
+
+                if (dbKey.includes('harvestImageUrl') && val) {
+                    el.src = val;
+                    const type = dbKey.split('_')[1];
+                    const container = document.getElementById('hof-' + type);
+                    if (container) container.classList.remove('hidden');
+                } else if (dbKey === 'longestShot') {
+                    el.innerText = (typeof val === 'string' && !val.includes('yds')) ? val + ' yds' : val;
+                } else {
+                    el.innerText = val;
                 }
             });
         }
 
         async function updateCloudStat(trophyId, delta) {
             if (!auth.currentUser) return;
-
             const currentCount = localTrophyData[trophyId] || 0;
             const newCount = Math.max(0, currentCount + delta);
-            
             try {
                 const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
-                await docRef.set({ 
-                    [trophyId]: newCount, 
-                    lastUpdated: Date.now() 
-                }, { merge: true });
-            } catch (error) {
-                console.error("Update failed:", error);
-            }
+                await docRef.set({ [trophyId]: newCount, lastUpdated: Date.now() }, { merge: true });
+            } catch (error) { console.error("Update failed:", error); }
+        }
+
+        function triggerUpload(category) {
+            activeUploadCategory = category;
+            document.getElementById('trophy-upload').click();
+        }
+
+        async function handleImageUpload(input) {
+            if (!auth.currentUser || !input.files[0]) return;
+            
+            const category = activeUploadCategory;
+            const file = input.files[0];
+            const progressBar = document.getElementById('progress-bar');
+            const progressContainer = document.getElementById('upload-progress');
+            
+            progressContainer.classList.remove('hidden');
+            
+            const storagePath = `artifacts/${sharedAppId}/public/data/userImages/${leadDevId}/${category}/${Date.now()}_${file.name}`;
+            const storageRef = storage.ref(storagePath);
+            const uploadTask = storageRef.put(file);
+
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    progressBar.style.width = progress + '%';
+                }, 
+                (error) => { console.error("Upload error:", error); progressContainer.classList.add('hidden'); }, 
+                async () => {
+                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+                    await docRef.set({ 
+                        ['harvestImageUrl_' + category]: downloadURL,
+                        lastUpdated: Date.now() 
+                    }, { merge: true });
+                    progressContainer.classList.add('hidden');
+                    progressBar.style.width = '0%';
+                }
+            );
         }
 
         async function setLongestShot() {
             if (!auth.currentUser) return;
             const current = localTrophyData['longestShot'] || "184.82 yds";
             const val = window.prompt("Enter Longest Vital Organ Hit Record (e.g. 184.82 yds):", current);
-            
             if (val !== null) {
                 try {
                     const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
-                    await docRef.set({ 
-                        'longestShot': val, 
-                        lastUpdated: Date.now() 
-                    }, { merge: true });
-                } catch (error) {
-                    console.error("Update failed:", error);
-                }
+                    await docRef.set({ 'longestShot': val, lastUpdated: Date.now() }, { merge: true });
+                } catch (error) { console.error("Update failed:", error); }
             }
         }
 
-        // --- UTILS ---
         function toggleDetails(id) {
             const el = document.getElementById(`details-${id}`);
             if (!el) return;
@@ -579,15 +642,9 @@
                 await fetch(proxy + feedUrl);
                 btn.innerText = "✅ Synced";
                 setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000);
-            } catch (e) {
-                btn.innerText = "❌ Error";
-                setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000);
-            }
+            } catch (e) { btn.innerText = "❌ Error"; setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000); }
         }
 
-        window.onload = () => {
-            initTracker();
-            initAuth();
-        };
+        window.onload = () => { initTracker(); initAuth(); };
     </script>
 </div>
