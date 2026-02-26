@@ -5,7 +5,7 @@
   Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync + Storage & Wiki Mission Data
   Platform: WordPress Compatible (#wp-custom-wrapper) / CodePen / GitHub
   
-  Updated: Fixed Cloud Paths (Rule 1), added Mission Sync, and unified high-tier rank styling.
+  Updated: Fixed Cloud Update logic and Pathing (Rule 1 & 3) to ensure buttons work in real-time.
 -->
 
 <div id="wp-custom-wrapper">
@@ -50,7 +50,7 @@
                 </div>
 
                 <div class="cloud-rows-container space-y-2">
-                    <!-- High-Tier Styled Ranks -->
+                    <!-- Great One -->
                     <div class="mission-row p-3 bg-red-900/10 border border-red-600/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png" class="stat-mini-icon" alt="GO">
@@ -63,6 +63,7 @@
                         </div>
                     </div>
 
+                    <!-- Diamond -->
                     <div class="mission-row p-3 bg-cyan-900/10 border border-cyan-500/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png" class="stat-mini-icon" alt="D">
@@ -75,6 +76,7 @@
                         </div>
                     </div>
 
+                    <!-- Albino -->
                     <div class="mission-row p-3 bg-slate-100/10 border border-slate-300/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/f838641a-821b-4654-9457-300e84f5539c.png" class="stat-mini-icon" alt="A">
@@ -87,6 +89,7 @@
                         </div>
                     </div>
 
+                    <!-- Gold -->
                     <div class="mission-row p-3 bg-yellow-900/10 border border-yellow-600/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png" class="stat-mini-icon" alt="G">
@@ -99,6 +102,7 @@
                         </div>
                     </div>
 
+                    <!-- Silver -->
                     <div class="mission-row p-3 bg-slate-700/10 border border-slate-500/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png" class="stat-mini-icon" style="filter: grayscale(1) brightness(1.5);" alt="S">
@@ -111,6 +115,7 @@
                         </div>
                     </div>
 
+                    <!-- Bronze -->
                     <div class="mission-row p-3 bg-orange-900/10 border border-orange-700/30 rounded-xl mb-4">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png" class="stat-mini-icon" alt="B">
@@ -173,6 +178,7 @@
         </footer>
     </div>
 
+    <!-- Firebase SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -374,7 +380,7 @@
 
             // Vurhonga
             { id: "vurh_main", name: "Vurhonga Story Arc", rank: "silver", isDone: false, map: "vurhonga", missions: [{ id: "m_v_njabulo", label: "Njabulo's Arcs", target: 16, current: 0 }] },
-            { id: "vurh_side", name: "Vurhonga Side Tasks", rank: "bronze", isDone: false, map: "vurhonga", missions: [{ id: "s_v_total", label: "Warden Side Tasks", target: 46, current: 0 }] },
+            { id: "vurhonga_side", name: "Vurhonga Side Tasks", rank: "bronze", isDone: false, map: "vurhonga", missions: [{ id: "s_v_total", label: "Warden Side Tasks", target: 46, current: 0 }] },
 
             // General
             { id: "zombie", name: "This Is Not A Zombie Game", rank: "silver", isDone: false, map: "base", missions: [{ id: "m_brain", label: "Brain Shot Kills", target: 10, current: 0 }] },
@@ -484,6 +490,8 @@
                         syncUIWithData();
                         syncMissionsWithData();
                     }
+                }, error => {
+                    console.error("Sync Error:", error);
                 });
             }
         });
@@ -532,16 +540,20 @@
 
         async function updateCloudStat(trophyId, delta) {
             if (!auth.currentUser) return;
+            // Calculate current value from local state or DB
             const currentCount = localTrophyData[trophyId] || 0;
             const newCount = Math.max(0, currentCount + delta);
+            
             try {
                 const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
                 await docRef.set({ [trophyId]: newCount, lastUpdated: Date.now() }, { merge: true });
+                // UI updates automatically via onSnapshot
             } catch (error) { console.error("Update failed:", error); }
         }
 
         async function updateMission(mId, change, target) {
             if (!auth.currentUser) return;
+            
             let currentVal = 0;
             trophyList.forEach(t => {
                 if (t.missions) {
@@ -556,8 +568,11 @@
 
             try {
                 const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+                // Get current progress map and update it
+                const existingProgress = localTrophyData.missionProgress || {};
                 await docRef.set({
                     missionProgress: {
+                        ...existingProgress,
                         [mId]: currentVal
                     }
                 }, { merge: true });
@@ -577,7 +592,6 @@
             const progressContainer = document.getElementById('upload-progress');
             progressContainer.classList.remove('hidden');
             
-            // Storage follows similar path structure
             const storagePath = `artifacts/${sharedAppId}/public/data/userImages/${leadDevId}/${category}/${Date.now()}_${file.name}`;
             const storageRef = storage.ref(storagePath);
             const uploadTask = storageRef.put(file);
