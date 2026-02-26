@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Werewolf3788 - Master Accomplishments Hub</title>
+    
+    <!-- External Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;700;900&display=swap');
+
+        :root {
+            --primary-orange: #FF5F1F;
+            --angler-blue: #00d4ff;
+            --hunter-green: #2ecc71;
+            --farming-red: #b50000;
+            --platinum-silver: #e5e4e2;
+            --gold-shine: #ffd700;
+            --silver-shine: #c0c0c0;
+            --bronze-shine: #cd7f32;
+        }
+
+        #wp-custom-wrapper {
+            background: #020617 !important;
+            min-height: 100vh;
+            color: #ffffff;
+            font-family: 'Roboto', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .hero-section {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.85), #020617), url('https://raw.githubusercontent.com/KFruti88/Universal-Stream-Overlay/main/images/werewolf3788.png');
+            background-size: 400px;
+            background-repeat: no-repeat;
+            background-position: center 20%;
+            padding: 120px 0 100px;
+            text-align: center;
+        }
+
+        .game-section {
+            padding: 120px 10%;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .game-title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin-bottom: 60px;
+            font-size: clamp(1.8rem, 6vw, 3.5rem);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+        }
+
+        .data-card {
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 20px;
+            padding: 35px;
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+        }
+        .data-card:hover { transform: translateY(-10px); border-color: var(--primary-orange); box-shadow: 0 25px 50px rgba(255,95,31,0.2); }
+
+        .data-label { font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 900; letter-spacing: 2px; margin-bottom: 10px; }
+        .data-value { font-size: 2.2rem; font-weight: 900; font-family: 'Orbitron', sans-serif; }
+        .data-sub { font-size: 0.7rem; color: #64748b; font-weight: 700; margin-top: 8px; }
+
+        .trophy-mini-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .mini-box { text-align: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .mini-label { font-size: 0.5rem; font-weight: 900; color: #64748b; text-transform: uppercase; }
+        .mini-val { font-size: 1rem; font-weight: 900; }
+
+        .recent-trophy-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid var(--primary-orange);
+        }
+
+        .sticky-nav {
+            position: sticky; top: 0; background: rgba(2, 6, 23, 0.98);
+            z-index: 1000; border-bottom: 2px solid rgba(255,255,255,0.1);
+            padding: 15px 0; backdrop-filter: blur(20px);
+        }
+
+        .nav-link {
+            font-size: 0.7rem; font-weight: 900; color: #94a3b8; text-transform: uppercase;
+            padding: 10px 18px; border-radius: 8px; transition: all 0.3s;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--primary-orange); background: rgba(255,95,31,0.1); }
+
+        .progress-bar { height: 10px; background: #1e293b; border-radius: 5px; overflow: hidden; margin-top: 15px; }
+        .progress-fill { height: 100%; transition: width 2s cubic-bezier(0.4, 0, 0.2, 1); width: 0%; }
+
+        .glow-diamond { color: #b9f2ff; text-shadow: 0 0 15px rgba(185,242,255,0.6); }
+        .glow-orange { color: var(--primary-orange); text-shadow: 0 0 15px rgba(255,95,31,0.6); }
+        
+        .remaining-pill {
+            background: rgba(255,255,255,0.1);
+            padding: 4px 10px; border-radius: 50px; font-size: 0.6rem; color: #fff;
+        }
+
+        section { opacity: 0; transform: translateY(40px); transition: all 1s ease-out; }
+        section.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+<div id="wp-custom-wrapper">
+    <!-- SECTION 0: HERO -->
+    <div class="hero-section">
+        <h1 class="text-8xl font-black italic tracking-tighter text-white mb-4">WEREWOLF3788</h1>
+        <p class="text-lg font-bold tracking-[0.6em] text-slate-400 uppercase mb-12">Lead Developer Accomplishments</p>
+        
+        <div class="flex flex-col items-center gap-6">
+            <a href="https://psnprofiles.com/Werewolf3788" target="_blank" class="hover:scale-105 transition-transform duration-500">
+                <img src="https://card.psnprofiles.com/1/Werewolf3788.png" border="0" alt="PSN Card" class="w-full max-w-lg shadow-2xl rounded-lg">
+            </a>
+            <div class="flex gap-4 mt-6">
+                <a href="#sec1" class="px-6 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black tracking-widest hover:bg-orange-600 transition-all uppercase">Enter Command Center</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- STICKY NAV -->
+    <nav class="sticky-nav">
+        <div class="container mx-auto flex flex-wrap justify-center gap-2 md:gap-4 px-4">
+            <a href="#sec1" class="nav-link">1. Global</a>
+            <a href="#sec2" class="nav-link">2. theHunter</a>
+            <a href="#sec3" class="nav-link">3. The Angler</a>
+            <a href="#sec4" class="nav-link">4. FS22</a>
+            <a href="#sec5" class="nav-link">5. FS25</a>
+            <a href="#sec6" class="nav-link">6. Future</a>
+        </div>
+    </nav>
+
+    <!-- SECTION 1: GLOBAL STATUS -->
+    <section id="sec1" class="game-section">
+        <h2 class="game-title bg-gradient-to-r from-orange-500 via-red-500 to-orange-600">S1: SYSTEM IDENTITY</h2>
+        <div class="stat-grid">
+            <div class="data-card">
+                <div class="data-label">PlayStation Level</div>
+                <div id="psn-level" class="data-value glow-orange">226</div>
+                <div class="data-sub">ELITE MASTERY RANK</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Career Trophies</div>
+                <div id="psn-total" class="data-value">1156</div>
+                <div class="trophy-mini-grid">
+                    <div class="mini-box"><div class="mini-label">Plat</div><div class="mini-val text-[#e5e4e2]">5</div></div>
+                    <div class="mini-box"><div class="mini-label">Gold</div><div class="mini-val text-[#ffd700]">70</div></div>
+                    <div class="mini-box"><div class="mini-label">Silv</div><div class="mini-val text-[#c0c0c0]">183</div></div>
+                    <div class="mini-box"><div class="mini-label">Bron</div><div class="mini-val text-[#cd7f32]">898</div></div>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Identity Access</div>
+                <div class="data-value text-green-500">Werewolf3788</div>
+                <div class="data-sub">LEAD DEVELOPER CLEARANCE</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: THEHUNTER -->
+    <section id="sec2" class="game-section">
+        <h2 class="game-title bg-gradient-to-r from-green-400 via-emerald-500 to-green-600">S2: THEHUNTER COTW</h2>
+        <div class="stat-grid">
+            <div class="data-card">
+                <div class="data-label">Completion Status</div>
+                <div class="flex justify-between items-end">
+                    <div id="hunter-psn-val" class="data-value">0%</div>
+                    <div id="hunter-rem" class="remaining-pill">-- REMAINING</div>
+                </div>
+                <div class="progress-bar"><div id="hunter-psn-bar" class="progress-fill bg-emerald-500"></div></div>
+                <div id="hunter-recent" class="recent-trophy-box">
+                    <div class="data-label !mb-1">Most Recent Trophy</div>
+                    <div class="text-xs font-bold text-slate-300">Syncing System Log...</div>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Animal Trophy: Great One</div>
+                <div id="hunter-greatone" class="data-value text-purple-500">0</div>
+                <div class="data-sub">RAREST HARVESTS SYNCED</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Animal Trophy: Diamond</div>
+                <div id="hunter-diamond" class="data-value glow-diamond">0</div>
+                <div class="data-sub">LIVE FIREBASE STATUS</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Exploration Hub</div>
+                <div class="space-y-4 mt-2">
+                    <div class="flex justify-between text-[10px] font-black uppercase"><span>Missions</span><span class="text-emerald-400">142 Completed</span></div>
+                    <div class="flex justify-between text-[10px] font-black uppercase"><span>Points of Interest</span><span class="text-emerald-400">Synced</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: THE ANGLER -->
+    <section id="sec3" class="game-section">
+        <h2 class="game-title bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-600">S3: THE ANGLER COTW</h2>
+        <div class="stat-grid">
+            <div class="data-card">
+                <div class="data-label">Completion Status</div>
+                <div class="flex justify-between items-end">
+                    <div id="angler-psn-val" class="data-value">0%</div>
+                    <div id="angler-rem" class="remaining-pill">-- REMAINING</div>
+                </div>
+                <div class="progress-bar"><div id="angler-psn-bar" class="progress-fill bg-blue-400"></div></div>
+                <div id="angler-recent" class="recent-trophy-box">
+                    <div class="data-label !mb-1">Most Recent Trophy</div>
+                    <div class="text-xs font-bold text-slate-300">Syncing System Log...</div>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Exploration Progress</div>
+                <div class="space-y-4 mt-2">
+                    <div class="flex justify-between text-[10px] font-black uppercase"><span>POIs Found</span><span>50 / 97</span></div>
+                    <div class="progress-bar !mt-1"><div class="progress-fill bg-blue-500" style="width: 51%"></div></div>
+                    <div class="flex justify-between text-[10px] font-black uppercase"><span>Lookouts</span><span>17 / 22</span></div>
+                    <div class="progress-bar !mt-1"><div class="progress-fill bg-blue-700" style="width: 77%"></div></div>
+                    <div class="flex justify-between text-[10px] font-black uppercase"><span>Cabins</span><span>17 / 19</span></div>
+                    <div class="progress-bar !mt-1"><div class="progress-fill bg-cyan-600" style="width: 89%"></div></div>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Animal Trophy: Diamond</div>
+                <div id="angler-diamond" class="data-value glow-diamond">0</div>
+                <div class="data-sub">RESERVE RECORD SYNCED</div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">Objectives</div>
+                <div class="data-value text-yellow-500">Active</div>
+                <div class="data-sub">SEARCHING FOR BIGFOOT REPORTS</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: FARM SIM 22 -->
+    <section id="sec4" class="game-section">
+        <h2 class="game-title bg-gradient-to-r from-red-600 via-orange-600 to-red-500">S4: FARMING SIMULATOR 22</h2>
+        <div class="stat-grid">
+            <div class="data-card">
+                <div class="data-label">Trophy Master Status</div>
+                <div class="flex justify-between items-end">
+                    <div id="fs22-psn-val" class="data-value">0%</div>
+                    <div id="fs22-rem" class="remaining-pill">-- REMAINING</div>
+                </div>
+                <div class="progress-bar"><div id="fs22-psn-bar" class="progress-fill bg-red-600"></div></div>
+                <div id="fs22-recent" class="recent-trophy-box">
+                    <div class="data-label !mb-1">Most Recent Trophy</div>
+                    <div class="text-xs font-bold text-slate-300">Syncing System Log...</div>
+                </div>
+            </div>
+            <div class="data-card">
+                <div class="data-label">G-Portal Status</div>
+                <div class="data-value text-green-400">ONLINE</div>
+                <p class="text-[10px] text-slate-500 mt-4 italic">DEDICATED SERVER: Werewolf3788 Farm</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: FARM SIM 25 -->
+    <section id="sec5" class="game-section">
+        <h2 class="game-title bg-gradient-to-r from-slate-600 via-slate-400 to-slate-700">S5: FARMING SIMULATOR 25</h2>
+        <div class="stat-grid">
+            <div class="data-card opacity-50">
+                <div class="data-label">Sync Status</div>
+                <div class="flex justify-between items-end">
+                    <div id="fs25-psn-val" class="data-value italic">PENDING</div>
+                    <div id="fs25-rem" class="remaining-pill">RESERVED</div>
+                </div>
+                <div class="progress-bar"><div id="fs25-psn-bar" class="progress-fill bg-slate-500"></div></div>
+                <div id="fs25-recent" class="recent-trophy-box"><div class="data-label !mb-1">Most Recent</div><div class="text-xs font-bold text-slate-300">Awaiting Release...</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 6: FUTURE EXPANSION -->
+    <section id="sec6" class="game-section">
+        <h2 class="game-title bg-gradient-to-r from-purple-500 via-indigo-600 to-purple-800">S6: FUTURE PROJECTS</h2>
+        <div class="stat-grid" id="dynamic-sections">
+            <div class="data-card bg-slate-900/20 border-dashed border-2 border-slate-700 flex flex-col items-center justify-center py-20">
+                <div class="data-label">System Monitoring</div>
+                <div class="data-value text-sm text-slate-500 uppercase tracking-widest text-center">New Games Found on psnprofiles will appear here</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MASTER FOOTER -->
+    <footer class="py-32 text-center bg-slate-950">
+        <div class="flex justify-center mb-10">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" class="border-4 border-slate-800 rounded-3xl p-4 shadow-2xl bg-white" alt="Amazon Support">
+        </div>
+        <p class="text-sm font-black uppercase tracking-[0.4em] text-slate-400 mb-4">Lead Developer Werewolf3788</p>
+        <p class="text-[11px] text-slate-600 max-w-lg mx-auto">Master Portfolio v13.0 | Synced via AllOrigins & Firestore | All Rights Reserved.</p>
+    </footer>
+</div>
+
+<script>
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+        authDomain: "angler-squad-tracker.firebaseapp.com",
+        projectId: "angler-squad-tracker",
+        storageBucket: "angler-squad-tracker.firebasestorage.app",
+        messagingSenderId: "325679067980",
+        appId: "1:325679067980:web:57edbad70fe12b988355e9"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // --- SCRAPER ENGINE ---
+    async function fetchAllPSN() {
+        const target = 'https://psnprofiles.com/Werewolf3788';
+        // Multi-proxy fallback to fix fetch issues
+        const proxies = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`,
+            `https://corsproxy.io/?${encodeURIComponent(target)}`
+        ];
+        
+        let html = "";
+        for (let p of proxies) {
+            try {
+                const res = await fetch(p);
+                if (res.ok) {
+                    html = await res.text();
+                    break;
+                }
+            } catch (e) { continue; }
+        }
+
+        if (!html) return;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Update Level from Scrape if possible, else keep 226
+        const scrapedLevel = doc.querySelector('.stat.level')?.innerText.trim();
+        if (scrapedLevel) document.getElementById('psn-level').innerText = scrapedLevel;
+
+        const games = doc.querySelectorAll('tr'); 
+        games.forEach(row => {
+            const title = row.querySelector('.title')?.innerText || "";
+            const earnedEl = row.querySelector('.earned b');
+            const totalEl = row.querySelector('.earned'); 
+            const progressText = row.querySelector('.progress-bar span')?.innerText || "0%";
+            
+            let earnedNum = parseInt(earnedEl?.innerText) || 0;
+            let totalStr = totalEl?.innerText || "0";
+            let totalNum = parseInt(totalStr.split('/').pop()) || 0;
+            let remaining = totalNum - earnedNum;
+
+            let key = "";
+            if (title.includes("theHunter")) key = "hunter";
+            else if (title.includes("The Angler")) key = "angler";
+            else if (title.includes("Farming Simulator 22")) key = "fs22";
+            else if (title.includes("Farming Simulator 25")) key = "fs25";
+
+            if (key && totalNum > 0) {
+                document.getElementById(`${key}-psn-val`).innerText = progressText;
+                document.getElementById(`${key}-psn-bar`).style.width = progressText;
+                document.getElementById(`${key}-rem`).innerText = `${remaining} TROPHIES TO 100%`;
+                
+                const recentBox = document.getElementById(`${key}-recent`);
+                if (recentBox) {
+                    // Pulling last earned date or icon if visible in scrape
+                    recentBox.querySelector('div:last-child').innerText = `Status: ${earnedNum}/${totalNum} Collected`;
+                }
+            }
+        });
+    }
+
+    function syncFirebase() {
+        auth.signInAnonymously().then(() => {
+            db.collection('catches').doc('Werewolf3788').onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('angler-diamond').innerText = data.Diamond || 0;
+                    document.getElementById('hunter-diamond').innerText = data.Diamond || 0;
+                    document.getElementById('hunter-greatone').innerText = data.GreatOne || 0;
+                }
+            });
+        });
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+
+    window.onload = () => {
+        document.querySelectorAll('section').forEach(s => observer.observe(s));
+        fetchAllPSN();
+        syncFirebase();
+        setInterval(fetchAllPSN, 600000); 
+    };
+</script>
+
+</body>
+</html>
