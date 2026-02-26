@@ -1,19 +1,111 @@
 {
-  "name": "Emerald Coast",
-  "warden": "Mick Collins",
-  "species": [
-    { "id": "e_croc", "name": "Saltwater Crocodile", "class": 8 }
-  ],
-  "grinds": [
-    { "id": "go_red_e", "name": "Red Deer G.O." }
-  ],
-  "missions": [
-    { "group": "Main Story", "items": [{ "id": "e_m_1", "name": "Crocodile Hunt", "target": 1 }] }
-  ]
-},
-{
-  "askiy_ridge": { "name": "Askiy Ridge", "species": [...], "missions": [...] },
-  "layton_lake": { "name": "Layton Lake", "species": [...], "missions": [...] },
-  "silver_ridge": { "name": "Silver Ridge Peaks", "species": [...], "missions": [...] }
+  "emerald_coast": {
+    "id": "emerald_coast",
+    "name": "Emerald Coast",
+    "warden": "Sophie Campbell",
+    "species": [
+      { "id": "ec_croc", "name": "Saltwater Crocodile", "class": 8 },
+      { "id": "ec_kangaroo", "name": "Eastern Grey Kangaroo", "class": 4 },
+      { "id": "ec_banteng", "name": "Banteng", "class": 9 },
+      { "id": "ec_feral_goat", "name": "Feral Goat", "class": 3 },
+      { "id": "ec_feral_pig", "name": "Feral Pig", "class": 4 },
+      { "id": "ec_red_deer", "name": "Red Deer", "class": 6 },
+      { "id": "ec_rusa_deer", "name": "Rusa Deer", "class": 4 },
+      { "id": "ec_sambar", "name": "Sambar", "class": 6 },
+      { "id": "ec_magpie_goose", "name": "Magpie Goose", "class": 1 },
+      { "id": "ec_stubble_quail", "name": "Stubble Quail", "class": 1 }
+    ],
+    "grinds": [
+      { "id": "ec_go_fallow", "name": "Fallow Deer G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Main Story",
+        "items": [
+          { "id": "ec_m1", "name": "Welcome to Australia", "target": 1 },
+          { "id": "ec_m2", "name": "The Warden's Favor", "target": 1 }
+        ]
+      }
+    ]
+  },
+  "askiy_ridge": {
+    "id": "askiy_ridge",
+    "name": "Askiy Ridge",
+    "warden": "Local Warden",
+    "species": [
+      { "id": "ar_moose", "name": "Moose", "class": 8 },
+      { "id": "ar_bear", "name": "Brown Bear", "class": 7 },
+      { "id": "ar_caribou", "name": "Caribou", "class": 6 },
+      { "id": "ar_wolf", "name": "Gray Wolf", "class": 5 }
+    ],
+    "grinds": [
+      { "id": "ar_go_moose", "name": "Moose G.O." },
+      { "id": "ar_go_bear", "name": "Black Bear G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Reserve Story",
+        "items": [
+          { "id": "ar_m1", "name": "Ridge Runner", "target": 1 },
+          { "id": "ar_m2", "name": "High Ground", "target": 5 }
+        ]
+      }
+    ]
+  },
+  "layton_lake": {
+    "id": "layton_lake",
+    "name": "Layton Lake District",
+    "warden": "Paul Connors",
+    "species": [
+      { "id": "ll_moose", "name": "Moose", "class": 8 },
+      { "id": "ll_elk", "name": "Roosevelt Elk", "class": 7 },
+      { "id": "ll_bear", "name": "Black Bear", "class": 7 },
+      { "id": "ll_whitetail", "name": "Whitetail Deer", "class": 4 },
+      { "id": "ll_blacktail", "name": "Blacktail Deer", "class": 4 },
+      { "id": "ll_coyote", "name": "Coyote", "class": 2 },
+      { "id": "ll_mallard", "name": "Mallard", "class": 1 },
+      { "id": "ll_rabbit", "name": "Jackrabbit", "class": 1 }
+    ],
+    "grinds": [
+      { "id": "ll_go_whitetail", "name": "Whitetail G.O." },
+      { "id": "ll_go_moose", "name": "Moose G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Warden Missions",
+        "items": [
+          { "id": "ll_m1", "name": "The Hope Saga", "target": 10, "boss": true },
+          { "id": "ll_m2", "name": "The Trampfine Saga", "target": 8 }
+        ]
+      }
+    ]
+  },
+  "silver_ridge_peaks": {
+    "id": "silver_ridge_peaks",
+    "name": "Silver Ridge Peaks",
+    "warden": "Baden",
+    "species": [
+      { "id": "srp_bison", "name": "Plains Bison", "class": 9 },
+      { "id": "srp_elk", "name": "Rocky Mountain Elk", "class": 7 },
+      { "id": "srp_bear", "name": "Black Bear", "class": 7 },
+      { "id": "srp_cougar", "name": "Mountain Lion", "class": 5 },
+      { "id": "srp_mule_deer", "name": "Mule Deer", "class": 6 },
+      { "id": "srp_pronghorn", "name": "Pronghorn", "class": 4 },
+      { "id": "srp_bighorn", "name": "Bighorn Sheep", "class": 4 },
+      { "id": "srp_turkey", "name": "Merriam Turkey", "class": 1 },
+      { "id": "srp_goat", "name": "Mountain Goat", "class": 4 }
+    ],
+    "grinds": [
+      { "id": "srp_go_bear", "name": "Black Bear G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Prospector's Path",
+        "items": [
+          { "id": "srp_m1", "name": "The Great Outdoors", "target": 1 },
+          { "id": "srp_m2", "name": "Out of Her Shell", "target": 1, "boss": true }
+        ]
+      }
+    ]
+  }
 }
-4.  **Automatic Updates:** Whenever you push a change to that JSON on GitHub, the website tracker will reflect the new data immediately when the page is refreshed.
