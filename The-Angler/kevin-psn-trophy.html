@@ -2,15 +2,24 @@
   Project: Call of the Wild: The Angler - Master Trophy Tracker
   Lead Developer: Werewolf3788 (GitHub: KFruti88)
   Collaborators: Raymystyro, terrdog420
-  Source: PSN Profile (Werewolf_5386) & In-Game Stats
+  Source: PSN Profile (Werewolf3788) & In-Game Stats
   Platform: WordPress Compatible (#wp-custom-wrapper) / CodePen / GitHub
 -->
 
 <div id="wp-custom-wrapper">
     <div class="angler-dashboard">
         <header class="tracker-header">
-            <h1>The Angler: Trophy Tracker</h1>
-            <p>User: Werewolf_5386 | 15/51 Trophies (25%)</p>
+            <div class="header-top">
+                <h1>The Angler: Trophy Tracker</h1>
+                <button id="sync-btn" onclick="syncWithPSN()" class="sync-button">🔄 Sync PSN Status</button>
+            </div>
+            <p id="stats-summary">User: Werewolf3788 | Level: 19.25 | 16/51 Trophies (31%)</p>
+            
+            <div class="psn-card-container">
+                <a href="https://psnprofiles.com/Werewolf3788" target="_blank">
+                    <img src="https://card.psnprofiles.com/1/Werewolf3788.png" border="0" alt="PSN Trophy Card" class="psn-card-img">
+                </a>
+            </div>
         </header>
 
         <div class="section-title">In-Progress Trophies (Imperial)</div>
@@ -20,12 +29,28 @@
         <div id="game-stats-container">
             <div class="mission-card-simple">
                 <div class="mission-row">
+                    <span class="mission-text">Current Credits (Bank)</span>
+                    <span class="count-display" style="color: #f1c40f;">2,308</span>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Fish Tally (GR)</span>
+                    <span class="count-display">8 Gold | 1 Diamond | 0 Legend</span>
+                </div>
+                <div class="mission-row">
                     <span class="mission-text">Land-Based Vehicles (Jeep)</span>
-                    <span class="count-display">56.50 mi</span>
+                    <span class="count-display">64.87 mi</span>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Water-Based Vehicles (Boat)</span>
+                    <span class="count-display">2.59 mi</span>
                 </div>
                 <div class="mission-row">
                     <span class="mission-text">Fast Travel Distance</span>
-                    <span class="count-display">82.82 mi</span>
+                    <span class="count-display">89.27 mi</span>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Reports Found (incl. Bigfoot)</span>
+                    <span class="count-display" style="color: #2ecc71;">3 Found</span>
                 </div>
             </div>
         </div>
@@ -62,11 +87,41 @@
             text-align: center;
             border-bottom: 2px solid #00d4ff;
             margin-bottom: 20px;
-            padding-bottom: 10px;
+            padding-bottom: 20px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
         .tracker-header h1 { margin: 0; color: #00d4ff; text-transform: uppercase; letter-spacing: 2px; }
-        .tracker-header p { color: #8899aa; margin: 5px 0; }
+        
+        .sync-button {
+            background: #1a2a3a;
+            color: #00d4ff;
+            border: 1px solid #00d4ff;
+            padding: 5px 15px;
+            cursor: pointer;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        .sync-button:hover { background: #00d4ff; color: #111; }
+        .syncing { opacity: 0.5; cursor: wait; }
+
+        .psn-card-container {
+            margin-top: 10px;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        .psn-card-container:hover { transform: scale(1.02); }
+        .psn-card-img { max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
 
         .section-title {
             background: rgba(0, 212, 255, 0.1);
@@ -127,22 +182,36 @@
 
     <script>
         const trophyList = [
-            // IN-PROGRESS (Updated to Imperial Miles)
-            { id: "platinum", name: "Any Fin Is Possible", rank: "platinum", isDone: false, missions: [{ id: "m_plat", label: "Trophies Completed", target: 50, current: 15 }] },
+            { id: "platinum", name: "Any Fin Is Possible", rank: "platinum", isDone: false, missions: [{ id: "m_plat", label: "Trophies Completed", target: 50, current: 16 }] },
+            
             { id: "travel", name: "Have Fish, Will Travel", rank: "gold", isDone: false, missions: [
-                { id: "pois", label: "Points of Interest (GR)", target: 97, current: 37 },
-                { id: "towers", label: "Lookout Towers (GR)", target: 19, current: 13 },
-                { id: "cabins", label: "Cabins (GR)", target: 19, current: 17 }
+                { id: "pois", label: "Points of Interest (GR)", target: 97, current: 50 },
+                { id: "towers", label: "Lookout Towers (GR)", target: 22, current: 17 },
+                { id: "cabins", label: "Cabins Found (GR)", target: 19, current: 17 },
+                { id: "trailheads", label: "Trailheads Found (GR)", target: 47, current: 0 },
+                { id: "waterbodies", label: "Waterbodies Found (GR)", target: 26, current: 4 }
             ]},
             { id: "flounder", name: "Lost and Flounder", rank: "silver", isDone: false, missions: [
-                { id: "collect_gr", label: "Collectibles (Golden Ridge)", target: 74, current: 21 },
+                { id: "collect_gr", label: "Total Collectibles (GR)", target: 74, current: 56 },
                 { id: "notes_gr", label: "Notes Found", target: 20, current: 16 },
-                { id: "coins_gr", label: "Coins Found", target: 15, current: 8 }
+                { id: "coins_gr", label: "Coins Found", target: 15, current: 8 },
+                { id: "dino_bones", label: "Dinosaur Bones", target: 8, current: 2 },
+                { id: "bf_tracks", label: "Bigfoot Tracks", target: 8, current: 4 },
+                { id: "weather_st", label: "Weather Stations", target: 8, current: 5 },
+                { id: "gps_st", label: "GPS Stations", target: 8, current: 1 },
+                { id: "oxeye", label: "Oxeye Daisy", target: 8, current: 3 },
+                { id: "water_hy", label: "Water Hyacinth", target: 8, current: 6 },
+                { id: "orange_hk", label: "Orange Hawkweed", target: 8, current: 1 },
+                { id: "yellow_tf", label: "Yellow Toadflax", target: 8, current: 4 },
+                { id: "engel_sp", label: "Engelmann Spruce", target: 8, current: 1 },
+                { id: "douglas_fr", label: "Douglas-fir", target: 8, current: 2 },
+                { id: "white_pine", label: "White Pine", target: 8, current: 2 },
+                { id: "petrified", label: "Petrified Tree", target: 8, current: 1 }
             ]},
-            { id: "marathon", name: "Marathon", rank: "silver", isDone: false, missions: [{ id: "miles_foot", label: "Distance on Foot (mi)", target: 62.1, current: 30.30 }] }, 
-            { id: "boat_dist", name: "Lake Me up Before You Go Go", rank: "silver", isDone: false, missions: [{ id: "miles_boat", label: "Distance by Boat (mi)", target: 62.1, current: 29.59 }] },
+            { id: "marathon", name: "Marathon", rank: "silver", isDone: false, missions: [{ id: "miles_foot", label: "Distance on Foot (mi)", target: 62.1, current: 31.00 }] }, 
+            { id: "boat_dist", name: "Lake Me up Before You Go Go", rank: "silver", isDone: false, missions: [{ id: "miles_boat", label: "Distance by Boat (mi)", target: 62.1, current: 2.59 }] },
             { id: "credits", name: "No Fin Left to Give", rank: "silver", isDone: false, missions: [{ id: "spend", label: "Credits Spent", target: 100000, current: 3635 }] },
-            { id: "level_50", name: "Big Fish Small Pond", rank: "gold", isDone: false, missions: [{ id: "lvl", label: "Level Progress", target: 50, current: 15 }] },
+            { id: "level_50", name: "Big Fish Small Pond", rank: "gold", isDone: false, missions: [{ id: "lvl", label: "Level Progress", target: 50, current: 19.25 }] },
             { id: "ranger", name: "Golden Ridge Ranger", rank: "gold", isDone: false, missions: [{ id: "rep_gr", label: "Reputation Score (GR)", target: 1000, current: 25 }] },
             { id: "buckaroo", name: "Buckaroo", rank: "gold", isDone: false, missions: [{ id: "warden_gr", label: "Warden Missions (GR)", target: 15, current: 0 }] },
             { id: "taylor", name: "Taylor Made", rank: "gold", isDone: false, missions: [{ id: "shop_miss", label: "Shopkeeper Missions", target: 30, current: 2 }] },
@@ -150,7 +219,7 @@
             { id: "norway_coll", name: "Norway Jose", rank: "silver", isDone: false, missions: [{ id: "nor_coll", label: "Collectibles (Norway)", target: 59, current: 2 }] },
             { id: "aguas_fish", name: "Live by the Rod, Diez by the Rod!", rank: "bronze", isDone: false, missions: [{ id: "aguas_sp", label: "Unique Species (Aguas)", target: 10, current: 4 }] },
 
-            // COMPLETED
+            { id: "tourist", name: "More Than a Tourist", rank: "bronze", isDone: true, missions: [] },
             { id: "ready", name: "Ready to Rod and Roll", rank: "bronze", isDone: true, missions: [] },
             { id: "reel", name: "Fish Just Got Reel", rank: "bronze", isDone: true, missions: [] },
             { id: "sea", name: "More Fish in the Sea", rank: "bronze", isDone: true, missions: [] },
@@ -173,6 +242,13 @@
             const doneList = document.getElementById('trophy-list-done');
             activeList.innerHTML = ""; doneList.innerHTML = "";
 
+            const completedCount = trophyList.filter(t => t.isDone && t.id !== 'platinum').length;
+            const platTrophy = trophyList.find(t => t.id === 'platinum');
+            if (platTrophy) {
+                platTrophy.missions[0].current = completedCount;
+                platTrophy.isDone = completedCount >= 50;
+            }
+
             trophyList.forEach(t => {
                 const card = document.createElement('div');
                 card.className = `trophy-card ${t.isDone ? 'done' : ''}`;
@@ -180,13 +256,15 @@
                 let missionHtml = "";
                 t.missions.forEach(m => {
                     const isMComplete = m.current >= m.target;
+                    const hideControls = t.isDone || t.id === 'platinum';
+                    
                     missionHtml += `
                         <div class="mission-row">
                             <span class="mission-text">${m.label} <small>(${m.target})</small></span>
                             <div class="mission-controls">
-                                ${t.isDone ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', -0.1, ${m.target})">-</button>`}
-                                <span id="val-${m.id}" class="count-display">${m.current.toFixed(2)}</span>
-                                ${t.isDone ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', 0.1, ${m.target})">+</button>`}
+                                ${hideControls ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', -1, ${m.target})">-</button>`}
+                                <span id="val-${m.id}" class="count-display">${Number.isInteger(m.current) ? m.current : m.current.toFixed(2)}</span>
+                                ${hideControls ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', 1, ${m.target})">+</button>`}
                                 <span id="status-${m.id}" class="status-indicator ${isMComplete ? 'status-complete' : 'status-working'}">
                                     ${isMComplete ? '+' : '_'}
                                 </span>
@@ -209,6 +287,39 @@
                 if (t.isDone) doneList.appendChild(card);
                 else activeList.appendChild(card);
             });
+
+            const totalDone = trophyList.filter(t => t.isDone && t.id !== 'platinum').length;
+            const percentage = Math.round((totalDone / 50) * 100);
+            document.getElementById('stats-summary').innerText = `User: Werewolf3788 | Level: 19.25 | ${totalDone}/51 Trophies (${percentage}%)`;
+        }
+
+        async function syncWithPSN() {
+            const btn = document.getElementById('sync-btn');
+            btn.innerText = "🔄 Syncing...";
+            btn.classList.add('syncing');
+            try {
+                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://psnprofiles.com/trophies/23508-call-of-the-wild-the-angler/Werewolf3788')}`);
+                const data = await response.json();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, 'text/html');
+                const rows = doc.querySelectorAll('tr');
+                let foundTrophies = [];
+                rows.forEach(row => {
+                    const titleEl = row.querySelector('.title');
+                    const earnedEl = row.querySelector('.completed-date');
+                    if (titleEl && earnedEl) foundTrophies.push(titleEl.innerText.trim().toLowerCase());
+                });
+                trophyList.forEach(t => { if (foundTrophies.includes(t.name.toLowerCase())) t.isDone = true; });
+                initTracker();
+                btn.innerText = "✅ Synced!";
+            } catch (error) {
+                btn.innerText = "❌ Sync Failed";
+            } finally {
+                setTimeout(() => {
+                    btn.innerText = "🔄 Sync PSN Status";
+                    btn.classList.remove('syncing');
+                }, 3000);
+            }
         }
 
         function toggleDetails(id) {
@@ -219,15 +330,25 @@
         }
 
         function updateMission(mId, change, target) {
-            const display = document.getElementById(`val-${mId}`);
-            const status = document.getElementById(`status-${mId}`);
-            let val = parseFloat(display.innerText) + change;
-            if (val < 0) val = 0;
-            display.innerText = val.toFixed(2);
-            
-            const isDone = val >= target;
-            status.innerText = isDone ? '+' : '_';
-            status.className = `status-indicator ${isDone ? 'status-complete' : 'status-working'}`;
+            trophyList.forEach(t => {
+                t.missions.forEach(m => {
+                    if (m.id === mId) {
+                        m.current += change;
+                        if (m.current < 0) m.current = 0;
+                        
+                        const isCollectible = ['notes_gr', 'coins_gr', 'dino_bones', 'bf_tracks', 'weather_st', 'gps_st', 'oxeye', 'water_hy', 'orange_hk', 'yellow_tf', 'engel_sp', 'douglas_fr', 'white_pine', 'petrified'].includes(mId);
+                        if (isCollectible) {
+                            const totalColl = trophyList.find(tr => tr.id === 'flounder').missions.find(mi => mi.id === 'collect_gr');
+                            totalColl.current += change;
+                        }
+                        if (['towers', 'cabins', 'trailheads', 'waterbodies'].includes(mId)) {
+                            const poiMission = trophyList.find(tr => tr.id === 'travel').missions.find(mi => mi.id === 'pois');
+                            poiMission.current += change;
+                        }
+                    }
+                });
+            });
+            initTracker();
         }
 
         window.onload = initTracker;
