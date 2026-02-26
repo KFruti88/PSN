@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COTW Yukon Valley Tactical Kit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+
+        // --- YUKON VALLEY CONFIGURATION ---
+        const RESERVE_CONFIG = {
+            mapId: "yukon_valley",
+            displayName: "Yukon Valley",
+            narrator: "Jim Murray",
+            // High-res Alaska Map
+            mapImage: "https://static.wikia.nocookie.net/thehuntercotw/images/e/e0/YukonValleyNatureReserve_Map.jpg",
+            version: "v1.9.7",
+            species: [
+                { id: "yv_duck", name: "Harlequin Duck", class: 1 },
+                { id: "yv_goose", name: "Canada Goose", class: 1 },
+                { id: "yv_fox", name: "Red Fox", class: 2 },
+                { id: "yv_wolf", name: "Gray Wolf", class: 6 },
+                { id: "yv_caribou", name: "Grant Caribou", class: 6 },
+                { id: "yv_moose", name: "Moose", class: 8 },
+                { id: "yv_bear", name: "Grizzly Bear", class: 8 },
+                { id: "yv_bison", name: "Plains Bison", class: 9 }
+            ],
+            grinds: [
+                { id: "go_moose", name: "Moose G.O.", target: 1 },
+                { id: "go_fox", name: "Red Fox G.O.", target: 1 },
+                { id: "go_wolf", name: "Gray Wolf G.O.", target: 1 }
+            ],
+            missions: [
+                { group: "Reserve Objectives", items: [
+                    { id: "yv_m_main", name: "Narrative Missions", target: 10 },
+                    { id: "yv_m_side", name: "Side Quests", target: 42 },
+                    { id: "yv_weapon", name: ".300 Canning Unlock", target: 1 }
+                ]},
+                { group: "Alaskan Landmarks", items: [
+                    { id: "yv_l_river", name: "Hansson River Basin", target: 1 },
+                    { id: "yv_l_forest", name: "Teekon Burnt Forest", target: 1 },
+                    { id: "yv_l_wetlands", name: "Crowngold Wetlands", target: 1 }
+                ]}
+            ]
+        };
+
+        const INTEGRITY_GUIDE = {
+            1: "Harlequin Duck, Canada Goose, Rabbits.",
+            2: "Red Fox, Coyote.",
+            6: "Gray Wolf, Grant Caribou.",
+            8: "Moose, Grizzly Bear.",
+            9: "Plains Bison."
+        };
+
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cotw-tactical-sync';
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let user = null;
+        let localData = {};
+
+        // Twitch Status
+        const checkTwitch = async () => {
+            try {
+                const res = await fetch('https://decapi.me/twitch/game/werewolf3788');
+                const game = await res.text();
+                const el = document.getElementById('twitch-status');
+                if (el) el.innerText = `Live: ${game || 'Offline'}`;
+            } catch(e) {}
+        };
+
+        // Map Interactions
+        let scale = 1, originX = 0, originY = 0, isDragging = false, startX, startY;
+        const updateMapTransform = () => {
+            const mapImg = document.getElementById('reserve-map-img');
+            if (mapImg) mapImg.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
+        };
+
+        const setupUI = () => {
+            const mapNameEl = document.getElementById('map-name-display');
+            const versionEl = document.getElementById('version-tag');
+            const mapImgEl = document.getElementById('reserve-map-img');
+
+            if (mapNameEl) mapNameEl.innerText = RESERVE_CONFIG.displayName;
+            if (versionEl) versionEl.innerText = RESERVE_CONFIG.version;
+            if (mapImgEl) mapImgEl.src = RESERVE_CONFIG.mapImage;
+            
+            const sRoot = document.getElementById('species-harvest-root');
+            if (sRoot) {
+                sRoot.innerHTML = RESERVE_CONFIG.species.map(s => `
+                    <div class="flex justify-between items-center p-2 bg-black/40 border border-red-900/30 rounded-lg mb-1">
+                        <span class="text-[10px] font-bold uppercase text-red-50">CL ${s.class} <span class="text-red-400">${s.name}</span></span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.updateCount('species_${s.id}', -1)" class="w-7 h-7 rounded bg-white/5 border border-red-500/30 text-red-400">-</button>
+                            <span id="display-species_${s.id}" class="font-mono text-sm font-bold text-red-400 min-w-[20px] text-center">0</span>
+                            <button onclick="window.updateCount('species_${s.id}', 1)" class="w-7 h-7 rounded bg-white/5 border border-red-500/30 text-red-400">+</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const gRoot = document.getElementById('go-grind-root');
+            if (gRoot) {
+                gRoot.innerHTML = RESERVE_CONFIG.grinds.map(g => `
+                    <div class="flex justify-between items-center p-2 bg-blue-950/20 border border-blue-500/20 rounded-lg mb-1">
+                        <span class="text-[9px] font-black uppercase text-blue-400">G.O. <span class="text-white">${g.name.split(' ')[0]}</span></span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.updateCount('grind_${g.id}', -1)" class="w-6 h-6 rounded border border-blue-500/30 text-blue-500">-</button>
+                            <span id="display-grind_${g.id}" class="font-mono text-sm font-bold text-blue-500 min-w-[20px] text-center">0</span>
+                            <button onclick="window.updateCount('grind_${g.id}', 1)" class="w-6 h-6 rounded border border-blue-500/30 text-blue-500">+</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const mRoot = document.getElementById('mission-engine-root');
+            if (mRoot) {
+                mRoot.innerHTML = RESERVE_CONFIG.missions.map(group => `
+                    <div class="mb-4">
+                        <p class="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2 border-b border-white/5">${group.group}</p>
+                        ${group.items.map(m => `
+                            <div class="flex justify-between items-center py-1">
+                                <span class="text-[10px] font-bold text-red-100 uppercase">${m.name}</span>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="window.updateCount('mission_${m.id}', -1, ${m.target})" class="w-6 h-6 rounded border border-white/10 text-white/40">-</button>
+                                    <span id="display-mission_${m.id}" class="font-mono text-[10px] text-red-400">0/${m.target}</span>
+                                    <button onclick="window.updateCount('mission_${m.id}', 1, ${m.target})" class="w-6 h-6 rounded border border-white/10 text-white/40">+</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `).join('');
+            }
+
+            checkTwitch();
+        };
+
+        const getDocRef = () => {
+            if (!user) return null;
+            return doc(db, 'artifacts', appId, 'public', 'data', 'userTrophies', user.uid);
+        };
+
+        window.updateCount = async (key, delta, max = 9999) => {
+            const docRef = getDocRef();
+            if (!docRef) return;
+            const current = localData[key] || 0;
+            const newVal = Math.max(0, Math.min(max, current + delta));
+            const displayEl = document.getElementById(`display-${key}`);
+            if (displayEl) displayEl.innerText = newVal;
+            await setDoc(docRef, { [key]: newVal, lastSync: Date.now() }, { merge: true });
+        };
+
+        window.toggleIntegrity = (cl) => {
+            const box = document.getElementById('integrity-box');
+            if (box) {
+                box.classList.remove('hidden');
+                box.innerHTML = `<div class="text-red-400 font-black mb-1 uppercase tracking-widest italic">Class ${cl} Yukon Protocol:</div><div class="text-white/80 italic text-[11px]">${INTEGRITY_GUIDE[cl]}</div>`;
+            }
+        };
+
+        const init = async () => {
+            setupUI();
+            const mapCont = document.getElementById('map-viewport');
+            if (mapCont) {
+                mapCont.addEventListener('mousedown', (e) => { isDragging = true; startX = e.clientX - originX; startY = e.clientY - originY; });
+                window.addEventListener('mouseup', () => isDragging = false);
+                window.addEventListener('mousemove', (e) => { if (!isDragging) return; originX = e.clientX - startX; originY = e.clientY - startY; updateMapTransform(); });
+                mapCont.addEventListener('wheel', (e) => { e.preventDefault(); const delta = e.deltaY > 0 ? 0.9 : 1.1; scale = Math.min(Math.max(1, scale * delta), 5); updateMapTransform(); }, { passive: false });
+            }
+
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else { await signInAnonymously(auth); }
+            } catch (err) {}
+
+            onAuthStateChanged(auth, (u) => {
+                user = u;
+                if (user) {
+                    const statusEl = document.getElementById('cloud-status');
+                    if (statusEl) {
+                        statusEl.innerText = "Cloud: Online";
+                        statusEl.style.color = "#ef4444";
+                    }
+                    const docRef = getDocRef();
+                    onSnapshot(docRef, (doc) => {
+                        if (doc.exists()) {
+                            localData = doc.data();
+                            Object.keys(localData).forEach(key => {
+                                const el = document.getElementById(`display-${key}`);
+                                if (el) el.innerText = localData[key];
+                                if (key === 'img_diamond' && localData[key]) {
+                                    const hofDiam = document.getElementById('hof-diamond');
+                                    const imgDiam = document.getElementById('img-diamond');
+                                    if (hofDiam && imgDiam) {
+                                        hofDiam.classList.remove('hidden');
+                                        imgDiam.src = localData[key];
+                                    }
+                                }
+                                if (key === 'img_greatone' && localData[key]) {
+                                    const hofGo = document.getElementById('hof-greatone');
+                                    const imgGo = document.getElementById('img-greatone');
+                                    if (hofGo && imgGo) {
+                                        hofGo.classList.remove('hidden');
+                                        imgGo.src = localData[key];
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        };
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+    <style>
+        #wp-custom-wrapper {
+            background: transparent !important;
+            padding: 10px 0;
+            font-family: 'Segoe UI', 'Inter', sans-serif;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .dashboard-container {
+            /* Sub-arctic Midnight Landscape matching background */
+            background: rgba(15, 20, 25, 0.98);
+            border: 2px solid #ef4444;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(0,0,0,0.9);
+            width: 90%;
+            max-width: 1000px;
+        }
+        .glass-panel {
+            background: rgba(255, 230, 230, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(239, 68, 68, 0.1);
+        }
+        .header-gradient {
+            background: linear-gradient(180deg, rgba(239, 68, 68, 0.15) 0%, transparent 100%);
+        }
+        #map-viewport {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+            background: #0a0e12;
+            cursor: grab;
+            touch-action: none;
+        }
+        #reserve-map-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transform-origin: center;
+            transition: transform 0.1s ease-out;
+            pointer-events: none;
+        }
+        .harvest-btn {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ef4444; border-radius: 10px; }
+        
+        @media (max-width: 768px) {
+            .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
+            .sm\:grid-cols-8 { grid-template-columns: repeat(4, 1fr); }
+            #map-viewport { height: 250px; }
+        }
+    </style>
+</head>
+<body class="bg-transparent text-white">
+
+    <div id="wp-custom-wrapper">
+        <div class="dashboard-container">
+            <!-- Header -->
+            <header class="p-6 border-b border-red-500/20 header-gradient">
+                <div class="flex justify-between items-start flex-wrap gap-4">
+                    <div class="text-left">
+                        <h1 id="map-name-display" class="text-2xl font-black text-red-500 uppercase tracking-tighter italic">Yukon Valley</h1>
+                        <div id="twitch-status" class="text-[9px] font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/30 inline-block mt-1">Twitch: Checking...</div>
+                    </div>
+                    <div class="text-right">
+                        <span id="version-tag" class="text-[9px] opacity-30 font-mono text-red-200">v1.9.7</span>
+                        <div id="cloud-status" class="text-[10px] font-black text-orange-500 uppercase tracking-widest mt-1">Connecting...</div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-center">
+                    <a href="https://psnprofiles.com/Werewolf3788" target="_blank" class="block border border-white/10 rounded-xl overflow-hidden shadow-2xl transition-transform hover:scale-105 active:scale-95">
+                        <img src="https://card.psnprofiles.com/1/Werewolf3788.png" alt="PSN Card" class="h-14 sm:h-20">
+                    </a>
+                </div>
+            </header>
+
+            <!-- Global Harvest Ranks (Lifetime) -->
+            <div class="p-4 glass-panel m-4 rounded-2xl">
+                <p class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-4">🏆 Lifetime Global Ranks</p>
+                <div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+                    <div class="harvest-btn"><p class="text-[8px] text-red-500 font-bold">G.O.</p><p id="display-greatone" class="text-sm font-mono">0</p></div>
+                    <div class="harvest-btn"><p class="text-[8px] text-cyan-400 font-bold">DIAM</p><p id="display-diamond" class="text-sm font-mono">0</p></div>
+                    <div class="harvest-btn"><p class="text-[8px] text-purple-500 font-bold">MYST</p><p id="display-mystical" class="text-sm font-mono">0</p></div>
+                    <div class="harvest-btn"><p class="text-[8px] text-slate-100 font-bold">RARE</p><p id="display-albino" class="text-sm font-mono">0</p></div>
+                    <div class="harvest-btn"><p class="text-[8px] text-yellow-500 font-bold">GOLD</p><p id="display-gold" class="text-sm font-mono">0</p></div>
+                    <div class="harvest-btn"><p class="text-[8px] text-slate-300 font-bold">SILV</p><p id="display-silver" class="text-sm font-mono">0</p></div>
+                    <div class="harvest-btn"><p class="text-[8px] text-orange-400 font-bold">BRON</p><p id="display-bronze" class="text-sm font-mono">0</p></div>
+                    <div class="harvest-btn border-red-500/20 bg-red-500/5 cursor-pointer" onclick="location.reload()"><p class="text-[8px] text-red-400 font-bold">SYNC</p><p class="text-[10px] leading-none mt-1">🔄</p></div>
+                </div>
+            </div>
+
+            <!-- Map Viewport -->
+            <div id="map-viewport">
+                <img id="reserve-map-img" src="">
+                <div class="absolute bottom-4 left-6 pointer-events-none">
+                    <h2 class="text-lg font-black uppercase text-white tracking-tighter drop-shadow-2xl">Alaskan Intel</h2>
+                    <p class="text-[8px] text-red-500 font-bold tracking-widest uppercase italic">Jim Murray Sector Surveillance</p>
+                </div>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Left Column: Species & Grinds -->
+                <div class="space-y-8">
+                    <section>
+                        <h3 class="text-[10px] font-black text-red-500 uppercase tracking-[0.3em] mb-4">Yukon Harvests</h3>
+                        <div id="species-harvest-root"></div>
+                    </section>
+
+                    <section class="glass-panel p-4 rounded-2xl border-blue-500/10">
+                        <h3 class="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em] mb-4">The Great Grinds</h3>
+                        <div id="go-grind-root"></div>
+                    </section>
+                </div>
+
+                <!-- Right Column: Missions & Integrity -->
+                <div class="space-y-8">
+                    <section class="glass-panel p-4 rounded-2xl">
+                        <h3 class="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-4">Expedition Terminal</h3>
+                        <div id="mission-engine-root" class="max-h-96 overflow-y-auto pr-2"></div>
+                    </section>
+
+                    <section class="glass-panel p-4 rounded-2xl border-red-500/10">
+                        <h3 class="text-[10px] font-black text-red-400 uppercase tracking-[0.3em] mb-4">Integrity Quick-Ref</h3>
+                        <div class="grid grid-cols-5 gap-1">
+                            <button onclick="toggleIntegrity(1)" class="bg-white/5 border border-white/5 rounded text-[9px] py-2 hover:bg-red-500/10 transition-colors">CL 1</button>
+                            <button onclick="toggleIntegrity(2)" class="bg-white/5 border border-white/5 rounded text-[9px] py-2 hover:bg-red-500/10 transition-colors">CL 2</button>
+                            <button onclick="toggleIntegrity(6)" class="bg-white/5 border border-white/10 rounded text-[9px] py-2 hover:bg-red-500/10 transition-colors">CL 6</button>
+                            <button onclick="toggleIntegrity(8)" class="bg-white/5 border border-white/10 rounded text-[9px] py-2 hover:bg-red-500/10 transition-colors">CL 8</button>
+                            <button onclick="toggleIntegrity(9)" class="bg-white/5 border border-white/10 rounded text-[9px] py-2 hover:bg-red-500/10 transition-colors">CL 9</button>
+                        </div>
+                        <div id="integrity-box" class="hidden mt-3 p-3 bg-black/40 rounded border border-white/5 text-[10px]"></div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- Hall of Fame Gallery -->
+            <div id="hall-of-fame-container" class="px-6 pb-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div id="hof-greatone" class="hidden relative rounded-2xl overflow-hidden aspect-video border border-red-500/40 bg-black group">
+                    <img id="img-greatone" src="" class="w-full h-full object-cover opacity-70 group-hover:scale-110 transition-all duration-700">
+                    <div class="absolute bottom-2 left-2 bg-red-600 text-[9px] font-black px-2 py-0.5 rounded shadow-lg uppercase">G.O. Archive</div>
+                </div>
+                <div id="hof-diamond" class="hidden relative rounded-2xl overflow-hidden aspect-video border border-cyan-500/40 bg-black group">
+                    <img id="img-diamond" src="" class="w-full h-full object-cover opacity-70 group-hover:scale-110 transition-all duration-700">
+                    <div class="absolute bottom-2 left-2 bg-cyan-600 text-[9px] font-black px-2 py-0.5 rounded shadow-lg uppercase">Diamond Archive</div>
+                </div>
+            </div>
+
+            <!-- Footer & Affiliate Links -->
+            <footer class="p-10 border-t border-red-900/40 text-center bg-black/40">
+                <div class="flex flex-wrap justify-center gap-6 mb-8">
+                    <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-white transition-colors">🏷️ Today's Deals</a>
+                    <a href="https://www.amazon.com/s?k=hunting+gear&tag=psngaming-20" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-white transition-colors">🏹 Hunting Gear</a>
+                    <a href="https://www.amazon.com/gp/goldbox?tag=ourflorafb-20" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-white transition-colors">🌸 Our Flora</a>
+                </div>
+                
+                <div class="opacity-30 text-[9px] font-mono space-y-2 uppercase tracking-widest text-red-200">
+                    <p>Lead Developer: Werewolf3788 (KFruti88)</p>
+                    <p>Collaborators: Raymystyro, terrdog420</p>
+                    <p>Data Source: JIM MURRAY / Yukon Valley Official Log</p>
+                    <p class="pt-4 border-t border-white/5 mt-4">&copy; 2026 Alaskan Tactical Companion Suite</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+</body>
+</html>
