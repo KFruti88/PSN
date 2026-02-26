@@ -4,6 +4,8 @@
   Collaborators: Raymystyro (OneLIVIDMAN), terrdog420
   Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync + Storage & Wiki Mission Data
   Platform: WordPress Compatible (#wp-custom-wrapper) / CodePen / GitHub
+  
+  Updated: Fixed Cloud Paths (Rule 1), added Mission Sync, and unified high-tier rank styling.
 -->
 
 <div id="wp-custom-wrapper">
@@ -48,6 +50,7 @@
                 </div>
 
                 <div class="cloud-rows-container space-y-2">
+                    <!-- High-Tier Styled Ranks -->
                     <div class="mission-row p-3 bg-red-900/10 border border-red-600/30 rounded-xl">
                         <div class="flex items-center gap-3">
                             <img src="https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png" class="stat-mini-icon" alt="GO">
@@ -121,7 +124,7 @@
                     </div>
                 </div>
 
-                <!-- Cloud Upload Center -->
+                <!-- Cloud Image Manager -->
                 <div class="mt-6 border-t border-emerald-500/20 pt-4">
                     <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em] mb-4 text-center">Cloud Upload Center</p>
                     <div class="grid grid-cols-2 gap-3">
@@ -170,7 +173,6 @@
         </footer>
     </div>
 
-    <!-- Firebase SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -245,14 +247,14 @@
         .completed-title { border-left-color: #27ae60; color: #2ecc71; }
         .game-stats-title { border-left-color: #f39c12; color: #f39c12; background: rgba(243, 156, 18, 0.1); }
 
-        .trophy-card, .mission-card-simple {
+        .trophy-card {
             background: rgba(25, 35, 25, 0.7);
             border: 1px solid #2a4a3a;
             border-radius: 8px;
             margin-bottom: 10px;
         }
 
-        .mission-card-simple { padding: 12px 20px; }
+        .mission-card-simple { padding: 12px 20px; border-radius: 8px; background: rgba(25, 35, 25, 0.7); border: 1px solid #2a4a3a; }
 
         .trophy-summary {
             padding: 12px 18px;
@@ -300,6 +302,7 @@
     </style>
 
     <script>
+        // --- CORE LOGIC ---
         const firebaseConfig = (typeof __firebase_config !== 'undefined') 
             ? JSON.parse(__firebase_config) 
             : {
@@ -321,78 +324,60 @@
 
         const GAME_ICON = "https://img.psnprofiles.com/trophy/s/6622/ab71d597-4a98-4891-9f93-5e26fbd42d03.png";
         const ARC_ICON = "https://img.psnprofiles.com/trophy/s/6622/716af6c9-1cf7-4d32-b567-7c06503e9be6.png";
-        const PHOTO_ICON = "https://img.psnprofiles.com/trophy/s/6622/926946c4-009b-4da6-b01b-2773be793e61.png";
-        const TRAVEL_ICON = "https://img.psnprofiles.com/trophy/s/6622/62637094-d904-493b-9c5f-0a56453e3146.png";
-        const SKILL_ICON = "https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png";
         const PARK_ICON = "https://img.psnprofiles.com/trophy/s/6622/c37a9f07-6ed9-435a-9a2d-93915f1a70e3.png";
+        const SKILL_ICON = "https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png";
         const FALLBACK_ICON = "https://www.playstation.com/etc.clientlibs/global_layouts/clientlibs/clientlib-base/resources/img/favicon/apple-icon-180x180.png";
 
         let localTrophyData = {};
         let activeUploadCategory = 'diamond';
 
-        // DLC Organization Maps
         const DLC_MAPS = [
+            { id: "yukon", name: "Yukon Valley" },
+            { id: "parque", name: "Parque Fernando" },
             { id: "srp", name: "Silver Ridge Peaks" },
             { id: "hirsch", name: "Hirschfelden" },
             { id: "layton", name: "Layton Lake" },
-            { id: "vurhonga", name: "Vurhonga Savanna" },
             { id: "medved", name: "Medved-Taiga" },
+            { id: "vurhonga", name: "Vurhonga Savanna" },
             { id: "base", name: "General Challenges" }
         ];
 
         const trophyList = [
             { id: "platinum", name: "theHunter (Platinum)", rank: "platinum", isDone: false, map: "base", missions: [{ id: "m_plat", label: "Base Game Completion", target: 51, current: 24 }] },
             
-            // SRP Detailed Missions
-            { id: "srp_main", name: "SRP Main Story Arc", rank: "silver", isDone: false, map: "srp", missions: [
-                { id: "m_srp_1", label: "A Rockies Start", target: 1, current: 0 },
-                { id: "m_srp_2", label: "The Poisoned Chalice", target: 1, current: 0 },
-                { id: "m_srp_3", label: "Up High, Down Low", target: 1, current: 0 },
-                { id: "m_srp_4", label: "A Dangerous Reaction", target: 1, current: 0 },
-                { id: "m_srp_5", label: "An Ill-Advised Retreat", target: 1, current: 0 },
-                { id: "m_srp_6", label: "Bear With Me", target: 1, current: 0 },
-                { id: "m_srp_7", label: "Out of Her Comfort Zone", target: 1, current: 0 },
-                { id: "m_srp_8", label: "Plans are Derailed", target: 1, current: 0 },
-                { id: "m_srp_9", label: "Old Haunts", target: 1, current: 0 },
-                { id: "m_srp_10", label: "Sawbones", target: 1, current: 0 },
-                { id: "m_srp_11", label: "Lock It Down", target: 1, current: 0 },
-                { id: "m_srp_12", label: "Inner Peace, Outer Chaos", target: 1, current: 0 },
-                { id: "m_srp_13", label: "Setting Up", target: 1, current: 0 },
-                { id: "m_srp_14", label: "Whodunnit?", target: 1, current: 0 },
-                { id: "m_srp_15", label: "The Ascent", target: 1, current: 0 }
-            ] },
+            // Yukon
+            { id: "yukon_main", name: "Yukon Story Arc", rank: "silver", isDone: false, map: "yukon", missions: [{ id: "m_yu_main", label: "Jim Murray Tasks", target: 10, current: 0 }] },
+            { id: "yukon_side", name: "Yukon Extra Work", rank: "bronze", isDone: false, map: "yukon", missions: [{ id: "s_yu_total", label: "Kayla, Bev, Sandy Side tasks", target: 35, current: 0 }] },
+
+            // Parque
+            { id: "parque_main", name: "Parque Story Arc", rank: "silver", isDone: false, map: "parque", missions: [{ id: "m_p_story", label: "Carolina's Arc", target: 18, current: 0 }] },
+            { id: "parque_side", name: "Parque Side Arcs", rank: "bronze", isDone: false, map: "parque", missions: [{ id: "s_p_total", label: "Estancia Side Tasks", target: 30, current: 0 }] },
+
+            // SRP
+            { id: "srp_main", name: "SRP Main Story", rank: "silver", isDone: false, map: "srp", missions: [{ id: "m_srp_total", label: "Allan Bradley Arcs", target: 15, current: 0 }] },
             { id: "srp_explore", name: "SRP Exploration", rank: "bronze", isDone: false, map: "srp", missions: [
                 { id: "m_cabins", label: "Cabins Found", target: 19, current: 1 },
                 { id: "m_lookouts", label: "Lookout Towers", target: 15, current: 1 }
             ] },
 
-            // Hirschfelden Arcs
-            { id: "hirsch_main", name: "Hirschfelden Main Missions", rank: "silver", isDone: false, map: "hirsch", missions: [
-                { id: "m_h_intro", label: "Cornelia Holzer Tasks", target: 3, current: 0 },
-                { id: "m_h_jager", label: "Jäger Book Arc", target: 5, current: 0 },
-                { id: "m_h_sommer", label: "Sommer Weapon Arc", target: 5, current: 0 },
-                { id: "m_h_bhandari", label: "Bhandari Bison Arc", target: 5, current: 0 },
-                { id: "m_h_fleischer", label: "Fleischer Deer Arc", target: 5, current: 0 },
-                { id: "m_h_tressler", map: "hirsch", label: "Tressler Boar Arc", target: 5, current: 0 }
-            ] },
-            { id: "hirsch_side", name: "Hirschfelden Side Tasks", rank: "bronze", isDone: false, map: "hirsch", missions: [
-                { id: "s_h_total", label: "Side Mission Completion", target: 70, current: 0 }
-            ] },
+            // Hirschfelden
+            { id: "hirsch_main", name: "Hirsch Main Missions", rank: "silver", isDone: false, map: "hirsch", missions: [{ id: "m_h_main", label: "Story Progression", target: 28, current: 0 }] },
+            { id: "hirsch_side", name: "Hirsch Side Tasks", rank: "bronze", isDone: false, map: "hirsch", missions: [{ id: "s_h_total", label: "Reserve Side Tasks", target: 70, current: 0 }] },
 
-            // Other Reserves
-            { id: "layton_arc", name: "Layton Lake Missions", rank: "silver", isDone: false, map: "layton", missions: [
-                { id: "m_l_main", label: "Main Missions", target: 10, current: 0 },
-                { id: "m_l_side", label: "Side Tasks", target: 50, current: 0 }
-            ] },
-            { id: "vurh_arc", name: "Vurhonga Missions", rank: "silver", isDone: false, map: "vurhonga", missions: [
-                { id: "m_v_main", label: "Main Missions", target: 16, current: 0 }
-            ] },
-            { id: "medved_arc", name: "Medved-Taiga Missions", rank: "silver", isDone: false, map: "medved", missions: [
-                { id: "m_m_main", label: "Main Missions", target: 10, current: 0 }
-            ] },
+            // Layton
+            { id: "layton_main", name: "Layton Main Missions", rank: "silver", isDone: false, map: "layton", missions: [{ id: "m_l_main", label: "Story Progression", target: 28, current: 0 }] },
+            { id: "layton_side", name: "Layton Side Tasks", rank: "bronze", isDone: false, map: "layton", missions: [{ id: "s_l_total", label: "Reserve Side Tasks", target: 70, current: 0 }] },
+
+            // Medved
+            { id: "medved_main", name: "Medved Story Arc", rank: "silver", isDone: false, map: "medved", missions: [{ id: "m_m_total", label: "Expedition Arcs", target: 32, current: 0 }] },
+            { id: "medved_side", name: "Medved Side Tasks", rank: "bronze", isDone: false, map: "medved", missions: [{ id: "s_m_total", label: "Reserve Side Missions", target: 50, current: 0 }] },
+
+            // Vurhonga
+            { id: "vurh_main", name: "Vurhonga Story Arc", rank: "silver", isDone: false, map: "vurhonga", missions: [{ id: "m_v_njabulo", label: "Njabulo's Arcs", target: 16, current: 0 }] },
+            { id: "vurh_side", name: "Vurhonga Side Tasks", rank: "bronze", isDone: false, map: "vurhonga", missions: [{ id: "s_v_total", label: "Warden Side Tasks", target: 46, current: 0 }] },
 
             // General
-            { id: "zombie", name: "This Is Not A Zombie Game", rank: "silver", isDone: false, map: "base", isSkill: true, missions: [{ id: "m_brain", label: "Brain Shot Kills", target: 10, current: 0 }] },
+            { id: "zombie", name: "This Is Not A Zombie Game", rank: "silver", isDone: false, map: "base", missions: [{ id: "m_brain", label: "Brain Shot Kills", target: 10, current: 0 }] },
             { id: "cotw_callers", name: "Call Of The Wild", rank: "silver", isDone: false, map: "base", missions: [{ id: "m_callers", label: "Use All Callers", target: 1, current: 0 }] }
         ];
 
@@ -413,15 +398,10 @@
                 container.appendChild(section);
 
                 const listEl = document.getElementById(`list-${map.id}`);
-
-                mapTrophies.forEach(t => {
-                    renderCard(t, listEl);
-                });
+                mapTrophies.forEach(t => renderCard(t, listEl));
             });
 
-            // Handle completed ones in the separate bottom list
             trophyList.filter(t => t.isDone).forEach(t => renderCard(t, doneList));
-
             updateGlobalStats();
         }
 
@@ -433,7 +413,7 @@
             if (t.missions) {
                 t.missions.forEach(m => {
                     const isMComplete = m.current >= m.target;
-                    const hideControls = t.isDone || t.id === 'platinum';
+                    const hideControls = t.id === 'platinum';
                     missionHtml += `
                         <div class="mission-row">
                             <span class="mission-text">${m.label} <small>(${m.target})</small></span>
@@ -452,8 +432,7 @@
             const lowerName = t.name.toLowerCase();
             if (lowerName.includes("call of the wild")) iconToUse = "https://img.psnprofiles.com/trophy/s/6622/475f711c-00ad-489f-ac9f-7465c2a4a038.png";
             else if (lowerName.includes("cabin") || lowerName.includes("lookout")) iconToUse = PARK_ICON;
-            else if (t.isSkill) iconToUse = SKILL_ICON;
-            else if (t.id.includes("arc") || t.id.includes("missions")) iconToUse = ARC_ICON;
+            else iconToUse = ARC_ICON;
 
             card.innerHTML = `
                 <div class="trophy-summary" onclick="toggleDetails('${t.id}')">
@@ -497,11 +476,13 @@
                     cloudStatusEl.innerText = "Connected";
                     cloudStatusEl.style.color = "#2ecc71";
                 }
+                // RULE 1: Strict Paths
                 const docPath = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
                 docPath.onSnapshot((doc) => {
                     if (doc.exists) {
                         localTrophyData = doc.data();
                         syncUIWithData();
+                        syncMissionsWithData();
                     }
                 });
             }
@@ -534,6 +515,21 @@
             });
         }
 
+        function syncMissionsWithData() {
+            if (!localTrophyData.missionProgress) return;
+            const progress = localTrophyData.missionProgress;
+            trophyList.forEach(t => {
+                if (t.missions) {
+                    t.missions.forEach(m => {
+                        if (progress[m.id] !== undefined) {
+                            m.current = progress[m.id];
+                        }
+                    });
+                }
+            });
+            initTracker();
+        }
+
         async function updateCloudStat(trophyId, delta) {
             if (!auth.currentUser) return;
             const currentCount = localTrophyData[trophyId] || 0;
@@ -542,6 +538,30 @@
                 const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
                 await docRef.set({ [trophyId]: newCount, lastUpdated: Date.now() }, { merge: true });
             } catch (error) { console.error("Update failed:", error); }
+        }
+
+        async function updateMission(mId, change, target) {
+            if (!auth.currentUser) return;
+            let currentVal = 0;
+            trophyList.forEach(t => {
+                if (t.missions) {
+                    t.missions.forEach(m => {
+                        if (m.id === mId) {
+                            m.current = Math.max(0, Math.min(target, m.current + change));
+                            currentVal = m.current;
+                        }
+                    });
+                }
+            });
+
+            try {
+                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+                await docRef.set({
+                    missionProgress: {
+                        [mId]: currentVal
+                    }
+                }, { merge: true });
+            } catch (error) { console.error("Mission update failed:", error); }
         }
 
         function triggerUpload(category) {
@@ -556,15 +576,18 @@
             const progressBar = document.getElementById('progress-bar');
             const progressContainer = document.getElementById('upload-progress');
             progressContainer.classList.remove('hidden');
+            
+            // Storage follows similar path structure
             const storagePath = `artifacts/${sharedAppId}/public/data/userImages/${leadDevId}/${category}/${Date.now()}_${file.name}`;
             const storageRef = storage.ref(storagePath);
             const uploadTask = storageRef.put(file);
+
             uploadTask.on('state_changed', 
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     progressBar.style.width = progress + '%';
                 }, 
-                (error) => { console.error("Upload error:", error); progressContainer.classList.add('hidden'); }, 
+                (error) => { progressContainer.classList.add('hidden'); }, 
                 async () => {
                     const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
                     const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
@@ -592,33 +615,15 @@
             if (arrowEl) arrowEl.innerText = el.classList.contains('active') ? '▲' : '▼';
         }
 
-        function updateMission(mId, change, target) {
-            trophyList.forEach(t => {
-                if (t.missions) {
-                    t.missions.forEach(m => {
-                        if (m.id === mId) {
-                            m.current += change;
-                            if (m.current < 0) m.current = 0;
-                            if (m.current >= target) {
-                                m.current = target;
-                                if (!t.id.includes('arc') && !t.id.includes('missions')) t.isDone = true;
-                            }
-                        }
-                    });
-                }
-            });
-            initTracker();
-        }
-
         async function syncWithPSN() {
             const btn = document.getElementById('sync-btn');
             if (!btn) return;
-            btn.innerText = "🔄 Loading Feeds...";
+            btn.innerText = "🔄 Syncing...";
             try {
                 const proxy = 'https://api.allorigins.win/get?url=';
                 const feedUrl = encodeURIComponent('https://psntrophyleaders.com/user/view/Werewolf3788/rss');
                 await fetch(proxy + feedUrl);
-                btn.innerText = "✅ Synced";
+                btn.innerText = "✅ Done";
                 setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000);
             } catch (e) { btn.innerText = "❌ Error"; setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000); }
         }
