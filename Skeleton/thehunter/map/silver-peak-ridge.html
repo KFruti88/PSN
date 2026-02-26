@@ -1,426 +1,448 @@
-<!-- 
-  Project: theHunter: Call of the Wild - Silver Ridge Peaks (SRP) Exclusive Tracker
-  Lead Developer: Werewolf3788 (GitHub: KFruti88)
-  Collaborators: Raymystyro (OneLIVIDMAN), terrdog420
-  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync & Wiki Data
-  Platform: WordPress Compatible (#wp-custom-wrapper)
-  
-  Updated: 
-  - Updated SRP Map Image (v1.3.2)
-  - Focused strictly on Colorado content
-  - Responsive 90% Fluid Width & Stacking Logic
-  - Real-time Cloud Sync for Species & Mission Tracking
--->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COTW Silver Ridge Peaks Interactive Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-<div id="wp-custom-wrapper">
-    <!-- Firebase SDKs - Loaded early for stability -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+        // --- SILVER RIDGE PEAKS CONFIGURATION ---
+        const RESERVE_CONFIG = {
+            mapId: "silver_ridge_peaks",
+            displayName: "Silver Ridge Peaks",
+            narrator: "Allan Bradley",
+            // High-res Colorado Map
+            mapImage: "https://static.wikia.nocookie.net/thehuntercotw/images/e/ef/SilverRidgePeaks_Map.jpg",
+            version: "v1.9.0",
+            species: [
+                { id: "srp_turkey", name: "Merriam Turkey", class: 1 },
+                { id: "srp_pronghorn", name: "Pronghorn", class: 3 },
+                { id: "srp_mtgoat", name: "Mountain Goat", class: 4 },
+                { id: "srp_bighorn", name: "Rocky Mtn Bighorn Sheep", class: 4 },
+                { id: "srp_mtlion", name: "Mountain Lion", class: 5 },
+                { id: "srp_mule", name: "Mule Deer", class: 5 },
+                { id: "srp_bear", name: "Black Bear", class: 7 },
+                { id: "srp_elk", name: "Rocky Mtn Elk", class: 7 },
+                { id: "srp_bison", name: "Plains Bison", class: 9 }
+            ],
+            missions: [
+                { id: "srp_m1", label: "A Rockies Start", target: 1 },
+                { id: "srp_m2", label: "The Poisoned Chalice", target: 1 },
+                { id: "srp_m3", label: "Up High, Down Low", target: 1 },
+                { id: "srp_m4", label: "A Dangerous Reaction", target: 1 },
+                { id: "srp_m5", label: "An Ill-Advised Retreat", target: 1 },
+                { id: "srp_m6", label: "Bear With Me", target: 1 },
+                { id: "srp_m7", label: "Out of Her Comfort Zone", target: 1 },
+                { id: "srp_m8", label: "Plans are Derailed", target: 1 },
+                { id: "srp_m9", label: "Old Haunts", target: 1 },
+                { id: "srp_m10", label: "Sawbones", target: 1 },
+                { id: "srp_m11", label: "Lock It Down", target: 1 },
+                { id: "srp_m12", label: "Inner Peace, Outer Chaos", target: 1 },
+                { id: "srp_m13", label: "Setting Up", target: 1 },
+                { id: "srp_m14", label: "Whodunnit?", target: 1 },
+                { id: "srp_m15", label: "The Ascent", target: 1 },
+                { id: "srp_cabins", label: "Explore: All Cabins Found", target: 19 },
+                { id: "srp_lookouts", label: "Explore: All Lookout Points", target: 15 }
+            ]
+        };
 
-    <div class="cotw-dashboard">
-        <header class="tracker-header">
-            <div class="header-top">
-                <h1>COTW: SRP Tracker</h1>
-                <div class="header-controls">
-                    <span id="version-tag" class="text-[9px] opacity-30 mr-2">v1.3.2</span>
-                    <button id="sync-btn" onclick="syncWithPSN()" class="sync-button">🔄 Sync PSN Status</button>
-                </div>
-            </div>
-            <p id="stats-summary">User: Werewolf3788 | Loading SRP Cloud Hub...</p>
+        const INTEGRITY_GUIDE = {
+            1: "Merriam Turkey, Geese, Ducks, Rabbits.",
+            2: "Foxes, Coyotes, Raccoons.",
+            3: "Pronghorn, Roe Deer, Axis Deer.",
+            4: "Mountain Goat, Bighorn Sheep, Whitetail.",
+            5: "Mountain Lion, Mule Deer, Wild Boar.",
+            6: "Red Deer, Reindeer, Wolves.",
+            7: "Rocky Mountain Elk, Black Bear, Brown Bear.",
+            8: "Moose, Grizzly Bear.",
+            9: "Plains Bison, Buffalo, Lion."
+        };
+
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'cotw-map-tracker';
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let user = null;
+        let localData = {};
+
+        // Interactive Map State
+        let scale = 1;
+        let originX = 0;
+        let originY = 0;
+        let isDragging = false;
+        let startX, startY;
+
+        const setupMapInteractions = () => {
+            const mapContainer = document.getElementById('map-viewport');
             
-            <div class="psn-card-container">
-                <a href="https://psnprofiles.com/Werewolf3788" target="_blank">
-                    <img src="https://card.psnprofiles.com/1/Werewolf3788.png" border="0" alt="Werewolf PSN Card" class="psn-card-img">
-                </a>
-            </div>
-        </header>
+            mapContainer.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX - originX;
+                startY = e.clientY - originY;
+                mapContainer.style.cursor = 'grabbing';
+            });
 
-        <!-- Hall of Fame -->
-        <div class="section-title text-red-500 border-red-500">🏆 SRP Hall of Fame</div>
-        <div id="hall-of-fame" class="hof-grid mb-8">
-            <div id="hof-greatone" class="hidden relative group rounded-xl overflow-hidden border border-red-500/30 aspect-video bg-black/40">
-                <img id="img-greatone" src="" class="w-full h-full object-cover" alt="Great One">
-                <div class="absolute top-2 left-2 px-2 py-1 bg-red-600 text-[10px] font-black uppercase rounded">Great One</div>
-            </div>
-            <div id="hof-diamond" class="hidden relative group rounded-xl overflow-hidden border border-cyan-500/30 aspect-video bg-black/40">
-                <img id="img-diamond" src="" class="w-full h-full object-cover" alt="Diamond">
-                <div class="absolute top-2 left-2 px-2 py-1 bg-cyan-600 text-[10px] font-black uppercase rounded">Diamond</div>
-            </div>
-        </div>
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+                mapContainer.style.cursor = 'grab';
+            });
 
-        <!-- Interactive Reserve Tracker -->
-        <div class="section-title border-emerald-500/50 text-emerald-400">🗺️ Colorado Reserve View</div>
-        <div class="mission-card-simple mb-8 p-0 overflow-hidden">
-            <div class="map-visual-container">
-                <img id="reserve-map-img" src="https://static.wikia.nocookie.net/thehuntercotw/images/e/ef/SilverRidgePeaks_Map.jpg" alt="Silver Ridge Peaks Map" class="map-img">
-                <div class="map-overlay-title">
-                    <span>Silver Ridge Peaks</span>
-                </div>
-            </div>
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                originX = e.clientX - startX;
+                originY = e.clientY - startY;
+                updateMapTransform();
+            });
 
-            <div class="p-4">
-                <div id="active-map-info" class="mb-4 flex justify-between items-center border-b border-white/5 pb-2">
-                    <span class="text-[10px] font-black uppercase text-emerald-500 tracking-widest">Species Harvests</span>
-                    <span class="text-[9px] text-white/20 italic">No Boss on Map</span>
-                </div>
-                <div id="species-harvest-root" class="space-y-2">
-                    <!-- Species injected via JS -->
-                </div>
-            </div>
-        </div>
+            mapContainer.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                scale *= delta;
+                scale = Math.min(Math.max(1, scale), 5);
+                updateMapTransform();
+            }, { passive: false });
 
-        <!-- Mission Progress Section -->
-        <div class="section-title border-blue-500/50 text-blue-400">📋 Allan Bradley Mission Log</div>
-        <div id="mission-log-root" class="mb-8">
-            <!-- Missions injected via JS -->
-        </div>
+            window.resetMap = () => {
+                scale = 1; originX = 0; originY = 0;
+                updateMapTransform();
+            };
+        };
 
-        <!-- Species Integrity Guide -->
-        <div class="section-title border-yellow-500/50 text-yellow-500">🐾 SRP Integrity Guide (Classes 1-9)</div>
-        <div class="mission-card-simple mb-8 p-4">
-            <div class="species-class-bar" id="species-grid">
-                <button onclick="toggleSpeciesList(1)">Cl 1</button>
-                <button onclick="toggleSpeciesList(2)">Cl 2</button>
-                <button onclick="toggleSpeciesList(3)">Cl 3</button>
-                <button onclick="toggleSpeciesList(4)">Cl 4</button>
-                <button onclick="toggleSpeciesList(5)">Cl 5</button>
-                <button onclick="toggleSpeciesList(6)">Cl 6</button>
-                <button onclick="toggleSpeciesList(7)">Cl 7</button>
-                <button onclick="toggleSpeciesList(8)">Cl 8</button>
-                <button onclick="toggleSpeciesList(9)">Cl 9</button>
-            </div>
-            <div id="species-data-expansion" class="hidden mt-4 p-3 bg-black/40 border border-white/10 rounded text-[11px] leading-relaxed">
-                <div id="species-content"></div>
-            </div>
-        </div>
+        const updateMapTransform = () => {
+            const mapImg = document.getElementById('reserve-map-img');
+            mapImg.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
+        };
 
-        <!-- Hunting Profile -->
-        <div class="section-title game-stats-title">SRP Hunting Stats (Cloud Synced)</div>
-        <div id="game-stats-container">
-            <div class="mission-card-simple">
-                <div class="mission-row mb-4">
-                    <span class="mission-text">Cloud Status:</span>
-                    <span id="cloud-status" class="count-display" style="font-size: 0.7rem; color: #f39c12;">Connecting...</span>
-                </div>
-                <div id="rank-rows-root" class="space-y-2"></div>
-                
-                <div class="mt-6 border-t border-emerald-500/20 pt-4">
-                    <p class="text-[10px] text-emerald-400 font-black uppercase tracking-[0.2em] mb-4 text-center">Cloud Upload Center</p>
-                    <div class="upload-grid">
-                        <button onclick="triggerUpload('diamond')" class="upload-btn border-cyan-500/40 hover:bg-cyan-900/40">
-                            <i class="text-cyan-400 text-lg">💎</i>
-                            <span class="text-[9px] font-bold text-cyan-200 uppercase">Upload Diamond</span>
-                        </button>
-                        <button onclick="triggerUpload('greatone')" class="upload-btn border-red-500/40 hover:bg-red-900/40">
-                            <i class="text-red-400 text-lg">👑</i>
-                            <span class="text-[9px] font-bold text-red-200 uppercase">Upload Great One</span>
-                        </button>
+        const setupUI = () => {
+            document.getElementById('map-name-display').innerText = RESERVE_CONFIG.displayName;
+            document.getElementById('narrator-name').innerText = RESERVE_CONFIG.narrator;
+            document.getElementById('reserve-map-img').src = RESERVE_CONFIG.mapImage;
+            document.getElementById('version-tag').innerText = RESERVE_CONFIG.version;
+            
+            const sRoot = document.getElementById('species-harvest-root');
+            sRoot.innerHTML = RESERVE_CONFIG.species.map(s => `
+                <div class="flex justify-between items-center p-2 bg-black/40 border border-emerald-900/30 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-emerald-600 text-black text-[10px] font-black px-1.5 py-0.5 rounded">CL ${s.class}</span>
+                        <span class="text-xs font-bold text-emerald-50 leading-tight">${s.name}</span>
                     </div>
-                    <input type="file" id="trophy-upload" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
-                    <div id="upload-progress" class="hidden w-full bg-emerald-950 h-1 mt-4 rounded overflow-hidden">
-                        <div id="progress-bar" class="bg-emerald-400 h-full transition-all duration-300" style="width: 0%"></div>
+                    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                        <button onclick="window.updateCount('species_${s.id}', -1)" class="w-8 h-8 bg-white/5 rounded border border-emerald-500/30 text-emerald-500 hover:bg-emerald-500 hover:text-black transition-all">-</button>
+                        <span id="display-species_${s.id}" class="font-mono font-bold text-emerald-500 min-w-[24px] text-center text-sm">0</span>
+                        <button onclick="window.updateCount('species_${s.id}', 1)" class="w-8 h-8 bg-white/5 rounded border border-emerald-500/30 text-emerald-500 hover:bg-emerald-500 hover:text-black transition-all">+</button>
                     </div>
                 </div>
+            `).join('');
 
-                <div class="mission-row border-t border-white/5 mt-4 pt-4">
-                    <span class="mission-text">Longest Vital Organ Hit</span>
-                    <div class="mission-controls">
-                        <span id="stat-longestShot" class="count-display" style="color: #f1c40f; min-width: 80px;">0.00 yds</span>
-                        <button class="btn-sm" onclick="setLongestShot()" title="Update Record">SET</button>
+            const mRoot = document.getElementById('mission-log-root');
+            mRoot.innerHTML = RESERVE_CONFIG.missions.map(m => `
+                <div class="p-3 bg-black/20 border border-emerald-900/20 rounded-xl flex justify-between items-center">
+                    <span class="text-[11px] font-bold text-emerald-200 leading-tight">${m.label} <small class="text-emerald-500/50 block sm:inline">(${m.target})</small></span>
+                    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                        <button onclick="window.updateCount('mission_${m.id}', -1, ${m.target})" class="w-8 h-8 rounded border border-emerald-500/30 text-emerald-400 active:scale-90">-</button>
+                        <span id="display-mission_${m.id}" class="font-mono font-bold text-sm">0</span>
+                        <button onclick="window.updateCount('mission_${m.id}', 1, ${m.target})" class="w-8 h-8 rounded border border-emerald-500/30 text-emerald-400 active:scale-90">+</button>
                     </div>
                 </div>
-            </div>
-        </div>
+            `).join('');
 
-        <footer class="tracker-footer">
-            <div class="flex justify-center gap-4 mb-4">
-                <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank" class="hover:text-emerald-400 transition-colors">Today's Deals</a>
-                <a href="https://www.amazon.com/s?k=hunting&tag=psngaming-20" target="_blank" class="hover:text-emerald-400 transition-colors">Hunting Gear</a>
-            </div>
-            <p>Lead Developer: Werewolf3788 | Collaborators: Raymystyro, terrdog420</p>
-        </footer>
-    </div>
+            setupMapInteractions();
+        };
 
-    <style>
-        /* --- Base Layout --- */
-        #wp-custom-wrapper { background: transparent !important; padding: 20px 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #ffffff; display: flex; justify-content: center; width: 100%; }
-        .cotw-dashboard { width: 90%; margin: 0 auto; background: rgba(12, 18, 12, 0.98); border: 2px solid #2ecc71; border-radius: 16px; padding: 25px; box-shadow: 0 15px 60px rgba(0,0,0,0.95); box-sizing: border-box; }
+        const getDocRef = () => {
+            if (!user) return null;
+            const collectionName = `${RESERVE_CONFIG.mapId}_users`;
+            return doc(db, 'artifacts', appId, 'public', 'data', collectionName, user.uid);
+        };
 
-        /* --- Header --- */
-        .tracker-header { text-align: center; border-bottom: 2px solid #2ecc71; margin-bottom: 25px; padding-bottom: 25px; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .tracker-header h1 { margin: 0; color: #2ecc71; text-transform: uppercase; letter-spacing: 3px; font-size: 1.8rem; font-weight: 900; }
-        
-        /* --- Map Visual Container --- */
-        .map-visual-container { position: relative; width: 100%; height: 300px; overflow: hidden; background: #000; border-bottom: 1px solid rgba(46, 204, 113, 0.3); }
-        .map-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.8s ease; opacity: 0.6; }
-        .map-visual-container:hover .map-img { transform: scale(1.05); opacity: 0.8; }
-        .map-overlay-title { position: absolute; bottom: 20px; left: 20px; z-index: 2; }
-        .map-overlay-title span { font-size: 1.5rem; font-weight: 900; text-transform: uppercase; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.8); border-left: 5px solid #2ecc71; padding-left: 15px; }
+        window.updateCount = async (key, delta, max = 9999) => {
+            const docRef = getDocRef();
+            if (!docRef) return;
+            const current = localData[key] || 0;
+            const newVal = Math.max(0, Math.min(max, current + delta));
+            const el = document.getElementById(`display-${key}`);
+            if (el) el.innerText = newVal;
+            await setDoc(docRef, { [key]: newVal, lastSync: Date.now() }, { merge: true });
+        };
 
-        /* --- Components --- */
-        .section-title { background: rgba(46, 204, 113, 0.1); padding: 12px 18px; margin: 30px 0 15px; border-left: 6px solid #2ecc71; font-weight: 800; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 1px; }
-        .game-stats-title { border-left-color: #f39c12; color: #f39c12; background: rgba(243, 156, 18, 0.1); }
+        window.toggleIntegrity = (cl) => {
+            const box = document.getElementById('integrity-box');
+            box.classList.remove('hidden');
+            box.innerHTML = `<div class="text-emerald-400 font-black mb-1 text-center md:text-left uppercase tracking-widest">Class ${cl} Rockies Protocol:</div><div class="text-emerald-50/80 text-center md:text-left italic">${INTEGRITY_GUIDE[cl]}</div>`;
+            box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        };
 
-        .hof-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        @media (min-width: 768px) { .hof-grid { grid-template-columns: 1fr 1fr; } .map-visual-container { height: 450px; } }
-        .upload-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-        @media (min-width: 480px) { .upload-grid { grid-template-columns: 1fr 1fr; } }
+        window.triggerUpload = (type) => {
+            window.activeUploadType = type;
+            document.getElementById('file-input').click();
+        };
 
-        .species-class-bar { display: flex; flex-wrap: wrap; gap: 4px; justify-content: space-between; }
-        .species-class-bar button { flex: 1 1 30%; min-width: 60px; padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; color: #f1c40f; font-weight: bold; font-size: 10px; transition: all 0.2s; cursor: pointer; }
-        .species-class-bar button:hover { background: rgba(241, 196, 15, 0.2); border-color: #f1c40f; }
-
-        .trophy-card { background: rgba(20, 25, 20, 0.8); border: 1px solid #2a4a3a; border-radius: 12px; margin-bottom: 12px; }
-        .mission-card-simple { border-radius: 12px; background: rgba(20, 25, 20, 0.8); border: 1px solid #2a4a3a; }
-
-        .mission-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .mission-row:last-child { border-bottom: none; }
-
-        .btn-ctrl { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; width: 30px; height: 30px; cursor: pointer; border-radius: 6px; font-weight: 900; }
-        .btn-ctrl:active { transform: scale(0.9); background: #2ecc71; color: #000; }
-        .count-display { font-family: 'Courier New', Courier, monospace; min-width: 40px; text-align: center; color: #2ecc71; font-weight: 800; font-size: 1.1rem; }
-        
-        .species-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(46, 204, 113, 0.1); border-radius: 10px; margin-bottom: 6px; }
-        .class-badge { background: #f1c40f; color: #111; font-weight: 900; text-[10px] px-2 py-0.5 rounded uppercase; margin-right: 10px; }
-
-        .sync-button { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; padding: 8px 20px; cursor: pointer; border-radius: 25px; font-size: 0.85rem; }
-        .tracker-footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #7f8c8d; padding-bottom: 30px; }
-        
-        .upload-btn { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid; border-radius: 12px; cursor: pointer; transition: all 0.3s; }
-        .btn-sm { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; padding: 4px 12px; cursor: pointer; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
-        
-        .psn-card-img { height: 60px; border-radius: 6px; border: 1px solid #333; }
-        .stat-mini-icon { width: 28px; height: 28px; border-radius: 4px; object-fit: cover; }
-    </style>
-
-    <script>
-        const startApp = () => {
-            if (typeof firebase === 'undefined') {
-                setTimeout(startApp, 100);
-                return;
-            }
-
-            const CACHE_KEY = Date.now();
-
-            // --- SRP DATA ---
-            const srpData = {
-                name: "Silver Ridge Peaks",
-                species: [
-                    { id: "srp_turkey", name: "Merriam Turkey", class: 1 },
-                    { id: "srp_pronghorn", name: "Pronghorn", class: 3 },
-                    { id: "srp_mtgoat", name: "Mountain Goat", class: 4 },
-                    { id: "srp_bighorn", name: "Rocky Mtn Bighorn Sheep", class: 4 },
-                    { id: "srp_mtlion", name: "Mountain Lion", class: 5 },
-                    { id: "srp_mule", name: "Mule Deer", class: 5 },
-                    { id: "srp_bear", name: "Black Bear", class: 7 },
-                    { id: "srp_elk", name: "Rocky Mtn Elk", class: 7 },
-                    { id: "srp_bison", name: "Plains Bison", class: 9 }
-                ],
-                missions: [
-                    { id: "m_srp_1", label: "A Rockies Start", target: 1 },
-                    { id: "m_srp_2", label: "The Poisoned Chalice", target: 1 },
-                    { id: "m_srp_3", label: "Up High, Down Low", target: 1 },
-                    { id: "m_srp_4", label: "A Dangerous Reaction", target: 1 },
-                    { id: "m_srp_5", label: "An Ill-Advised Retreat", target: 1 },
-                    { id: "m_srp_6", label: "Bear With Me", target: 1 },
-                    { id: "m_srp_7", label: "Out of Her Comfort Zone", target: 1 },
-                    { id: "m_srp_8", label: "Plans are Derailed", target: 1 },
-                    { id: "m_srp_9", label: "Old Haunts", target: 1 },
-                    { id: "m_srp_10", label: "Sawbones", target: 1 },
-                    { id: "m_srp_11", label: "Lock It Down", target: 1 },
-                    { id: "m_srp_12", label: "Inner Peace, Outer Chaos", target: 1 },
-                    { id: "m_srp_13", label: "Setting Up", target: 1 },
-                    { id: "m_srp_14", label: "Whodunnit?", target: 1 },
-                    { id: "m_srp_15", label: "The Ascent", target: 1 },
-                    { id: "m_srp_cabins", label: "Explore: All Cabins Found", target: 19 },
-                    { id: "m_srp_lookouts", label: "Explore: All Lookout Points", target: 15 }
-                ]
-            };
-
-            const speciesIntegrityData = {
-                1: "Merriam Turkey, Geese, Ducks, Rabbits.",
-                2: "Foxes, Coyotes, Raccoons.",
-                3: "Pronghorn, Roe Deer, Axis Deer.",
-                4: "Mountain Goat, Bighorn Sheep, Whitetail.",
-                5: "Mountain Lion, Mule Deer, Wild Boar.",
-                6: "Red Deer, Reindeer, Wolves.",
-                7: "Rocky Mountain Elk, Black Bear, Brown Bear.",
-                8: "Moose, Grizzly Bear.",
-                9: "Plains Bison, Buffalo, Lion."
-            };
-
-            // --- FIREBASE INIT ---
-            const sharedAppId = (typeof __app_id !== 'undefined') ? __app_id : 'cotw-srp-tracker';
-            const leadDevId = 'Werewolf3788';
-            const firebaseConfig = JSON.parse(__firebase_config);
-
-            firebase.initializeApp(firebaseConfig);
-            const auth = firebase.auth();
-            const db = firebase.firestore();
-            const storage = firebase.storage();
-
-            let localTrophyData = {};
-            let activeUploadCategory = 'diamond';
-
-            // --- UI RENDERERS ---
-            window.toggleSpeciesList = (classId) => {
-                const exp = document.getElementById('species-data-expansion');
-                const content = document.getElementById('species-content');
-                exp.classList.remove('hidden');
-                content.innerHTML = `<strong class="text-yellow-400">CLASS ${classId} TARGETS:</strong><br>${speciesIntegrityData[classId]}`;
-            };
-
-            const renderSRPData = () => {
-                const counts = localTrophyData.speciesCounts || {};
-                const missionProg = localTrophyData.missionProgress || {};
-
-                // Species List
-                const sRoot = document.getElementById('species-harvest-root');
-                sRoot.innerHTML = srpData.species.map(s => `
-                    <div class="species-row">
-                        <div class="flex items-center">
-                            <span class="class-badge">Cl ${s.class}</span>
-                            <span class="text-[11px] font-bold text-white/90">${s.name}</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateSpeciesCount('${s.id}', -1)">-</button>
-                            <span id="species-${s.id}" class="count-display text-emerald-400">${counts[s.id] || 0}</span>
-                            <button class="btn-ctrl" onclick="updateSpeciesCount('${s.id}', 1)">+</button>
-                        </div>
-                    </div>
-                `).join('');
-
-                // Mission Log
-                const mRoot = document.getElementById('mission-log-root');
-                mRoot.innerHTML = srpData.missions.map(m => `
-                    <div class="trophy-card">
-                        <div class="mission-row">
-                            <span class="mission-text text-[11px] font-bold">${m.label} <small>(${m.target})</small></span>
-                            <div class="mission-controls">
-                                <button class="btn-ctrl" onclick="updateMission('${m.id}', -1, ${m.target})">-</button>
-                                <span id="val-${m.id}" class="count-display">${missionProg[m.id] || 0}</span>
-                                <button class="btn-ctrl" onclick="updateMission('${m.id}', 1, ${m.target})">+</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-
-                // Update Rank Rows
-                const rRoot = document.getElementById('rank-rows-root');
-                const ranks = [
-                    { k: 'greatone', l: 'Great One Grind', c: 'red-500', i: 'https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png' },
-                    { k: 'diamond', l: 'Diamond Harvests', c: 'cyan-300', i: 'https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png' },
-                    { k: 'gold', l: 'Gold Harvests', c: 'yellow-400', i: 'https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png' }
-                ];
-                rRoot.innerHTML = ranks.map(r => `
-                    <div class="mission-row p-3 bg-black/20 border border-white/5 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <img src="${r.i}" class="stat-mini-icon" alt="${r.k}">
-                            <span class="mission-text text-${r.c} font-bold uppercase tracking-tighter">${r.l}</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateCloudStat('${r.k}', -1)">-</button>
-                            <span id="stat-${r.k}" class="count-display text-${r.c}">${localTrophyData[r.k] || 0}</span>
-                            <button class="btn-ctrl" onclick="updateCloudStat('${r.k}', 1)">+</button>
-                        </div>
-                    </div>`).join('');
-            };
-
-            // --- CLOUD FUNCTIONS ---
-            window.updateCloudStat = async (k, delta) => {
-                if (!auth.currentUser) return;
-                const newCount = Math.max(0, (localTrophyData[k] || 0) + delta);
-                document.getElementById('stat-' + k).innerText = newCount;
-                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                await docRef.set({ [k]: newCount, lastUpdate: CACHE_KEY }, { merge: true });
-            };
-
-            window.updateSpeciesCount = async (sId, delta) => {
-                if (!auth.currentUser) return;
-                const curCounts = localTrophyData.speciesCounts || {};
-                const newVal = Math.max(0, (curCounts[sId] || 0) + delta);
-                document.getElementById('species-' + sId).innerText = newVal;
-                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                await docRef.set({ speciesCounts: { ...curCounts, [sId]: newVal }, lastUpdate: CACHE_KEY }, { merge: true });
-            };
-
-            window.updateMission = async (mId, delta, target) => {
-                if (!auth.currentUser) return;
-                const curProg = localTrophyData.missionProgress || {};
-                const newVal = Math.max(0, Math.min(target, (curProg[mId] || 0) + delta));
-                document.getElementById('val-' + mId).innerText = newVal;
-                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                await docRef.set({ missionProgress: { ...curProg, [mId]: newVal }, lastUpdate: CACHE_KEY }, { merge: true });
-            };
-
-            window.triggerUpload = (cat) => { activeUploadCategory = cat; document.getElementById('trophy-upload').click(); };
-
-            window.handleImageUpload = async (input) => {
-                if (!auth.currentUser || !input.files[0]) return;
-                const file = input.files[0];
-                const pCont = document.getElementById('upload-progress');
-                pCont.classList.remove('hidden');
-                const sPath = `artifacts/${sharedAppId}/public/data/userImages/${auth.currentUser.uid}/${activeUploadCategory}/${Date.now()}_${file.name}`;
-                const task = storage.ref(sPath).put(file);
-                task.on('state_changed', (s) => document.getElementById('progress-bar').style.width = (s.bytesTransferred/s.totalBytes)*100 + '%', null, async () => {
-                    const url = await task.snapshot.ref.getDownloadURL();
-                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                    await docRef.set({ ['harvestImageUrl_' + activeUploadCategory]: url }, { merge: true });
-                    pCont.classList.add('hidden');
-                });
-            };
-
-            window.setLongestShot = async () => {
-                const current = localTrophyData['longestShot'] || "0.00 yds";
-                const val = window.prompt("Enter Longest Hit Record:", current);
-                if (val) {
-                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(auth.currentUser.uid);
-                    await docRef.set({ longestShot: val, lastUpdate: CACHE_KEY }, { merge: true });
+        window.handleUpload = async (e) => {
+            const file = e.target.files[0];
+            const docRef = getDocRef();
+            if (!file || !docRef) return;
+            const progress = document.getElementById('upload-progress');
+            const bar = document.getElementById('progress-bar');
+            progress.classList.remove('hidden');
+            const storagePath = `artifacts/${appId}/public/data/trophies/${user.uid}/${RESERVE_CONFIG.mapId}_${window.activeUploadType}_${Date.now()}`;
+            const storageRef = ref(storage, storagePath);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            uploadTask.on('state_changed', 
+                (s) => bar.style.width = (s.bytesTransferred / s.totalBytes) * 100 + '%', 
+                (err) => { console.error(err); progress.classList.add('hidden'); }, 
+                async () => {
+                    const url = await getDownloadURL(uploadTask.snapshot.ref);
+                    await setDoc(docRef, { [`img_${window.activeUploadType}`]: url }, { merge: true });
+                    progress.classList.add('hidden');
                 }
-            };
+            );
+        };
 
-            window.syncWithPSN = async () => { 
-                const b = document.getElementById('sync-btn'); 
-                b.innerText = "🔄 Syncing..."; 
-                setTimeout(() => { b.innerText = "✅ Done"; setTimeout(() => b.innerText = "🔄 Sync PSN Status", 2000); }, 2000); 
-            };
-
-            window.toggleDetails = (id) => { const el = document.getElementById('details-' + id); if (el) el.classList.toggle('active'); };
-
-            // --- AUTH & SYNC ---
-            const initAuth = async () => {
+        const init = async () => {
+            setupUI();
+            try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await auth.signInWithCustomToken(__initial_auth_token);
-                } else { await auth.signInAnonymously(); }
-            };
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) { console.error("Auth failed:", err); }
 
-            initAuth().then(() => {
-                auth.onAuthStateChanged(user => {
-                    if (user) {
-                        document.getElementById('cloud-status').innerText = "Connected";
-                        document.getElementById('cloud-status').style.color = "#2ecc71";
-                        const docPath = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(user.uid);
-                        docPath.onSnapshot((doc) => {
-                            if (doc.exists) {
-                                localTrophyData = doc.data();
-                                if (localTrophyData.harvestImageUrl_diamond) { document.getElementById('img-diamond').src = localTrophyData.harvestImageUrl_diamond; document.getElementById('hof-diamond').classList.remove('hidden'); }
-                                if (localTrophyData.harvestImageUrl_greatone) { document.getElementById('img-greatone').src = localTrophyData.harvestImageUrl_greatone; document.getElementById('hof-greatone').classList.remove('hidden'); }
-                                if (localTrophyData.longestShot) document.getElementById('stat-longestShot').innerText = localTrophyData.longestShot;
-                                
-                                renderSRPData();
-                                document.getElementById('stats-summary').innerText = `User: Werewolf3788 | SRP Hub Active`;
-                            } else {
-                                docPath.set({ created: Date.now() }, { merge: true });
-                            }
-                        });
-                    }
-                });
+            onAuthStateChanged(auth, (u) => {
+                user = u;
+                if (user) {
+                    document.getElementById('cloud-status').innerText = "Colorado Sync: Active";
+                    document.getElementById('cloud-status').classList.replace('text-orange-500', 'text-emerald-500');
+                    const docRef = getDocRef();
+                    onSnapshot(docRef, (doc) => {
+                        if (doc.exists()) {
+                            localData = doc.data();
+                            Object.keys(localData).forEach(key => {
+                                const el = document.getElementById(`display-${key}`);
+                                if (el) el.innerText = localData[key];
+                                if (key === 'img_diamond') {
+                                    document.getElementById('hof-diamond').classList.remove('hidden');
+                                    document.getElementById('img-diamond').src = localData[key];
+                                }
+                                if (key === 'img_greatone') {
+                                    document.getElementById('hof-greatone').classList.remove('hidden');
+                                    document.getElementById('img-greatone').src = localData[key];
+                                }
+                            });
+                        }
+                    }, (err) => console.error("Snapshot error:", err));
+                }
             });
         };
 
-        window.onload = startApp;
+        window.addEventListener('DOMContentLoaded', init);
     </script>
-</div>
+    <style>
+        #wp-custom-wrapper {
+            background: transparent !important;
+            padding: 10px 0;
+            font-family: 'Segoe UI', 'Inter', sans-serif;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .dashboard-container {
+            /* Colorado Emerald landscape background */
+            background: rgba(10, 18, 12, 0.98);
+            border: 2px solid #10b981;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            width: 90%;
+            max-width: 900px;
+        }
+        .glass-panel {
+            background: rgba(16, 185, 129, 0.03);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(16, 185, 129, 0.1);
+        }
+        .header-gradient {
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.15) 0%, transparent 100%);
+        }
+        #map-viewport {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            position: relative;
+            background: #061109;
+            cursor: grab;
+            touch-action: none;
+        }
+        @media (min-width: 640px) { #map-viewport { height: 450px; } }
+        #reserve-map-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transform-origin: center;
+            transition: transform 0.1s ease-out;
+            pointer-events: none;
+        }
+        .map-controls {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .map-btn {
+            background: rgba(10, 18, 12, 0.9);
+            border: 1px solid #10b981;
+            color: #10b981;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-transparent text-white">
+
+    <div id="wp-custom-wrapper">
+        <div class="dashboard-container">
+            <!-- Header -->
+            <header class="p-4 sm:p-6 text-center header-gradient border-b border-emerald-600/30">
+                <div class="flex justify-between items-start mb-4">
+                    <span id="version-tag" class="text-[9px] opacity-30 font-mono text-emerald-200">v1.9.0</span>
+                    <div id="cloud-status" class="text-[9px] font-black text-orange-500 uppercase tracking-widest">Connecting...</div>
+                </div>
+                <h1 id="map-name-display" class="text-2xl sm:text-3xl font-black text-emerald-400 uppercase tracking-tighter mb-1 italic">Silver Ridge Peaks</h1>
+                <p class="text-[10px] sm:text-[11px] text-emerald-200/40 uppercase tracking-widest">Colorado Rockies Operational Hub</p>
+                
+                <div class="mt-6 flex justify-center">
+                    <a href="https://psnprofiles.com/Werewolf3788" target="_blank" class="block border border-emerald-500/20 rounded-xl overflow-hidden shadow-2xl transition-transform hover:scale-105 active:scale-95">
+                        <img src="https://card.psnprofiles.com/1/Werewolf3788.png" alt="PSN Card" class="h-12 sm:h-20">
+                    </a>
+                </div>
+            </header>
+
+            <!-- Hall of Fame -->
+            <div class="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div id="hof-greatone" class="hidden relative rounded-2xl overflow-hidden aspect-video border border-red-500/40 bg-black group">
+                    <img id="img-greatone" src="" class="w-full h-full object-cover opacity-70 group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-red-900/60 to-transparent"></div>
+                    <div class="absolute bottom-2 left-2 bg-red-600 text-[9px] font-black px-2 py-0.5 rounded shadow-lg uppercase">Great One</div>
+                </div>
+                <div id="hof-diamond" class="hidden relative rounded-2xl overflow-hidden aspect-video border border-cyan-500/40 bg-black group">
+                    <img id="img-diamond" src="" class="w-full h-full object-cover opacity-70 group-hover:scale-110 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-cyan-900/60 to-transparent"></div>
+                    <div class="absolute bottom-2 left-2 bg-cyan-600 text-[9px] font-black px-2 py-0.5 rounded shadow-lg uppercase">Diamond</div>
+                </div>
+            </div>
+
+            <!-- Interactive Map Viewport -->
+            <div id="map-viewport">
+                <img id="reserve-map-img" src="">
+                <div class="map-controls">
+                    <button class="map-btn" onclick="resetMap()" title="Reset Map">⟲</button>
+                    <div class="hidden sm:block text-[8px] text-emerald-500/40 bg-black/60 p-2 rounded border border-emerald-500/10">Drag Pan • Scroll Zoom</div>
+                </div>
+                <div class="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 flex items-center gap-3 sm:gap-4 pointer-events-none">
+                    <div class="w-1 h-8 sm:w-1.5 sm:h-12 bg-emerald-600 rounded-full"></div>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-black uppercase text-white tracking-tighter drop-shadow-xl">Rockies Terrain</h2>
+                        <p class="text-[8px] sm:text-[10px] text-emerald-400 font-bold tracking-widest uppercase">Silver Ridge Sector</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 sm:p-6 space-y-8 sm:space-y-10">
+                <!-- Species Section -->
+                <section>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="text-emerald-500 text-sm">🏔️</span>
+                        <h3 class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em]">Colorado Fauna Log</h3>
+                    </div>
+                    <div id="species-harvest-root" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+                </section>
+
+                <!-- Integrity Guide -->
+                <section class="glass-panel p-4 sm:p-5 rounded-3xl">
+                    <h3 class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em] mb-4 text-center">Rockies Standards</h3>
+                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <button onclick="toggleIntegrity(1)" class="bg-white/5 border border-emerald-500/20 text-[9px] font-bold py-3 rounded-lg hover:border-emerald-500 active:bg-emerald-500/10 transition-all">CL 1</button>
+                        <button onclick="toggleIntegrity(2)" class="bg-white/5 border border-emerald-500/20 text-[9px] font-bold py-3 rounded-lg hover:border-emerald-500 active:bg-emerald-500/10 transition-all">CL 2</button>
+                        <button onclick="toggleIntegrity(3)" class="bg-white/5 border border-emerald-500/20 text-[9px] font-bold py-3 rounded-lg hover:border-emerald-500 active:bg-emerald-500/10 transition-all">CL 3</button>
+                        <button onclick="toggleIntegrity(4)" class="bg-white/5 border border-emerald-500/20 text-[9px] font-bold py-3 rounded-lg hover:border-emerald-500 active:bg-emerald-500/10 transition-all">CL 4</button>
+                        <button onclick="toggleIntegrity(5)" class="bg-white/5 border border-emerald-500/20 text-[9px] font-bold py-3 rounded-lg hover:border-emerald-500 active:bg-emerald-500/10 transition-all">CL 5</button>
+                        <button onclick="toggleIntegrity(6)" class="bg-white/5 border border-emerald-500/20 text-[9px] font-bold py-3 rounded-lg hover:border-emerald-500 active:bg-emerald-500/10 transition-all">CL 6</button>
+                        <button onclick="toggleIntegrity(7)" class="bg-white/5 border border-emerald-500/20 text-[9px] font-bold py-3 rounded-lg hover:border-emerald-500 active:bg-emerald-500/10 transition-all">CL 7</button>
+                        <button onclick="toggleIntegrity(8)" class="bg-white/5 border border-emerald-500/20 text-[9px] font-bold py-3 rounded-lg hover:border-emerald-500 active:bg-emerald-500/10 transition-all">CL 8</button>
+                        <button onclick="toggleIntegrity(9)" class="bg-white/5 border border-emerald-500/20 text-[9px] font-bold py-3 rounded-lg hover:border-emerald-500 active:bg-emerald-500/10 transition-all">CL 9</button>
+                    </div>
+                    <div id="integrity-box" class="hidden mt-4 p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/20 text-[11px] leading-relaxed italic text-emerald-50"></div>
+                </section>
+
+                <!-- Missions Section -->
+                <section>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="text-emerald-500 text-sm">📋</span>
+                        <h3 class="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em]"><span id="narrator-name">Allan</span> Mission Log</h3>
+                    </div>
+                    <div id="mission-log-root" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+                </section>
+
+                <!-- Cloud Uploads -->
+                <section class="glass-panel p-5 sm:p-6 rounded-3xl border-emerald-500/20 relative">
+                    <p class="text-center text-[10px] text-emerald-400 font-black uppercase mb-6 tracking-widest">Rockies Uplink Terminal</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button onclick="triggerUpload('diamond')" class="flex flex-col items-center p-5 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl hover:bg-emerald-500/20 active:scale-95 transition-all">
+                            <span class="text-3xl mb-2">💎</span>
+                            <span class="text-[9px] font-black uppercase text-emerald-200">Diamond Trophy</span>
+                        </button>
+                        <button onclick="triggerUpload('greatone')" class="flex flex-col items-center p-5 bg-red-500/5 border border-red-500/10 rounded-2xl hover:bg-red-500/20 active:scale-95 transition-all">
+                            <span class="text-3xl mb-2">👑</span>
+                            <span class="text-[9px] font-black uppercase text-red-200">Great One Confirmation</span>
+                        </button>
+                    </div>
+                    <input type="file" id="file-input" class="hidden" accept="image/*" onchange="window.handleUpload(event)">
+                    <div id="upload-progress" class="hidden mt-6 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-emerald-500 w-0 transition-all duration-300"></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Footer & Affiliate Links -->
+            <footer class="p-8 sm:p-10 border-t border-emerald-900/40 text-center bg-black/40">
+                <div class="flex flex-wrap justify-center gap-6 mb-8">
+                    <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-white transition-colors">Today's Deals</a>
+                    <a href="https://www.amazon.com/s?k=hunting+gear&tag=psngaming-20" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-white transition-colors">Hunting Gear</a>
+                    <a href="https://www.amazon.com/gp/goldbox?tag=ourflorafb-20" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-white transition-colors">Our Flora</a>
+                    <a href="https://decapi.me/twitch/game/werewolf3788" target="_blank" class="text-[10px] font-black uppercase tracking-widest text-emerald-500 hover:text-white transition-colors">Twitch Status</a>
+                </div>
+                
+                <div class="opacity-30 text-[9px] font-mono space-y-2 uppercase tracking-widest text-emerald-200">
+                    <p>Lead Developer: Werewolf3788 (KFruti88)</p>
+                    <p>Collaborators: Raymystyro, terrdog420</p>
+                    <p>Data Source: ALLAN BRADLEY / SRP Wiki</p>
+                    <p class="pt-4 border-t border-emerald-900/20 mt-4">&copy; 2026 Silver Ridge Peaks Companion Suite</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+</body>
+</html>
