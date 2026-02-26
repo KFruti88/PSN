@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- 
+    CODEPEN INSTRUCTIONS: 
+    1. Copy all the code below.
+    2. Paste it into the HTML section of your CodePen.
+    3. You do not need to add anything to the CSS or JS sections.
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>theHunter: COTW Trophy Tracker (CodePen Test)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Firebase SDKs (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        body { background-color: #0a0f0a; color: #e7e5e4; font-family: sans-serif; }
+        .animate-spin-slow { animation: spin 8s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .great-one-glow {
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+            animation: pulse-red 2s infinite ease-in-out;
+        }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(239, 68, 68, 0.6); }
+        }
+        /* WordPress Wrapper Override (Optional for CodePen but good for portability) */
+        #wp-custom-wrapper { background: transparent !important; }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen p-4 md:p-8">
+        <!-- Loading State -->
+        <div id="loading" class="fixed inset-0 bg-[#0a0f0a] flex items-center justify-center text-emerald-500 font-mono z-50">
+            <div class="animate-pulse flex flex-col items-center">
+                <i data-lucide="target" class="w-12 h-12 mb-4 animate-spin-slow"></i>
+                <p>LOADING TROPHY ROOM...</p>
+            </div>
+        </div>
+
+        <!-- Main Content (Hidden initially) -->
+        <div id="main-content" class="hidden">
+            <!-- Header -->
+            <div class="max-w-6xl mx-auto mb-12 text-center">
+                <h1 class="text-4xl md:text-6xl font-black text-emerald-500 tracking-tighter mb-2 flex items-center justify-center gap-4">
+                    <i data-lucide="target" class="w-10 h-10 md:w-14 md:h-14"></i>
+                    theHunter: COTW
+                </h1>
+                <p class="text-emerald-800 font-mono uppercase tracking-[0.3em] text-sm">Official Squad Trophy Display</p>
+            </div>
+
+            <!-- Player Grid -->
+            <div id="player-grid" class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Players injected here -->
+            </div>
+
+            <!-- Footer -->
+            <div class="max-w-6xl mx-auto mt-12 p-6 border-t border-emerald-900/10 text-center">
+                <p class="text-emerald-900 text-xs font-mono uppercase tracking-[0.2em]">
+                    Data synced via Lead Dev: Werewolf3788 • High Performance Hunting Dashboard
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+            authDomain: "angler-squad-tracker.firebaseapp.com",
+            projectId: "angler-squad-tracker",
+            storageBucket: "angler-squad-tracker.firebasestorage.app",
+            messagingSenderId: "325679067980",
+            appId: "1:325679067980:web:57edbad70fe12b988355e9"
+        };
+        
+        // Hardcoded App ID for CodePen Test
+        const appId = 'cotw-trophy-display';
+
+        // --- DATA CONSTANTS ---
+        const TROPHY_TYPES = [
+            { id: 'bronze', label: 'Bronze', color: 'text-orange-400', bg: 'bg-orange-900/20', border: 'border-orange-700/50' },
+            { id: 'silver', label: 'Silver', color: 'text-slate-300', bg: 'bg-slate-700/20', border: 'border-slate-500/50' },
+            { id: 'gold', label: 'Gold', color: 'text-yellow-400', bg: 'bg-yellow-900/20', border: 'border-yellow-600/50' },
+            { id: 'diamond', label: 'Diamond', color: 'text-cyan-300', bg: 'bg-cyan-900/20', border: 'border-cyan-500/50' },
+            { id: 'mythical', label: 'Mythical', color: 'text-purple-400', bg: 'bg-purple-900/20', border: 'border-purple-600/50' },
+            { id: 'greatone', label: 'Great One', color: 'text-red-500', bg: 'bg-red-900/30', border: 'border-red-600', special: true },
+        ];
+
+        const PLAYERS = [
+            { id: 'Werewolf3788', name: 'Werewolf3788', role: 'Lead Developer', theme: 'orange' },
+            { id: 'Raymystyro', name: 'Raymystyro', role: 'Speedray', theme: 'red' },
+            { id: 'terrdog420', name: 'terrdog420', role: 'DarkWing Dog', theme: 'purple' }
+        ];
+
+        // --- APP STATE ---
+        let trophyData = {};
+        let currentUser = null;
+
+        // --- INITIALIZE FIREBASE ---
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // --- RENDER FUNCTIONS ---
+        function render() {
+            const grid = document.getElementById('player-grid');
+            grid.innerHTML = PLAYERS.map(player => {
+                const totalHarvests = Object.entries(trophyData[player.id] || {})
+                    .reduce((acc, [key, val]) => typeof val === 'number' ? acc + val : acc, 0);
+
+                return `
+                <div class="bg-stone-900/40 border border-${player.theme}-900/30 rounded-2xl overflow-hidden backdrop-blur-sm">
+                    <div class="bg-${player.theme}-950/20 p-6 border-b border-${player.theme}-900/30 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl font-bold text-${player.theme}-400 leading-none">${player.name}</h2>
+                            <span class="text-xs text-${player.theme}-700 font-mono uppercase mt-1 inline-block tracking-wider">${player.role}</span>
+                        </div>
+                        <div class="bg-${player.theme}-900/20 p-3 rounded-full">
+                            <i data-lucide="users" class="text-${player.theme}-500 w-6 h-6"></i>
+                        </div>
+                    </div>
+                    <div class="p-3 grid grid-cols-3 gap-2">
+                        ${TROPHY_TYPES.map(type => {
+                            const count = trophyData[player.id]?.[type.id] || 0;
+                            const isGreatOne = type.id === 'greatone';
+                            
+                            // Special styling for Great One Star Box
+                            if (isGreatOne) {
+                                const activeClass = count > 0 ? 'great-one-active text-white animate-pulse' : 'bg-stone-800/50 text-stone-600 opacity-40';
+                                return `
+                                <div class="star-box ${activeClass} flex flex-col items-center justify-center p-1 transition-all duration-300 relative group">
+                                    <span class="text-[8px] font-mono uppercase tracking-widest opacity-80 mt-2">${type.label}</span>
+                                    <span class="text-xl font-black leading-none my-1">${count}</span>
+                                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-4 scale-75">
+                                        <button onclick="updateTrophy('${player.id}', '${type.id}', -1)" class="bg-black/50 hover:bg-black text-white rounded px-1">-</button>
+                                        <button onclick="updateTrophy('${player.id}', '${type.id}', 1)" class="bg-black/50 hover:bg-black text-white rounded px-1">+</button>
+                                    </div>
+                                </div>`;
+                            }
+
+                            const isActive = count > 0;
+                            const containerClasses = isActive ? `${type.border} ${type.bg}` : `border-stone-800 bg-stone-900/20 opacity-40`;
+                            const textClasses = isActive ? type.color : `text-stone-600`;
+
+                            return `
+                            <div class="flex flex-col items-center justify-center p-2 rounded-lg border ${containerClasses} min-h-[100px] relative group transition-all duration-300">
+                                <div class="${textClasses} mb-1 opacity-80"><i data-lucide="trophy" class="w-4 h-4"></i></div>
+                                <span class="text-2xl font-black ${textClasses} leading-none mb-1">${count}</span>
+                                <span class="text-[9px] font-mono uppercase tracking-wider opacity-60 ${textClasses}">${type.label}</span>
+                                <div class="flex gap-2 absolute inset-0 bg-black/80 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                                    <button onclick="updateTrophy('${player.id}', '${type.id}', -1)" class="w-8 h-8 flex items-center justify-center rounded bg-stone-800 hover:bg-red-900 text-stone-400 hover:text-white"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                                    <button onclick="updateTrophy('${player.id}', '${type.id}', 1)" class="w-8 h-8 flex items-center justify-center rounded bg-stone-800 hover:bg-emerald-900 text-stone-400 hover:text-white"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                    <div class="bg-${player.theme}-950/10 p-4 border-t border-${player.theme}-900/20">
+                        <div class="flex justify-between items-center text-sm font-mono text-${player.theme}-800">
+                            <span>TOTAL HARVESTS:</span>
+                            <span class="text-${player.theme}-500 font-bold">${totalHarvests}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // --- LOGIC ---
+        async function updateTrophy(playerId, trophyId, delta) {
+            if (!currentUser) {
+                console.warn("Update attempted before auth");
+                alert("Please wait for database connection...");
+                return;
+            }
+            
+            const playerData = trophyData[playerId] || {};
+            const currentCount = playerData[trophyId] || 0;
+            const newCount = Math.max(0, currentCount + delta);
+            
+            try {
+                const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('userTrophies').doc(playerId);
+                await docRef.set({ 
+                    ...playerData, 
+                    [trophyId]: newCount, 
+                    lastUpdated: Date.now() 
+                }, { merge: true });
+            } catch (error) { 
+                console.error("Update failed:", error);
+                alert("Error updating trophy: " + error.message);
+            }
+        }
+
+        // --- INIT ---
+        lucide.createIcons();
+        
+        // FIX: Render immediately so the UI is visible even if DB is empty/slow
+        render();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('main-content').classList.remove('hidden');
+
+        // Simple Anonymous Auth for CodePen
+        auth.signInAnonymously().catch(console.error);
+
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            if (user) {
+                db.collection('artifacts').doc(appId).collection('public').doc('data').collection('userTrophies')
+                    .onSnapshot((snapshot) => {
+                        const data = {};
+                        snapshot.forEach((doc) => { data[doc.id] = doc.data(); });
+                        trophyData = data;
+                        render();
+                    }, console.error);
+            }
+        });
+        window.updateTrophy = updateTrophy;
+    </script>
+</body>
+</html>

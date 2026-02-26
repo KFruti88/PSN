@@ -1,0 +1,235 @@
+<!-- 
+  Project: Call of the Wild: The Angler - Master Trophy Tracker
+  Lead Developer: Werewolf3788 (GitHub: KFruti88)
+  Collaborators: Raymystyro, terrdog420
+  Source: PSN Profile (terrdog420) & In-Game Stats
+  Platform: WordPress Compatible (#wp-custom-wrapper) / CodePen / GitHub
+-->
+
+<div id="wp-custom-wrapper">
+    <div class="angler-dashboard">
+        <header class="tracker-header">
+            <h1>The Angler: Trophy Tracker</h1>
+            <p>User: terrdog420 | 0/51 Trophies (0%)</p>
+        </header>
+
+        <div class="section-title">In-Progress Trophies (Imperial)</div>
+        <div id="trophy-list-active"></div>
+
+        <div class="section-title game-stats-title">Extra Exploration Stats</div>
+        <div id="game-stats-container">
+            <div class="mission-card-simple">
+                <div class="mission-row">
+                    <span class="mission-text">Land-Based Vehicles (Jeep)</span>
+                    <span class="count-display">0.00 mi</span>
+                </div>
+                <div class="mission-row">
+                    <span class="mission-text">Fast Travel Distance</span>
+                    <span class="count-display">0.00 mi</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title completed-title">Recently Completed</div>
+        <div id="trophy-list-done"></div>
+
+        <footer class="tracker-footer">
+            <p>Gear up for the season: <a href="https://www.amazon.com/s?k=fishing&tag=psngaming-20" target="_blank">Fishing Equipment</a></p>
+        </footer>
+    </div>
+
+    <style>
+        #wp-custom-wrapper {
+            background: transparent !important;
+            padding: 20px;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+        }
+
+        .angler-dashboard {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(10, 15, 20, 0.95);
+            border: 2px solid #00d4ff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        .tracker-header {
+            text-align: center;
+            border-bottom: 2px solid #00d4ff;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        .tracker-header h1 { margin: 0; color: #00d4ff; text-transform: uppercase; letter-spacing: 2px; }
+        .tracker-header p { color: #8899aa; margin: 5px 0; }
+
+        .section-title {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 8px 15px;
+            margin: 20px 0 10px;
+            border-left: 4px solid #00d4ff;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .completed-title { border-left-color: #2ecc71; color: #2ecc71; }
+        .game-stats-title { border-left-color: #f39c12; color: #f39c12; background: rgba(243, 156, 18, 0.1); }
+
+        .trophy-card, .mission-card-simple {
+            background: rgba(30, 40, 50, 0.6);
+            border: 1px solid #2a3a4a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .mission-card-simple { padding: 10px 20px; }
+
+        .trophy-summary {
+            padding: 12px 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trophy-card.done { border-color: #2ecc71; opacity: 0.8; }
+
+        .trophy-info { display: flex; align-items: center; gap: 12px; }
+        .trophy-rank { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        .rank-platinum { background: #e5e4e2; color: #333; }
+        .rank-gold { background: #ffd700; color: #333; }
+        .rank-silver { background: #c0c0c0; color: #333; }
+        .rank-bronze { background: #cd7f32; color: #333; }
+
+        .mission-details { display: none; padding: 10px 20px; background: rgba(0,0,0,0.3); border-top: 1px solid #2a3a4a; }
+        .mission-details.active { display: block; }
+
+        .mission-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .mission-row:last-child { border-bottom: none; }
+
+        .mission-controls { display: flex; align-items: center; gap: 10px; }
+        .btn-ctrl { background: #1a2a3a; color: #00d4ff; border: 1px solid #00d4ff; width: 26px; height: 26px; cursor: pointer; border-radius: 4px; }
+        .count-display { font-family: monospace; min-width: 50px; text-align: center; color: #00d4ff; }
+        
+        .status-indicator { font-weight: bold; width: 20px; text-align: center; }
+        .status-working { color: #f39c12; }
+        .status-complete { color: #2ecc71; }
+
+        .tracker-footer { margin-top: 30px; text-align: center; font-size: 0.8rem; color: #678; }
+        .tracker-footer a { color: #00d4ff; text-decoration: none; }
+    </style>
+
+    <script>
+        const trophyList = [
+            // IN-PROGRESS (Updated to Imperial Miles)
+            { id: "platinum", name: "Any Fin Is Possible", rank: "platinum", isDone: false, missions: [{ id: "m_plat", label: "Trophies Completed", target: 50, current: 0 }] },
+            { id: "travel", name: "Have Fish, Will Travel", rank: "gold", isDone: false, missions: [
+                { id: "pois", label: "Points of Interest (GR)", target: 97, current: 0 },
+                { id: "towers", label: "Lookout Towers (GR)", target: 19, current: 0 },
+                { id: "cabins", label: "Cabins (GR)", target: 19, current: 0 }
+            ]},
+            { id: "flounder", name: "Lost and Flounder", rank: "silver", isDone: false, missions: [
+                { id: "collect_gr", label: "Collectibles (Golden Ridge)", target: 74, current: 0 },
+                { id: "notes_gr", label: "Notes Found", target: 20, current: 0 },
+                { id: "coins_gr", label: "Coins Found", target: 15, current: 0 }
+            ]},
+            { id: "marathon", name: "Marathon", rank: "silver", isDone: false, missions: [{ id: "miles_foot", label: "Distance on Foot (mi)", target: 62.1, current: 0 }] }, 
+            { id: "boat_dist", name: "Lake Me up Before You Go Go", rank: "silver", isDone: false, missions: [{ id: "miles_boat", label: "Distance by Boat (mi)", target: 62.1, current: 0 }] },
+            { id: "credits", name: "No Fin Left to Give", rank: "silver", isDone: false, missions: [{ id: "spend", label: "Credits Spent", target: 100000, current: 0 }] },
+            { id: "level_50", name: "Big Fish Small Pond", rank: "gold", isDone: false, missions: [{ id: "lvl", label: "Level Progress", target: 50, current: 0 }] },
+            { id: "ranger", name: "Golden Ridge Ranger", rank: "gold", isDone: false, missions: [{ id: "rep_gr", label: "Reputation Score (GR)", target: 1000, current: 0 }] },
+            { id: "buckaroo", name: "Buckaroo", rank: "gold", isDone: false, missions: [{ id: "warden_gr", label: "Warden Missions (GR)", target: 15, current: 0 }] },
+            { id: "taylor", name: "Taylor Made", rank: "gold", isDone: false, missions: [{ id: "shop_miss", label: "Shopkeeper Missions", target: 30, current: 0 }] },
+            { id: "hook_sink", name: "Hook, Line and Sinker", rank: "silver", isDone: false, missions: [{ id: "tackles", label: "Unique Fishing Tackles", target: 4, current: 0 }] },
+            { id: "norway_coll", name: "Norway Jose", rank: "silver", isDone: false, missions: [{ id: "nor_coll", label: "Collectibles (Norway)", target: 59, current: 0 }] },
+            { id: "aguas_fish", name: "Live by the Rod, Diez by the Rod!", rank: "bronze", isDone: false, missions: [{ id: "aguas_sp", label: "Unique Species (Aguas)", target: 10, current: 0 }] },
+
+            // COMPLETED (Set to false for manual tracking start)
+            { id: "ready", name: "Ready to Rod and Roll", rank: "bronze", isDone: false, missions: [] },
+            { id: "reel", name: "Fish Just Got Reel", rank: "bronze", isDone: false, missions: [] },
+            { id: "sea", name: "More Fish in the Sea", rank: "bronze", isDone: false, missions: [] },
+            { id: "hookin", name: "Hey Good Hookin", rank: "bronze", isDone: false, missions: [] },
+            { id: "scaling", name: "Scaling Up", rank: "silver", isDone: false, missions: [] },
+            { id: "bronze3", name: "Can You Smell What the Rod Is Hooking", rank: "bronze", isDone: false, missions: [] },
+            { id: "boat1", name: "I’m on a Boat!", rank: "bronze", isDone: false, missions: [] },
+            { id: "water3", name: "Fish Out of Water", rank: "bronze", isDone: false, missions: [] },
+            { id: "gold1m", name: "Going for Gold", rank: "bronze", isDone: false, missions: [] },
+            { id: "goldcatch", name: "Goldfish?", rank: "bronze", isDone: false, missions: [] },
+            { id: "night", name: "Things That Go Splash in the Night", rank: "bronze", isDone: false, missions: [] },
+            { id: "school", name: "School’s Out for Summer", rank: "bronze", isDone: false, missions: [] },
+            { id: "diamond", name: "Diamond in the Rough", rank: "gold", isDone: false, missions: [] },
+            { id: "lvl10", name: "License to Gill", rank: "bronze", isDone: false, missions: [] },
+            { id: "catch100", name: "I’m Hooked!", rank: "silver", isDone: false, missions: [] }
+        ];
+
+        function initTracker() {
+            const activeList = document.getElementById('trophy-list-active');
+            const doneList = document.getElementById('trophy-list-done');
+            activeList.innerHTML = ""; doneList.innerHTML = "";
+
+            trophyList.forEach(t => {
+                const card = document.createElement('div');
+                card.className = `trophy-card ${t.isDone ? 'done' : ''}`;
+                
+                let missionHtml = "";
+                t.missions.forEach(m => {
+                    const isMComplete = m.current >= m.target;
+                    missionHtml += `
+                        <div class="mission-row">
+                            <span class="mission-text">${m.label} <small>(${m.target})</small></span>
+                            <div class="mission-controls">
+                                ${t.isDone ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', -1, ${m.target})">-</button>`}
+                                <span id="val-${m.id}" class="count-display">${m.current.toFixed(2)}</span>
+                                ${t.isDone ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', 1, ${m.target})">+</button>`}
+                                <span id="status-${m.id}" class="status-indicator ${isMComplete ? 'status-complete' : 'status-working'}">
+                                    ${isMComplete ? '+' : '_'}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="trophy-summary" onclick="toggleDetails('${t.id}')">
+                        <div class="trophy-info">
+                            <span class="trophy-rank rank-${t.rank}">${t.rank}</span>
+                            <span class="trophy-name">${t.name}</span>
+                        </div>
+                        <span id="arrow-${t.id}">${t.isDone ? '✓' : '▼'}</span>
+                    </div>
+                    ${missionHtml ? `<div id="details-${t.id}" class="mission-details">${missionHtml}</div>` : ''}
+                `;
+                
+                if (t.isDone) doneList.appendChild(card);
+                else activeList.appendChild(card);
+            });
+        }
+
+        function toggleDetails(id) {
+            const el = document.getElementById(`details-${id}`);
+            if (!el) return;
+            el.classList.toggle('active');
+            document.getElementById(`arrow-${id}`).innerText = el.classList.contains('active') ? '▲' : '▼';
+        }
+
+        function updateMission(mId, change, target) {
+            const display = document.getElementById(`val-${mId}`);
+            const status = document.getElementById(`status-${mId}`);
+            let val = parseFloat(display.innerText) + change;
+            if (val < 0) val = 0;
+            display.innerText = val.toFixed(2);
+            
+            const isDone = val >= target;
+            status.innerText = isDone ? '+' : '_';
+            status.className = `status-indicator ${isDone ? 'status-complete' : 'status-working'}`;
+        }
+
+        window.onload = initTracker;
+    </script>
+</div>
