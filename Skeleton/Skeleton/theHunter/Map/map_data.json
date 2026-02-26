@@ -1,0 +1,14 @@
+{
+  "name": "Emerald Coast",
+  "warden": "Mick Collins",
+  "species": [
+    { "id": "e_croc", "name": "Saltwater Crocodile", "class": 8 }
+  ],
+  "grinds": [
+    { "id": "go_red_e", "name": "Red Deer G.O." }
+  ],
+  "missions": [
+    { "group": "Main Story", "items": [{ "id": "e_m_1", "name": "Crocodile Hunt", "target": 1 }] }
+  ]
+}
+4.  **Automatic Updates:** Whenever you push a change to that JSON on GitHub, the website tracker will reflect the new data immediately when the page is refreshed.
