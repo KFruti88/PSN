@@ -1,5 +1,3 @@
-
-
 {
   "emerald_coast": {
     "id": "emerald_coast",
@@ -54,6 +52,60 @@
       }
     ]
   },
+  "cuatro_colinas": {
+    "id": "cuatro_colinas",
+    "name": "Cuatro Colinas Game Reserve",
+    "warden": "Alejandra del Bosque",
+    "species": [
+      { "id": "cc_wolf", "name": "Iberian Wolf", "class": 5 },
+      { "id": "cc_ibex_ronda", "name": "Ronda Ibex", "class": 4 },
+      { "id": "cc_ibex_southeastern", "name": "Southeastern Ibex", "class": 4 },
+      { "id": "cc_ibex_beceite", "name": "Beceite Ibex", "class": 4 },
+      { "id": "cc_ibex_gredos", "name": "Gredos Ibex", "class": 4 },
+      { "id": "cc_red_deer", "name": "Red Deer", "class": 6 },
+      { "id": "cc_mouflon", "name": "Mouflon", "class": 3 },
+      { "id": "cc_wild_boar", "name": "Wild Boar", "class": 4 },
+      { "id": "cc_roe_deer", "name": "Roe Deer", "class": 3 },
+      { "id": "cc_hare", "name": "European Hare", "class": 1 }
+    ],
+    "grinds": [],
+    "missions": [
+      {
+        "group": "Storyline",
+        "items": [
+          { "id": "cc_m1", "name": "A Family Affair", "target": 1 },
+          { "id": "cc_m2", "name": "The Wolf of Iberia", "target": 1, "boss": true }
+        ]
+      }
+    ]
+  },
+  "hirschfelden": {
+    "id": "hirschfelden",
+    "name": "Hirschfelden Hunting Reserve",
+    "warden": "Conni",
+    "species": [
+      { "id": "hf_bison", "name": "European Bison", "class": 9 },
+      { "id": "hf_red_deer", "name": "Red Deer", "class": 6 },
+      { "id": "hf_fallow_deer", "name": "Fallow Deer", "class": 4 },
+      { "id": "hf_roe_deer", "name": "Roe Deer", "class": 3 },
+      { "id": "hf_wild_boar", "name": "Wild Boar", "class": 4 },
+      { "id": "hf_fox", "name": "Red Fox", "class": 2 },
+      { "id": "hf_goose", "name": "Canada Goose", "class": 1 },
+      { "id": "hf_pheasant", "name": "Ring-necked Pheasant", "class": 1 }
+    ],
+    "grinds": [
+      { "id": "hf_go_fallow", "name": "Fallow Deer G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Conni Saga",
+        "items": [
+          { "id": "hf_m1", "name": "Starting Out", "target": 1 },
+          { "id": "hf_m2", "name": "The Sommer Saga", "target": 12 }
+        ]
+      }
+    ]
+  },
   "layton_lake": {
     "id": "layton_lake",
     "name": "Layton Lake District",
@@ -78,6 +130,181 @@
         "items": [
           { "id": "ll_m1", "name": "The Hope Saga", "target": 10, "boss": true },
           { "id": "ll_m2", "name": "The Trampfine Saga", "target": 8 }
+        ]
+      }
+    ]
+  },
+  "medved_taiga": {
+    "id": "medved_taiga",
+    "name": "Medved-Taiga National Park",
+    "warden": "Alena Khasavovna",
+    "species": [
+      { "id": "mt_moose", "name": "Moose", "class": 8 },
+      { "id": "mt_bear", "name": "Brown Bear", "class": 7 },
+      { "id": "mt_reindeer", "name": "Reindeer", "class": 6 },
+      { "id": "mt_musk_deer", "name": "Siberian Musk Deer", "class": 3 },
+      { "id": "mt_lynx", "name": "Eurasian Lynx", "class": 3 },
+      { "id": "mt_wild_boar", "name": "Wild Boar", "class": 4 },
+      { "id": "mt_capercaillie", "name": "Western Capercaillie", "class": 1 }
+    ],
+    "grinds": [],
+    "missions": [
+      {
+        "group": "Main Campaign",
+        "items": [
+          { "id": "mt_m1", "name": "The Frozen Wild", "target": 1 },
+          { "id": "mt_m2", "name": "The Grankin Saga", "target": 1 }
+        ]
+      }
+    ]
+  },
+  "mississippi_acres": {
+    "id": "mississippi_acres",
+    "name": "Mississippi Acres Preserve",
+    "warden": "Immanual",
+    "species": [
+      { "id": "ma_alligator", "name": "American Alligator", "class": 6 },
+      { "id": "ma_bear", "name": "Black Bear", "class": 7 },
+      { "id": "ma_whitetail", "name": "Whitetail Deer", "class": 4 },
+      { "id": "ma_hog", "name": "Feral Hog", "class": 4 },
+      { "id": "ma_raccoon", "name": "Procyonid", "class": 2 },
+      { "id": "ma_bobcat", "name": "Bobcat", "class": 3 },
+      { "id": "ma_rabbit", "name": "Eastern Cottontail", "class": 1 },
+      { "id": "ma_turkey", "name": "Eastern Wild Turkey", "class": 1 }
+    ],
+    "grinds": [],
+    "missions": [
+      {
+        "group": "Delta Story",
+        "items": [
+          { "id": "ma_m1", "name": "Homecoming", "target": 1 },
+          { "id": "ma_m2", "name": "The Flood", "target": 1 }
+        ]
+      }
+    ]
+  },
+  "new_england": {
+    "id": "new_england",
+    "name": "New England Mountains",
+    "warden": "Local Warden",
+    "species": [
+      { "id": "nem_moose", "name": "Moose", "class": 8 },
+      { "id": "nem_bear", "name": "Black Bear", "class": 7 },
+      { "id": "nem_whitetail", "name": "Whitetail Deer", "class": 4 },
+      { "id": "nem_fox", "name": "Red Fox", "class": 2 },
+      { "id": "nem_bobcat", "name": "Bobcat", "class": 3 },
+      { "id": "nem_raccoon", "name": "Procyonid", "class": 2 },
+      { "id": "nem_turkey", "name": "Wild Turkey", "class": 1 },
+      { "id": "nem_pheasant", "name": "Ring-necked Pheasant", "class": 1 }
+    ],
+    "grinds": [
+      { "id": "nem_go_moose", "name": "Moose G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Mountain Path",
+        "items": [
+          { "id": "nem_m1", "name": "Peak Views", "target": 1 }
+        ]
+      }
+    ]
+  },
+  "parque_fernando": {
+    "id": "parque_fernando",
+    "name": "Parque Fernando",
+    "warden": "Carolina",
+    "species": [
+      { "id": "pf_buffalo", "name": "Water Buffalo", "class": 9 },
+      { "id": "pf_puma", "name": "Puma", "class": 5 },
+      { "id": "pf_mule_deer", "name": "Mule Deer", "class": 6 },
+      { "id": "pf_red_deer", "name": "Red Deer", "class": 6 },
+      { "id": "pf_axis_deer", "name": "Axis Deer", "class": 3 },
+      { "id": "pf_blackbuck", "name": "Blackbuck", "class": 3 },
+      { "id": "pf_teal", "name": "Cinnamon Teal", "class": 1 }
+    ],
+    "grinds": [],
+    "missions": [
+      {
+        "group": "Carolina's Challenge",
+        "items": [
+          { "id": "pf_m1", "name": "A New Beginning", "target": 1 },
+          { "id": "pf_m2", "name": "The Trophy Collection", "target": 16, "boss": true }
+        ]
+      }
+    ]
+  },
+  "rancho_del_arroyo": {
+    "id": "rancho_del_arroyo",
+    "name": "Rancho del Arroyo",
+    "warden": "Salvador",
+    "species": [
+      { "id": "rda_bighorn", "name": "Bighorn Sheep", "class": 4 },
+      { "id": "rda_mule_deer", "name": "Mule Deer", "class": 6 },
+      { "id": "rda_whitetail", "name": "Whitetail Deer", "class": 4 },
+      { "id": "rda_collared_peccary", "name": "Collared Peccary", "class": 2 },
+      { "id": "rda_coyote", "name": "Coyote", "class": 2 },
+      { "id": "rda_bobcat", "name": "Bobcat", "class": 3 },
+      { "id": "rda_rabbit", "name": "Antelope Jackrabbit", "class": 1 },
+      { "id": "rda_turkey", "name": "Rio Grande Turkey", "class": 1 },
+      { "id": "rda_pheasant", "name": "Ring-necked Pheasant", "class": 1 }
+    ],
+    "grinds": [
+      { "id": "rda_go_whitetail", "name": "Whitetail G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Arroyo Story",
+        "items": [
+          { "id": "rda_m1", "name": "Family Roots", "target": 1 }
+        ]
+      }
+    ]
+  },
+  "revontuli_coast": {
+    "id": "revontuli_coast",
+    "name": "Revontuli Coast",
+    "warden": "Tiina",
+    "species": [
+      { "id": "rc_moose", "name": "Moose", "class": 8 },
+      { "id": "rc_bear", "name": "Brown Bear", "class": 7 },
+      { "id": "rc_whitetail", "name": "Whitetail Deer", "class": 4 },
+      { "id": "rc_lynx", "name": "Eurasian Lynx", "class": 3 },
+      { "id": "rc_fox", "name": "Red Fox", "class": 2 },
+      { "id": "rc_raccoon_dog", "name": "Raccoon Dog", "class": 2 },
+      { "id": "rc_rabbit", "name": "Mountain Hare", "class": 1 },
+      { "id": "rc_bird_pack", "name": "Assorted Waterfowl/Upland", "class": 1 }
+    ],
+    "grinds": [
+      { "id": "rc_go_whitetail", "name": "Whitetail G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Coast Story",
+        "items": [
+          { "id": "rc_m1", "name": "The Northern Lights", "target": 1 }
+        ]
+      }
+    ]
+  },
+  "salzwiesen_park": {
+    "id": "salzwiesen_park",
+    "name": "Salzwiesen Park",
+    "warden": "Lukas",
+    "species": [
+      { "id": "sp_wild_boar", "name": "Wild Boar", "class": 4 },
+      { "id": "sp_fallow_deer", "name": "Fallow Deer", "class": 4 },
+      { "id": "sp_roe_deer", "name": "Roe Deer", "class": 3 },
+      { "id": "sp_fox", "name": "Red Fox", "class": 2 },
+      { "id": "sp_bird_pack", "name": "Upland Birds", "class": 1 }
+    ],
+    "grinds": [
+      { "id": "sp_go_fallow", "name": "Fallow Deer G.O." }
+    ],
+    "missions": [
+      {
+        "group": "Park Story",
+        "items": [
+          { "id": "sp_m1", "name": "The Salt Marshes", "target": 1 }
         ]
       }
     ]
@@ -109,25 +336,105 @@
         ]
       }
     ]
-  }
-},
-"sundarpatan": {
+  },
+  "sundarpatan": {
     "id": "sundarpatan",
     "name": "Sundarpatan Nepal",
-    "warden": "Warden Name",
+    "warden": "Local Warden",
     "species": [
       { "id": "sn_tiger", "name": "Bengal Tiger", "class": 9 },
-      { "id": "sn_tahr", "name": "Himalayan Tahr", "class": 4 }
+      { "id": "sn_yak", "name": "Wild Yak", "class": 9 },
+      { "id": "sn_water_buffalo", "name": "Water Buffalo", "class": 9 },
+      { "id": "sn_nilgai", "name": "Nilgai", "class": 6 },
+      { "id": "sn_tahr", "name": "Himalayan Tahr", "class": 4 },
+      { "id": "sn_bharal", "name": "Bharal", "class": 4 },
+      { "id": "sn_chital", "name": "Chital", "class": 3 },
+      { "id": "sn_hog_deer", "name": "Hog Deer", "class": 3 },
+      { "id": "sn_muntjac", "name": "Northern Red Muntjac", "class": 2 },
+      { "id": "sn_leopard", "name": "Snow Leopard", "class": 5 }
+    ],
+    "grinds": [],
+    "missions": [
+      {
+        "group": "Nepal Story",
+        "items": [
+          { "id": "sn_m1", "name": "Valley Views", "target": 1 }
+        ]
+      }
+    ]
+  },
+  "te_awaroa": {
+    "id": "te_awaroa",
+    "name": "Te Awaroa National Park",
+    "warden": "Kiri Taylor",
+    "species": [
+      { "id": "ta_red_deer", "name": "Red Deer", "class": 6 },
+      { "id": "ta_fallow_deer", "name": "Fallow Deer", "class": 4 },
+      { "id": "ta_sika_deer", "name": "Sika Deer", "class": 3 },
+      { "id": "ta_feral_goat", "name": "Feral Goat", "class": 3 },
+      { "id": "ta_feral_pig", "name": "Feral Pig", "class": 4 },
+      { "id": "ta_chamois", "name": "Chamois", "class": 3 },
+      { "id": "ta_mallard", "name": "Mallard", "class": 1 }
     ],
     "grinds": [
-      { "id": "sn_go_tiger", "name": "Bengal Tiger G.O." }
+      { "id": "ta_go_fallow", "name": "Fallow Deer G.O." }
     ],
     "missions": [
       {
-        "group": "Main Story",
+        "group": "Taylor Saga",
         "items": [
-          { "id": "sn_m1", "name": "First Mission Name", "target": 1 }
+          { "id": "ta_m1", "name": "The Great Escape", "target": 1 }
+        ]
+      }
+    ]
+  },
+  "vurhonga_savanna": {
+    "id": "vurhonga_savanna",
+    "name": "Vurhonga Savanna",
+    "warden": "Njabulo En-Gedi",
+    "species": [
+      { "id": "vs_lion", "name": "Lion", "class": 9 },
+      { "id": "vs_buffalo", "name": "Cape Buffalo", "class": 9 },
+      { "id": "vs_wildebeest", "name": "Blue Wildebeest", "class": 6 },
+      { "id": "vs_kudu", "name": "Lesser Kudu", "class": 4 },
+      { "id": "vs_gemsbok", "name": "Gemsbok", "class": 8 },
+      { "id": "vs_springbok", "name": "Springbok", "class": 3 },
+      { "id": "vs_jackal", "name": "Side-striped Jackal", "class": 2 },
+      { "id": "vs_warthog", "name": "Warthog", "class": 4 },
+      { "id": "vs_scrub_hare", "name": "Scrub Hare", "class": 1 }
+    ],
+    "grinds": [],
+    "missions": [
+      {
+        "group": "Njabulo's Story",
+        "items": [
+          { "id": "vs_m1", "name": "The Grand Opening", "target": 1 },
+          { "id": "vs_m2", "name": "The Ghost of Vurhonga", "target": 1, "boss": true }
+        ]
+      }
+    ]
+  },
+  "yukon_valley": {
+    "id": "yukon_valley",
+    "name": "Yukon Valley Nature Reserve",
+    "warden": "Jim",
+    "species": [
+      { "id": "yv_bison", "name": "Plains Bison", "class": 9 },
+      { "id": "yv_moose", "name": "Moose", "class": 8 },
+      { "id": "yv_bear", "name": "Grizzly Bear", "class": 7 },
+      { "id": "yv_caribou", "name": "Caribou", "class": 6 },
+      { "id": "yv_wolf", "name": "Gray Wolf", "class": 5 },
+      { "id": "yv_fox", "name": "Red Fox", "class": 2 },
+      { "id": "yv_harlequin", "name": "Harlequin Duck", "class": 1 }
+    ],
+    "grinds": [],
+    "missions": [
+      {
+        "group": "Jim's Journey",
+        "items": [
+          { "id": "yv_m1", "name": "Back to the Valley", "target": 1 }
         ]
       }
     ]
   }
+}
