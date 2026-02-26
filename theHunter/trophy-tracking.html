@@ -1,211 +1,453 @@
-<!DOCTYPE html>
-<html lang="en">
 <!-- 
-    WORDPRESS / DIVI INSTRUCTIONS:
-    1. Add a "Code" module to your Divi page.
-    2. Copy everything from <style> down to the end of <script>.
+  Project: theHunter: Call of the Wild - Master Trophy Tracker
+  Lead Developer: Werewolf3788 (GitHub: KFruti88)
+  Collaborators: Raymystyro (OneLIVIDMAN), terrdog420
+  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync
+  Platform: WordPress Compatible (#wp-custom-wrapper) / CodePen / GitHub
 -->
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>theHunter: COTW Trophy Tracker</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
+
+<div id="wp-custom-wrapper">
+    <div class="cotw-dashboard">
+        <header class="tracker-header">
+            <div class="header-top">
+                <h1>COTW: Master Tracker</h1>
+                <button id="sync-btn" onclick="syncWithPSN()" class="sync-button">🔄 Sync PSN Status</button>
+            </div>
+            <p id="stats-summary">User: Werewolf3788 | Initializing Tracking Skeleton...</p>
+            
+            <div class="psn-card-container">
+                <a href="https://psnprofiles.com/Werewolf3788" target="_blank">
+                    <img src="https://card.psnprofiles.com/1/Werewolf3788.png" border="0" alt="Werewolf PSN Card" class="psn-card-img">
+                </a>
+            </div>
+        </header>
+
+        <div class="section-title">Active Grinds & Skill Challenges</div>
+        <div id="trophy-list-active"></div>
+
+        <div class="section-title game-stats-title">Hunting Profile (Cloud Synced)</div>
+        <div id="game-stats-container">
+            <div class="mission-card-simple">
+                <div class="mission-row mb-4">
+                    <span class="mission-text">Cloud Status:</span>
+                    <span id="cloud-status" class="count-display" style="font-size: 0.7rem; color: #f39c12;">Connecting...</span>
+                </div>
+
+                <!-- Unified Cloud Synced Rows -->
+                <div class="cloud-rows-container">
+                    <!-- Great One -->
+                    <div class="mission-row p-3 bg-red-900/10 border border-red-600/30 rounded-xl mb-2">
+                        <div class="flex items-center gap-3">
+                            <img src="https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png" class="stat-mini-icon" alt="GO">
+                            <span class="mission-text text-red-500 font-bold uppercase tracking-tighter">Great One Grind</span>
+                        </div>
+                        <div class="mission-controls">
+                            <button class="btn-ctrl" onclick="updateCloudStat('greatone', -1)">-</button>
+                            <span id="stat-greatone" class="count-display text-red-500">0</span>
+                            <button class="btn-ctrl" onclick="updateCloudStat('greatone', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Diamond -->
+                    <div class="mission-row p-3 bg-cyan-900/10 border border-cyan-500/30 rounded-xl mb-2">
+                        <div class="flex items-center gap-3">
+                            <img src="https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png" class="stat-mini-icon" alt="D">
+                            <span class="mission-text text-cyan-300 font-bold uppercase tracking-tighter">Diamond Harvests</span>
+                        </div>
+                        <div class="mission-controls">
+                            <button class="btn-ctrl" onclick="updateCloudStat('diamond', -1)">-</button>
+                            <span id="stat-diamond" class="count-display text-cyan-300">0</span>
+                            <button class="btn-ctrl" onclick="updateCloudStat('diamond', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Albino (New Request) -->
+                    <div class="mission-row p-3 bg-slate-100/10 border border-slate-300/30 rounded-xl mb-2">
+                        <div class="flex items-center gap-3">
+                            <img src="https://img.psnprofiles.com/trophy/s/6622/f838641a-821b-4654-9457-300e84f5539c.png" class="stat-mini-icon" alt="A">
+                            <span class="mission-text text-slate-100 font-bold uppercase tracking-tighter">Albino Trophies</span>
+                        </div>
+                        <div class="mission-controls">
+                            <button class="btn-ctrl" onclick="updateCloudStat('albino', -1)">-</button>
+                            <span id="stat-albino" class="count-display text-slate-100">0</span>
+                            <button class="btn-ctrl" onclick="updateCloudStat('albino', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Gold -->
+                    <div class="mission-row p-3 bg-yellow-900/10 border border-yellow-600/30 rounded-xl mb-2">
+                        <div class="flex items-center gap-3">
+                            <img src="https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png" class="stat-mini-icon" alt="G">
+                            <span class="mission-text text-yellow-400 font-bold uppercase tracking-tighter">Gold Harvests</span>
+                        </div>
+                        <div class="mission-controls">
+                            <button class="btn-ctrl" onclick="updateCloudStat('gold', -1)">-</button>
+                            <span id="stat-gold" class="count-display text-yellow-400">0</span>
+                            <button class="btn-ctrl" onclick="updateCloudStat('gold', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Silver -->
+                    <div class="mission-row p-3 bg-slate-700/10 border border-slate-500/30 rounded-xl mb-2">
+                        <div class="flex items-center gap-3">
+                            <img src="https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png" class="stat-mini-icon" style="filter: grayscale(1) brightness(1.5);" alt="S">
+                            <span class="mission-text text-slate-300 font-bold uppercase tracking-tighter">Silver Harvests</span>
+                        </div>
+                        <div class="mission-controls">
+                            <button class="btn-ctrl" onclick="updateCloudStat('silver', -1)">-</button>
+                            <span id="stat-silver" class="count-display text-slate-300">0</span>
+                            <button class="btn-ctrl" onclick="updateCloudStat('silver', 1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Bronze -->
+                    <div class="mission-row p-3 bg-orange-900/10 border border-orange-700/30 rounded-xl mb-4">
+                        <div class="flex items-center gap-3">
+                            <img src="https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png" class="stat-mini-icon" alt="B">
+                            <span class="mission-text text-orange-400 font-bold uppercase tracking-tighter">Bronze Harvests</span>
+                        </div>
+                        <div class="mission-controls">
+                            <button class="btn-ctrl" onclick="updateCloudStat('bronze', -1)">-</button>
+                            <span id="stat-bronze" class="count-display text-orange-400">0</span>
+                            <button class="btn-ctrl" onclick="updateCloudStat('bronze', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Adjustable Statistics -->
+                <div class="mission-row border-t border-white/5 mt-4 pt-4">
+                    <span class="mission-text">Longest Vital Organ Hit</span>
+                    <div class="mission-controls">
+                        <span id="stat-longestShot" class="count-display" style="color: #f1c40f; min-width: 80px;">184.82 yds</span>
+                        <button class="btn-sm" onclick="setLongestShot()" title="Update Record">SET</button>
+                    </div>
+                </div>
+
+                <div class="mission-row">
+                    <span class="mission-text">Accuracy (71%)</span>
+                    <span class="count-display">75 Hits / 105 Shots</span>
+                </div>
+                
+                <div class="mission-row">
+                    <span class="mission-text">Detection Stats</span>
+                    <span class="count-display" style="font-size: 0.8rem;">👂 2526 | 👀 634 | 👃 5</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title completed-title">Harvested Trophies (Completed)</div>
+        <div id="trophy-list-done"></div>
+
+        <footer class="tracker-footer">
+            <p>Support the hunt: <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank">Today's Deals</a> | <a href="https://www.amazon.com/s?k=hunting&tag=psngaming-20" target="_blank">Hunting Gear</a></p>
+            <p style="margin-top: 10px; font-size: 0.7rem;">Lead Developer: Werewolf3788 | Collaborators: Raymystyro, terrdog420</p>
+        </footer>
+    </div>
+
     <!-- Firebase SDKs (Compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
-        body { background-color: #0a0f0a; color: #e7e5e4; font-family: sans-serif; }
-        .animate-spin-slow { animation: spin 8s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        
-        /* Star Shape Logic */
-        .star-box {
-            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-            aspect-ratio: 1/1;
-        }
-        .great-one-active {
-            background: radial-gradient(circle, rgba(220,38,38,1) 0%, rgba(127,29,29,1) 100%);
-            filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.8));
-        }
         #wp-custom-wrapper {
             background: transparent !important;
+            padding: 20px;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
         }
+
+        .cotw-dashboard {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(12, 18, 12, 0.98);
+            border: 2px solid #2ecc71;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.9);
+        }
+
+        .tracker-header {
+            text-align: center;
+            border-bottom: 2px solid #2ecc71;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tracker-header h1 { margin: 0; color: #2ecc71; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
+        
+        .sync-button {
+            background: #1a2a1a;
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+            padding: 6px 18px;
+            cursor: pointer;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        .sync-button:hover { background: #2ecc71; color: #111; }
+
+        .psn-card-container {
+            margin-top: 15px;
+            display: flex; gap: 15px; justify-content: center;
+        }
+
+        .psn-card-img { height: 55px; border-radius: 4px; border: 1px solid #444; }
+
+        .section-title {
+            background: rgba(46, 204, 113, 0.1);
+            padding: 10px 15px;
+            margin: 25px 0 12px;
+            border-left: 5px solid #2ecc71;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .completed-title { border-left-color: #27ae60; color: #2ecc71; }
+        .game-stats-title { border-left-color: #f39c12; color: #f39c12; background: rgba(243, 156, 18, 0.1); }
+
+        .trophy-card, .mission-card-simple {
+            background: rgba(25, 35, 25, 0.7);
+            border: 1px solid #2a4a3a;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .mission-card-simple { padding: 12px 20px; }
+
+        .trophy-summary {
+            padding: 12px 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .trophy-card.done { border-color: #27ae60; opacity: 0.85; background: rgba(20, 30, 20, 0.5); }
+
+        .trophy-info { display: flex; align-items: center; gap: 12px; }
+        .trophy-icon-img { 
+            width: 32px; height: 32px; border-radius: 4px; 
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #111; object-fit: cover;
+        }
+        .stat-mini-icon { width: 24px; height: 24px; border-radius: 3px; object-fit: cover; }
+        .trophy-rank { font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .rank-platinum { background: #e5e4e2; color: #111; }
+        .rank-gold { background: #ffd700; color: #111; }
+        .rank-silver { background: #c0c0c0; color: #111; }
+        .rank-bronze { background: #cd7f32; color: #111; }
+
+        .mission-details { display: none; padding: 12px 20px; background: rgba(0,0,0,0.4); border-top: 1px solid #2a4a3a; }
+        .mission-details.active { display: block; }
+
+        .mission-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .mission-row:last-child { border-bottom: none; }
+
+        .mission-controls { display: flex; align-items: center; gap: 12px; }
+        .btn-ctrl { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; width: 28px; height: 28px; cursor: pointer; border-radius: 4px; font-weight: bold; }
+        .btn-sm { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; padding: 2px 8px; cursor: pointer; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
+        .count-display { font-family: 'Courier New', Courier, monospace; min-width: 50px; text-align: center; color: #2ecc71; font-weight: bold; }
+        
+        .status-indicator { font-weight: bold; width: 24px; text-align: center; font-size: 1.1rem; }
+        .status-complete { color: #2ecc71; }
+        .status-working { color: #f39c12; }
+
+        .tracker-footer { margin-top: 40px; text-align: center; font-size: 0.75rem; color: #7f8c8d; }
+        .tracker-footer a { color: #2ecc71; text-decoration: none; }
     </style>
-</head>
-<body>
-    <div id="cotw-trophy-app" class="min-h-screen p-4 md:p-8">
-        <!-- Loading State -->
-        <div id="cotw-loading" class="fixed inset-0 bg-[#0a0f0a] flex items-center justify-center text-emerald-500 font-mono z-50">
-            <div class="animate-pulse flex flex-col items-center">
-                <i data-lucide="target" class="w-12 h-12 mb-4 animate-spin-slow"></i>
-                <p>LOADING TROPHY ROOM...</p>
-            </div>
-        </div>
-
-        <!-- Main Content (Hidden initially) -->
-        <div id="cotw-main-content" class="hidden">
-            <!-- Header -->
-            <div class="max-w-6xl mx-auto mb-12 text-center">
-                <h1 class="text-4xl md:text-6xl font-black text-emerald-500 tracking-tighter mb-2 flex items-center justify-center gap-4">
-                    <i data-lucide="target" class="w-10 h-10 md:w-14 md:h-14"></i>
-                    theHunter: COTW
-                </h1>
-                <p class="text-emerald-800 font-mono uppercase tracking-[0.3em] text-sm">Official Squad Trophy Display</p>
-            </div>
-
-            <!-- Player Grid -->
-            <div id="cotw-player-grid" class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- Players injected here -->
-            </div>
-
-            <!-- Footer -->
-            <div class="max-w-6xl mx-auto mt-12 p-6 border-t border-emerald-900/10 text-center">
-                <p class="text-emerald-900 text-xs font-mono uppercase tracking-[0.2em]">
-                    Data synced via Lead Dev: Werewolf3788 • High Performance Hunting Dashboard
-                </p>
-            </div>
-        </div>
-    </div>
 
     <script>
-        // --- CONFIGURATION ---
-        // Replace this with your actual Firebase config object
-        const firebaseConfig = {
-            apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
-            authDomain: "angler-squad-tracker.firebaseapp.com",
-            projectId: "angler-squad-tracker",
-            storageBucket: "angler-squad-tracker.firebasestorage.app",
-            messagingSenderId: "325679067980",
-            appId: "1:325679067980:web:57edbad70fe12b988355e9"
-        };
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = (typeof __firebase_config !== 'undefined') 
+            ? JSON.parse(__firebase_config) 
+            : {
+                apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+                authDomain: "angler-squad-tracker.firebaseapp.com",
+                projectId: "angler-squad-tracker",
+                storageBucket: "angler-squad-tracker.firebasestorage.app",
+                messagingSenderId: "325679067980",
+                appId: "1:325679067980:web:57edbad70fe12b988355e9"
+            };
         
-        const appId = (typeof __app_id !== 'undefined') ? __app_id : 'cotw-trophy-display';
+        const sharedAppId = (typeof __app_id !== 'undefined') ? __app_id : 'cotw-trophy-display';
+        const leadDevId = 'Werewolf3788';
 
-        // --- DATA CONSTANTS ---
-        const TROPHY_TYPES = [
-            { id: 'bronze', label: 'Bronze', color: 'text-orange-400', bg: 'bg-orange-900/20', border: 'border-orange-700/50' },
-            { id: 'silver', label: 'Silver', color: 'text-slate-300', bg: 'bg-slate-700/20', border: 'border-slate-500/50' },
-            { id: 'gold', label: 'Gold', color: 'text-yellow-400', bg: 'bg-yellow-900/20', border: 'border-yellow-600/50' },
-            { id: 'diamond', label: 'Diamond', color: 'text-cyan-300', bg: 'bg-cyan-900/20', border: 'border-cyan-500/50' },
-            { id: 'mythical', label: 'Mythical', color: 'text-purple-400', bg: 'bg-purple-900/20', border: 'border-purple-600/50' },
-            { id: 'greatone', label: 'Great One', color: 'text-red-500', bg: 'bg-red-900/30', border: 'border-red-600', special: true },
-        ];
-
-        const PLAYERS = [
-            { id: 'Werewolf3788', name: 'Werewolf3788', role: 'Lead Developer', theme: 'orange' },
-            { id: 'Raymystyro', name: 'Raymystyro', role: 'Speedray', theme: 'red' },
-            { id: 'terrdog420', name: 'terrdog420', role: 'DarkWing Dog', theme: 'purple' }
-        ];
-
-        // --- APP STATE ---
-        let trophyData = {};
-        let currentUser = null;
-
-        // --- INITIALIZE FIREBASE ---
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- RENDER FUNCTIONS ---
-        function render() {
-            const grid = document.getElementById('cotw-player-grid');
-            if (!grid) return;
-            grid.innerHTML = PLAYERS.map(player => {
-                const totalHarvests = Object.entries(trophyData[player.id] || {})
-                    .reduce((acc, [key, val]) => typeof val === 'number' ? acc + val : acc, 0);
+        // --- ICONS ---
+        const PROXY = "https://images.weserv.nl/?url=";
+        const GAME_ICON = "https://img.psnprofiles.com/trophy/s/6622/ab71d597-4a98-4891-9f93-5e26fbd42d03.png";
+        const ARC_ICON = "https://img.psnprofiles.com/trophy/s/6622/716af6c9-1cf7-4d32-b567-7c06503e9be6.png";
+        const PHOTO_ICON = "https://img.psnprofiles.com/trophy/s/6622/926946c4-009b-4da6-b01b-2773be793e61.png";
+        const TRAVEL_ICON = "https://img.psnprofiles.com/trophy/s/6622/62637094-d904-493b-9c5f-0a56453e3146.png";
+        const MARK_ICON = "https://img.psnprofiles.com/trophy/s/6622/0c34b625-1c04-4343-bf57-606cad61b625.png";
+        const TRACK_ICON = "https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png";
+        const SKILL_ICON = "https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png";
+        const CALL_WILD_ICON = "https://img.psnprofiles.com/trophy/s/6622/475f711c-00ad-489f-ac9f-7465c2a4a038.png";
+        const PARK_ICON = "https://img.psnprofiles.com/trophy/s/6622/c37a9f07-6ed9-435a-9a2d-93915f1a70e3.png";
+        
+        const OLD_FASHIONED_ICON = "https://img.psnprofiles.com/trophy/s/6622/8ede5fa5-ca04-4e3d-979c-172557421a7a.png";
+        const SCARECROW_ICON = "https://img.psnprofiles.com/trophy/s/6622/b144053a-de8b-4343-9e4a-89dc9d66eaa9.png";
+        const GOLDMEMBER_ICON = "https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png";
+        const DIAMOND_ICON = "https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png";
+        const CABIN_ICON = "https://img.psnprofiles.com/trophy/s/6622/c37a9f07-6ed9-435a-9a2d-93915f1a70e3.png"; 
+        
+        const FALLBACK_ICON = "https://www.playstation.com/etc.clientlibs/global_layouts/clientlibs/clientlib-base/resources/img/favicon/apple-icon-180x180.png";
 
-                return `
-                <div class="bg-stone-900/40 border border-${player.theme}-900/30 rounded-2xl overflow-hidden backdrop-blur-sm">
-                    <div class="bg-${player.theme}-950/20 p-6 border-b border-${player.theme}-900/30 flex items-center justify-between">
-                        <div>
-                            <h2 class="text-2xl font-bold text-${player.theme}-400 leading-none">${player.name}</h2>
-                            <span class="text-xs text-${player.theme}-700 font-mono uppercase mt-1 inline-block tracking-wider">${player.role}</span>
-                        </div>
-                        <div class="bg-${player.theme}-900/20 p-3 rounded-full">
-                            <i data-lucide="users" class="text-${player.theme}-500 w-6 h-6"></i>
-                        </div>
-                    </div>
-                    <div class="p-4 space-y-3">
-                        ${TROPHY_TYPES.map(type => {
-                            const count = trophyData[player.id]?.[type.id] || 0;
-                            const isGreatOne = type.id === 'greatone';
-                            const glowClass = isGreatOne && count > 0 ? 'great-one-glow border-red-500/50' : '';
-                            const iconName = isGreatOne ? 'crown' : 'trophy';
-                            return `
-                            <div class="flex items-center justify-between p-4 rounded-xl border ${type.border} ${type.bg} transition-all duration-300 ${glowClass}">
-                                <div class="flex items-center gap-4">
-                                    <div class="p-2 rounded-lg bg-black/40 ${type.color}">
-                                        <i data-lucide="${iconName}" class="w-6 h-6"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs font-mono uppercase tracking-widest opacity-60">${type.label}</p>
-                                        <p class="text-2xl font-black ${type.color}">${count}</p>
-                                    </div>
+        let localTrophyData = {};
+
+        const trophyList = [
+            { id: "platinum", name: "theHunter (Platinum)", rank: "platinum", isDone: false, missions: [{ id: "m_plat", label: "Base Trophies", target: 51, current: 24 }] },
+            { id: "jager", name: "Jäger Arc", rank: "gold", isDone: false, missions: [{ id: "m_jager", label: "Gerlinde Jäger Missions", target: 1, current: 0 }] },
+            { id: "sommer", name: "Sommer Arc", rank: "gold", isDone: false, missions: [{ id: "m_sommer", label: "Robert Sommer Missions", target: 1, current: 0 }] },
+            { id: "vualez", name: "Vualez Arc", rank: "gold", isDone: false, missions: [{ id: "m_vualez", label: "Fiona Vualez Missions", target: 1, current: 0 }] },
+            { id: "bhandari", name: "Bhandari Arc", rank: "gold", isDone: false, missions: [{ id: "m_bhandari", label: "Vinay Bhandari Missions", target: 1, current: 0 }] },
+            { id: "fleischer", name: "Fleischer Arc", rank: "gold", isDone: false, missions: [{ id: "m_fleischer", label: "Albertina Fleischer Missions", target: 1, current: 0 }] },
+            { id: "tressler", name: "Tressler Arc", rank: "gold", isDone: false, missions: [{ id: "m_tressler", label: "Marwin Tressler Missions", target: 1, current: 0 }] },
+            { id: "hope", name: "Hope Arc", rank: "gold", isDone: false, missions: [{ id: "m_hope", label: "Richard Hope Missions", target: 1, current: 0 }] },
+            { id: "trampfine", name: "Trampfine Arc", rank: "gold", isDone: false, missions: [{ id: "m_trampfine", label: "Jonathan Trampfine Missions", target: 1, current: 0 }] },
+            { id: "connors", name: "Connors Arc", rank: "gold", isDone: false, missions: [{ id: "m_connors", label: "Emily Connors Missions", target: 1, current: 0 }] },
+            { id: "beatty", name: "Beatty Arc", rank: "gold", isDone: false, missions: [{ id: "m_beatty", label: "Paul Beatty Missions", target: 1, current: 0 }] },
+            { id: "srp_cabins", name: "Silver Ridge Peaks Cabins", rank: "silver", isDone: false, missions: [{ id: "m_cabins", label: "Cabins Found", target: 19, current: 0 }] },
+            { id: "cotw_callers", name: "Call Of The Wild", rank: "silver", isDone: false, missions: [{ id: "m_callers", label: "Use All Callers Once", target: 1, current: 0 }] },
+            { id: "medved_park", name: "Medved-Taiga National Park Arc", rank: "silver", isDone: false, missions: [{ id: "m_medved", label: "All Medved Missions", target: 1, current: 0 }] },
+            { id: "globetrotter", name: "Globetrotter", rank: "silver", isDone: false, isTravel: true, missions: [{ id: "m_regions", label: "All Regions Visited", target: 1, current: 0 }] },
+            { id: "moby", name: "Moby Deer", rank: "gold", isDone: false, missions: [{ id: "m_moby", label: "Albino Deer (Layton/Hirsch)", target: 1, current: 0 }] },
+            { id: "paparazzi", name: "Wildlife Paparazzi", rank: "gold", isDone: false, isPhoto: true, missions: [{ id: "m_paparazzi", label: "Photo Every Species", target: 14, current: 0 }] },
+            { id: "old_fashioned", name: "The Old Fashioned Way", rank: "silver", isDone: false, missions: [{ id: "m_unscoped", label: "Down Animal (Unscoped Rifle)", target: 1, current: 0 }] },
+            { id: "persistence", name: "Persistence Is Futile", rank: "bronze", isDone: false, missions: [{ id: "m_track100", label: "100 Tracks (Same Animal)", target: 100, current: 0 }] },
+            { id: "staytarget", name: "Stay On Target", rank: "bronze", isDone: false, missions: [{ id: "m_track50", label: "50 Tracks (Same Animal)", target: 50, current: 0 }] },
+            { id: "zombie", name: "This Is Not A Zombie Game", rank: "silver", isDone: false, isSkill: true, missions: [{ id: "m_brain", label: "Brain Shot Kills", target: 10, current: 0 }] },
+            { id: "makeitcount", name: "Make It Count", rank: "bronze", isDone: false, isSkill: true, missions: [{ id: "m_last", label: "Kill with Last Round", target: 1, current: 0 }] },
+            { id: "hitting_mark", name: "Hitting the Mark", rank: "bronze", isDone: false, isSkill: true, missions: [{ id: "m_challenge", label: "Complete Challenge Target", target: 1, current: 0 }] },
+            { id: "carolina_hits", name: "Carolina's Greatest Hits, Shot-For-Shot", rank: "silver", isDone: false, isSkill: true, missions: [{ id: "m_all_chal", label: "All Challenge Targets", target: 1, current: 0 }] },
+
+            // COMPLETED
+            { id: "mile1", name: "The Mile", rank: "bronze", isDone: true, isTravel: true, missions: [] },
+            { id: "mile10", name: "The Scandinavian Mile", rank: "bronze", isDone: true, isTravel: true, missions: [] },
+            { id: "marathon", name: "The Marathon", rank: "silver", isDone: true, isTravel: true, missions: [] },
+            { id: "ultramarathon", name: "The Ultramarathon", rank: "gold", isDone: true, isTravel: true, missions: [] },
+            { id: "mark50", name: "Novice Marksman (50m)", rank: "bronze", isDone: true, isSkill: true, missions: [] },
+            { id: "mark100", name: "Skilled Marksman (100m)", rank: "bronze", isDone: true, isSkill: true, missions: [] },
+            { id: "mark200", name: "Expert Marksman (200m)", rank: "silver", isDone: true, isSkill: true, missions: [] },
+            { id: "mark400", name: "Legendary Marksman (400m)", rank: "gold", isDone: true, isSkill: true, missions: [] },
+            { id: "diamonds_ach", name: "Diamonds Are Forever", rank: "gold", isDone: true, missions: [] },
+            { id: "goldmember", name: "Goldmember", rank: "silver", isDone: true, missions: [] },
+            { id: "gobble", name: "Gobble Gobble (50 Turkeys)", rank: "silver", isDone: true, missions: [] },
+            { id: "dino", name: "When they ruled the earth", rank: "silver", isDone: true, isPhoto: true, missions: [] },
+            { id: "sr_reaction", name: "A Dangerous Reaction (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "sr_bear", name: "Bear with Me (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "sr_haunts", name: "Old Haunts (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "sr_peace", name: "Inner Peace (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "sr_ascent", name: "The Ascent (SRP)", rank: "bronze", isDone: true, missions: [] },
+            { id: "grizzly", name: "Grizzled Veteran", rank: "bronze", isDone: true, missions: [] },
+            { id: "vurhonga_senior", name: "Experienced Senior Warden", rank: "silver", isDone: true, missions: [] },
+            { id: "potty", name: "Potty Humor", rank: "bronze", isDone: true, missions: [] },
+            { id: "scare", name: "Scarecrow", rank: "bronze", isDone: true, missions: [{ id: "m_scare_val", label: "Animals Scared", target: 1000, current: 3165 }] },
+            { id: "seeingbelieving", name: "Seeing Is Believing", rank: "silver", isDone: true, missions: [] },
+            { id: "stalker", name: "Stalker", rank: "silver", isDone: true, missions: [] }
+        ];
+
+        // --- CORE RENDERING ---
+        function initTracker() {
+            const activeList = document.getElementById('trophy-list-active');
+            const doneList = document.getElementById('trophy-list-done');
+            if (!activeList || !doneList) return;
+            
+            activeList.innerHTML = ""; doneList.innerHTML = "";
+
+            const completedCount = trophyList.filter(t => t.isDone && !t.id.includes('platinum')).length;
+            const plat = trophyList.find(t => t.id === 'platinum');
+            if (plat) {
+                plat.missions[0].current = completedCount;
+                plat.isDone = completedCount >= plat.missions[0].target;
+            }
+
+            trophyList.forEach(t => {
+                const card = document.createElement('div');
+                card.className = `trophy-card ${t.isDone ? 'done' : ''}`;
+                
+                let missionHtml = "";
+                if (t.missions) {
+                    t.missions.forEach(m => {
+                        const isMComplete = m.current >= m.target;
+                        const hideControls = t.isDone || t.id === 'platinum';
+                        missionHtml += `
+                            <div class="mission-row">
+                                <span class="mission-text">${m.label} <small>(${m.target})</small></span>
+                                <div class="mission-controls">
+                                    ${hideControls ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', -1, ${m.target})">-</button>`}
+                                    <span id="val-${m.id}" class="count-display">${m.current}</span>
+                                    ${hideControls ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', 1, ${m.target})">+</button>`}
+                                    <span id="status-${m.id}" class="status-indicator ${isMComplete ? 'status-complete' : 'status-working'}">
+                                        ${isMComplete ? '✓' : '—'}
+                                    </span>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <button onclick="updateTrophy('${player.id}', '${type.id}', -1)" class="w-10 h-10 flex items-center justify-center rounded-lg bg-black/40 hover:bg-red-900/40 text-stone-500 hover:text-red-400 transition-colors cursor-pointer"><i data-lucide="minus" class="w-5 h-5"></i></button>
-                                    <button onclick="updateTrophy('${player.id}', '${type.id}', 1)" class="w-10 h-10 flex items-center justify-center rounded-lg bg-black/40 hover:bg-emerald-900/40 ${type.color} transition-colors cursor-pointer"><i data-lucide="plus" class="w-5 h-5"></i></button>
-                                </div>
-                            </div>`;
-                        }).join('')}
-                    </div>
-                    <div class="bg-${player.theme}-950/10 p-4 border-t border-${player.theme}-900/20">
-                        <div class="flex justify-between items-center text-sm font-mono text-${player.theme}-800">
-                            <span>TOTAL HARVESTS:</span>
-                            <span class="text-${player.theme}-500 font-bold">${totalHarvests}</span>
+                            </div>
+                        `;
+                    });
+                }
+
+                let iconToUse = GAME_ICON;
+                const lowerName = t.name.toLowerCase();
+                
+                if (lowerName === "call of the wild") iconToUse = CALL_WILD_ICON;
+                else if (lowerName === "the old fashioned way") iconToUse = OLD_FASHIONED_ICON;
+                else if (lowerName === "scarecrow") iconToUse = SCARECROW_ICON;
+                else if (lowerName === "goldmember") iconToUse = GOLDMEMBER_ICON;
+                else if (lowerName === "diamonds are forever") iconToUse = DIAMOND_ICON;
+                else if (lowerName.includes("cabin")) iconToUse = CABIN_ICON;
+                else if (t.isSkill || lowerName.includes("marksman") || lowerName.includes("zombie") || lowerName.includes("make it count") || lowerName.includes("shot-for-shot")) iconToUse = SKILL_ICON;
+                else if (t.isPhoto || lowerName.includes("camera") || lowerName.includes("picture") || lowerName.includes("photograph")) iconToUse = PHOTO_ICON;
+                else if (lowerName.includes("hitting the mark")) iconToUse = MARK_ICON;
+                else if (lowerName.includes("persistence") || lowerName.includes("target") || lowerName.includes("potty") || lowerName.includes("stalker") || lowerName.includes("believing")) iconToUse = TRACK_ICON;
+                else if (lowerName.includes("park")) iconToUse = PARK_ICON;
+                else if (t.isTravel || lowerName.includes("mile") || lowerName.includes("marathon") || lowerName.includes("globetrotter")) iconToUse = TRAVEL_ICON;
+                else if (t.name.includes("Arc")) iconToUse = ARC_ICON;
+
+                card.innerHTML = `
+                    <div class="trophy-summary" onclick="toggleDetails('${t.id}')">
+                        <div class="trophy-info">
+                            <img src="${iconToUse}" class="trophy-icon-img" referrerpolicy="no-referrer" alt="Icon" onerror="this.onerror=null;this.src='${FALLBACK_ICON}';">
+                            <span class="trophy-rank rank-${t.rank}">${t.rank}</span>
+                            <span class="trophy-name">${t.name}</span>
                         </div>
+                        <span id="arrow-${t.id}">${t.isDone ? '✓' : '▼'}</span>
                     </div>
-                </div>`;
-            }).join('');
-            if (window.lucide) lucide.createIcons();
+                    ${missionHtml ? `<div id="details-${t.id}" class="mission-details">${missionHtml}</div>` : ''}
+                `;
+                
+                if (t.isDone) doneList.appendChild(card);
+                else activeList.appendChild(card);
+            });
+
+            updateGlobalStats();
         }
 
-        // --- LOGIC ---
-        async function updateTrophy(playerId, trophyId, delta) {
-            if (!currentUser) {
-                console.warn("Update attempted before auth");
-                alert("Please wait for database connection...");
-                return;
-            }
-            
-            const playerData = trophyData[playerId] || {};
-            const currentCount = playerData[trophyId] || 0;
-            const newCount = Math.max(0, currentCount + delta);
-            
-            try {
-                const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('userTrophies').doc(playerId);
-                await docRef.set({ 
-                    ...playerData, 
-                    [trophyId]: newCount, 
-                    lastUpdated: Date.now() 
-                }, { merge: true });
-            } catch (error) { 
-                console.error("Update failed:", error);
-                alert("Error updating trophy: " + error.message);
-            }
+        function updateGlobalStats() {
+            const totalBase = 51;
+            const completedBase = trophyList.filter(t => t.isDone && !t.id.includes('platinum') && !t.id.includes('sr_') && !['GRIZZLY', 'GOBBLE', 'DINO', 'VURHONGA_SENIOR'].includes(t.id.toUpperCase())).length;
+            const percentage = Math.round((completedBase / totalBase) * 100);
+            const summary = document.getElementById('stats-summary');
+            if (summary) summary.innerText = `User: Werewolf3788 | ${completedBase}/${totalBase} Base Trophies (${percentage}%)`;
         }
 
-        // --- INIT ---
-        // Initialize immediately to show UI (prevents loading stall)
-        const initUI = () => {
-            render();
-            const loadingEl = document.getElementById('cotw-loading');
-            const mainEl = document.getElementById('cotw-main-content');
-            if (loadingEl) loadingEl.style.display = 'none';
-            if (mainEl) mainEl.classList.remove('hidden');
-        };
-        
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initUI);
-        else initUI();
-        
+        // --- DATABASE SYNC LOGIC ---
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -213,23 +455,139 @@
                 } else {
                     await auth.signInAnonymously();
                 }
-            } catch (error) { console.error("Auth error:", error); }
+            } catch (error) { 
+                console.error("Auth error:", error); 
+                try { await auth.signInAnonymously(); } catch(e) {}
+            }
         };
-        initAuth();
 
         auth.onAuthStateChanged(user => {
-            currentUser = user;
             if (user) {
-                db.collection('artifacts').doc(appId).collection('public').doc('data').collection('userTrophies')
-                    .onSnapshot((snapshot) => {
-                        const data = {};
-                        snapshot.forEach((doc) => { data[doc.id] = doc.data(); });
-                        trophyData = data;
-                        render();
-                    }, console.error);
+                const cloudStatusEl = document.getElementById('cloud-status');
+                if (cloudStatusEl) {
+                    cloudStatusEl.innerText = "Connected";
+                    cloudStatusEl.style.color = "#2ecc71";
+                }
+                
+                const docPath = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+                docPath.onSnapshot((doc) => {
+                        if (doc.exists) {
+                            localTrophyData = doc.data();
+                            syncUIWithData();
+                        }
+                    }, error => {
+                        console.error("Cloud sync error:", error);
+                        const cloudStatusEl = document.getElementById('cloud-status');
+                        if (cloudStatusEl) cloudStatusEl.innerText = "Sync Error";
+                    });
             }
         });
-        window.updateTrophy = updateTrophy;
+
+        function syncUIWithData() {
+            const mappings = {
+                'bronze': 'stat-bronze',
+                'silver': 'stat-silver',
+                'gold': 'stat-gold',
+                'diamond': 'stat-diamond',
+                'greatone': 'stat-greatone',
+                'albino': 'stat-albino',
+                'longestShot': 'stat-longestShot'
+            };
+
+            Object.entries(mappings).forEach(([dbKey, htmlId]) => {
+                const val = localTrophyData[dbKey] || 0;
+                const el = document.getElementById(htmlId);
+                if (el) {
+                    if (dbKey === 'longestShot') {
+                        el.innerText = (typeof val === 'string' && !val.includes('yds')) ? val + ' yds' : val;
+                    } else {
+                        el.innerText = val;
+                    }
+                }
+            });
+        }
+
+        async function updateCloudStat(trophyId, delta) {
+            if (!auth.currentUser) return;
+
+            const currentCount = localTrophyData[trophyId] || 0;
+            const newCount = Math.max(0, currentCount + delta);
+            
+            try {
+                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+                await docRef.set({ 
+                    [trophyId]: newCount, 
+                    lastUpdated: Date.now() 
+                }, { merge: true });
+            } catch (error) {
+                console.error("Update failed:", error);
+            }
+        }
+
+        async function setLongestShot() {
+            if (!auth.currentUser) return;
+            const current = localTrophyData['longestShot'] || "184.82 yds";
+            const val = window.prompt("Enter Longest Vital Organ Hit Record (e.g. 184.82 yds):", current);
+            
+            if (val !== null) {
+                try {
+                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+                    await docRef.set({ 
+                        'longestShot': val, 
+                        lastUpdated: Date.now() 
+                    }, { merge: true });
+                } catch (error) {
+                    console.error("Update failed:", error);
+                }
+            }
+        }
+
+        // --- UTILS ---
+        function toggleDetails(id) {
+            const el = document.getElementById(`details-${id}`);
+            if (!el) return;
+            el.classList.toggle('active');
+            const arrowEl = document.getElementById(`arrow-${id}`);
+            if (arrowEl) arrowEl.innerText = el.classList.contains('active') ? '▲' : '▼';
+        }
+
+        function updateMission(mId, change, target) {
+            trophyList.forEach(t => {
+                if (t.missions) {
+                    t.missions.forEach(m => {
+                        if (m.id === mId) {
+                            m.current += change;
+                            if (m.current < 0) m.current = 0;
+                            if (m.current >= target) {
+                                m.current = target;
+                                if (t.id !== 'platinum') t.isDone = true;
+                            }
+                        }
+                    });
+                }
+            });
+            initTracker();
+        }
+
+        async function syncWithPSN() {
+            const btn = document.getElementById('sync-btn');
+            if (!btn) return;
+            btn.innerText = "🔄 Loading Feeds...";
+            try {
+                const proxy = 'https://api.allorigins.win/get?url=';
+                const feedUrl = encodeURIComponent('https://psntrophyleaders.com/user/view/Werewolf3788/rss');
+                await fetch(proxy + feedUrl);
+                btn.innerText = "✅ Synced";
+                setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000);
+            } catch (e) {
+                btn.innerText = "❌ Error";
+                setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000);
+            }
+        }
+
+        window.onload = () => {
+            initTracker();
+            initAuth();
+        };
     </script>
-</body>
-</html>
+</div>
