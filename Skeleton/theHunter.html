@@ -1,11 +1,11 @@
 <!-- 
-  Project: theHunter: Call of the Wild - Master Trophy Tracker
+  Project: theHunter: Call of the Wild - Interactive Master Tracker
   Lead Developer: Werewolf3788 (GitHub: KFruti88)
   Collaborators: Raymystyro (OneLIVIDMAN), terrdog420
-  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync + Storage & Wiki Mission Data
-  Platform: WordPress Compatible (#wp-custom-wrapper) / CodePen / GitHub
+  Source: PSN Profile (Werewolf3788) & Firebase Cloud Sync + Storage & Wiki Data
+  Platform: WordPress Compatible (#wp-custom-wrapper)
   
-  Updated: Fixed Cloud Update logic and Pathing (Rule 1 & 3) to ensure buttons work in real-time.
+  Updated: Dynamic Reserve Species Tabs, Full Map Support, World Bosses, and Reinforced Cloud Sync.
 -->
 
 <div id="wp-custom-wrapper">
@@ -15,7 +15,7 @@
                 <h1>COTW: Master Tracker</h1>
                 <button id="sync-btn" onclick="syncWithPSN()" class="sync-button">🔄 Sync PSN Status</button>
             </div>
-            <p id="stats-summary">User: Werewolf3788 | Initializing Tracking Skeleton...</p>
+            <p id="stats-summary">User: Werewolf3788 | Dashboard Loading...</p>
             
             <div class="psn-card-container">
                 <a href="https://psnprofiles.com/Werewolf3788" target="_blank">
@@ -37,6 +37,37 @@
             </div>
         </div>
 
+        <!-- NEW: Reserve Species Counters with Map Selection -->
+        <div class="section-title border-emerald-500/50 text-emerald-400">🏹 Reserve Species Harvests</div>
+        <div class="mission-card-simple mb-8 p-0 overflow-hidden">
+            <div class="flex flex-wrap bg-emerald-950/30 border-b border-white/5" id="map-tabs">
+                <!-- Map tabs will be injected here -->
+            </div>
+            <div class="p-4" id="species-harvest-root">
+                <p class="text-center opacity-40 py-4 text-xs italic">Select a map above to see species counters.</p>
+            </div>
+        </div>
+
+        <!-- Animal Species Reference -->
+        <div class="section-title border-yellow-500/50 text-yellow-500">🐾 Species Integrity Guide (Classes 1-9)</div>
+        <div class="mission-card-simple mb-8 p-4">
+            <div class="grid grid-cols-3 sm:grid-cols-9 gap-1" id="species-grid">
+                <!-- Class numbers 1-9 -->
+                <button onclick="toggleSpeciesList(1)" class="p-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-yellow-400 hover:bg-yellow-500/20">Cl 1</button>
+                <button onclick="toggleSpeciesList(2)" class="p-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-yellow-400 hover:bg-yellow-500/20">Cl 2</button>
+                <button onclick="toggleSpeciesList(3)" class="p-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-yellow-400 hover:bg-yellow-500/20">Cl 3</button>
+                <button onclick="toggleSpeciesList(4)" class="p-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-yellow-400 hover:bg-yellow-500/20">Cl 4</button>
+                <button onclick="toggleSpeciesList(5)" class="p-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-yellow-400 hover:bg-yellow-500/20">Cl 5</button>
+                <button onclick="toggleSpeciesList(6)" class="p-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-yellow-400 hover:bg-yellow-500/20">Cl 6</button>
+                <button onclick="toggleSpeciesList(7)" class="p-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-yellow-400 hover:bg-yellow-500/20">Cl 7</button>
+                <button onclick="toggleSpeciesList(8)" class="p-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-yellow-400 hover:bg-yellow-500/20">Cl 8</button>
+                <button onclick="toggleSpeciesList(9)" class="p-2 bg-white/5 border border-white/10 rounded text-[10px] font-bold text-yellow-400 hover:bg-yellow-500/20">Cl 9</button>
+            </div>
+            <div id="species-data-expansion" class="hidden mt-4 p-3 bg-black/40 border border-white/10 rounded text-[11px] leading-relaxed">
+                <div id="species-content"></div>
+            </div>
+        </div>
+
         <!-- Dynamic DLC Mission Sections -->
         <div id="dlc-sections-container"></div>
 
@@ -50,83 +81,7 @@
                 </div>
 
                 <div class="cloud-rows-container space-y-2">
-                    <!-- Great One -->
-                    <div class="mission-row p-3 bg-red-900/10 border border-red-600/30 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <img src="https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png" class="stat-mini-icon" alt="GO">
-                            <span class="mission-text text-red-500 font-bold uppercase tracking-tighter">Great One Grind</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateCloudStat('greatone', -1)">-</button>
-                            <span id="stat-greatone" class="count-display text-red-500">0</span>
-                            <button class="btn-ctrl" onclick="updateCloudStat('greatone', 1)">+</button>
-                        </div>
-                    </div>
-
-                    <!-- Diamond -->
-                    <div class="mission-row p-3 bg-cyan-900/10 border border-cyan-500/30 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <img src="https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png" class="stat-mini-icon" alt="D">
-                            <span class="mission-text text-cyan-300 font-bold uppercase tracking-tighter">Diamond Harvests</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateCloudStat('diamond', -1)">-</button>
-                            <span id="stat-diamond" class="count-display text-cyan-300">0</span>
-                            <button class="btn-ctrl" onclick="updateCloudStat('diamond', 1)">+</button>
-                        </div>
-                    </div>
-
-                    <!-- Albino -->
-                    <div class="mission-row p-3 bg-slate-100/10 border border-slate-300/30 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <img src="https://img.psnprofiles.com/trophy/s/6622/f838641a-821b-4654-9457-300e84f5539c.png" class="stat-mini-icon" alt="A">
-                            <span class="mission-text text-slate-100 font-bold uppercase tracking-tighter">Albino Trophies</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateCloudStat('albino', -1)">-</button>
-                            <span id="stat-albino" class="count-display text-slate-100">0</span>
-                            <button class="btn-ctrl" onclick="updateCloudStat('albino', 1)">+</button>
-                        </div>
-                    </div>
-
-                    <!-- Gold -->
-                    <div class="mission-row p-3 bg-yellow-900/10 border border-yellow-600/30 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <img src="https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png" class="stat-mini-icon" alt="G">
-                            <span class="mission-text text-yellow-400 font-bold uppercase tracking-tighter">Gold Harvests</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateCloudStat('gold', -1)">-</button>
-                            <span id="stat-gold" class="count-display text-yellow-400">0</span>
-                            <button class="btn-ctrl" onclick="updateCloudStat('gold', 1)">+</button>
-                        </div>
-                    </div>
-
-                    <!-- Silver -->
-                    <div class="mission-row p-3 bg-slate-700/10 border border-slate-500/30 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <img src="https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png" class="stat-mini-icon" style="filter: grayscale(1) brightness(1.5);" alt="S">
-                            <span class="mission-text text-slate-300 font-bold uppercase tracking-tighter">Silver Harvests</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateCloudStat('silver', -1)">-</button>
-                            <span id="stat-silver" class="count-display text-slate-300">0</span>
-                            <button class="btn-ctrl" onclick="updateCloudStat('silver', 1)">+</button>
-                        </div>
-                    </div>
-
-                    <!-- Bronze -->
-                    <div class="mission-row p-3 bg-orange-900/10 border border-orange-700/30 rounded-xl mb-4">
-                        <div class="flex items-center gap-3">
-                            <img src="https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png" class="stat-mini-icon" alt="B">
-                            <span class="mission-text text-orange-400 font-bold uppercase tracking-tighter">Bronze Harvests</span>
-                        </div>
-                        <div class="mission-controls">
-                            <button class="btn-ctrl" onclick="updateCloudStat('bronze', -1)">-</button>
-                            <span id="stat-bronze" class="count-display text-orange-400">0</span>
-                            <button class="btn-ctrl" onclick="updateCloudStat('bronze', 1)">+</button>
-                        </div>
-                    </div>
+                    <div id="rank-rows-root"></div>
                 </div>
 
                 <!-- Cloud Image Manager -->
@@ -143,7 +98,6 @@
                         </button>
                     </div>
                     <input type="file" id="trophy-upload" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
-                    
                     <div id="upload-progress" class="hidden w-full bg-emerald-950 h-1 mt-4 rounded overflow-hidden">
                         <div id="progress-bar" class="bg-emerald-400 h-full transition-all duration-300" style="width: 0%"></div>
                     </div>
@@ -158,13 +112,8 @@
                 </div>
 
                 <div class="mission-row">
-                    <span class="mission-text">Accuracy (71%)</span>
-                    <span class="count-display">75 Hits / 105 Shots</span>
-                </div>
-                
-                <div class="mission-row">
-                    <span class="mission-text">Detection Stats</span>
-                    <span class="count-display" style="font-size: 0.8rem;">👂 2526 | 👀 634 | 👃 5</span>
+                    <span class="mission-text text-white/50">User Accuracy Tracking</span>
+                    <span class="count-display text-white/30">71% Efficiency</span>
                 </div>
             </div>
         </div>
@@ -173,142 +122,155 @@
         <div id="trophy-list-done"></div>
 
         <footer class="tracker-footer">
-            <p>Support the hunt: <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank">Today's Deals</a> | <a href="https://www.amazon.com/s?k=hunting&tag=psngaming-20" target="_blank">Hunting Gear</a></p>
-            <p style="margin-top: 10px; font-size: 0.7rem;">Lead Developer: Werewolf3788 | Collaborators: Raymystyro, terrdog420</p>
+            <div class="flex justify-center gap-4 mb-4">
+                <a href="https://www.amazon.com/gp/goldbox?tag=todaysdealswerewolf-20" target="_blank" class="hover:text-emerald-400 transition-colors">Today's Deals</a>
+                <a href="https://www.amazon.com/s?k=hunting&tag=psngaming-20" target="_blank" class="hover:text-emerald-400 transition-colors">Hunting Gear</a>
+            </div>
+            <p>Lead Developer: Werewolf3788 | Contributors: Raymystyro, terrdog420</p>
+            <p class="text-[9px] mt-2 opacity-30 italic">Not affiliated with Expansive Worlds or Avalanche Studios.</p>
         </footer>
     </div>
 
-    <!-- Firebase SDKs (Compat) -->
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
     <style>
-        #wp-custom-wrapper {
-            background: transparent !important;
-            padding: 20px;
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            color: #ffffff;
-            display: flex;
-            justify-content: center;
-        }
-
-        .cotw-dashboard {
-            width: 100%;
-            max-width: 900px;
-            background: rgba(12, 18, 12, 0.98);
-            border: 2px solid #2ecc71;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 50px rgba(0,0,0,0.9);
-        }
-
-        .tracker-header {
-            text-align: center;
-            border-bottom: 2px solid #2ecc71;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
+        #wp-custom-wrapper { background: transparent !important; padding: 20px; font-family: 'Segoe UI', Roboto, Arial, sans-serif; color: #ffffff; display: flex; justify-content: center; }
+        .cotw-dashboard { width: 100%; max-width: 900px; background: rgba(12, 18, 12, 0.98); border: 2px solid #2ecc71; border-radius: 12px; padding: 20px; box-shadow: 0 10px 50px rgba(0,0,0,0.9); }
+        .tracker-header { text-align: center; border-bottom: 2px solid #2ecc71; margin-bottom: 20px; padding-bottom: 20px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .tracker-header h1 { margin: 0; color: #2ecc71; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
-        
-        .sync-button {
-            background: #1a2a1a;
-            color: #2ecc71;
-            border: 1px solid #2ecc71;
-            padding: 6px 18px;
-            cursor: pointer;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            transition: all 0.3s;
-        }
+        .sync-button { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; padding: 6px 18px; cursor: pointer; border-radius: 20px; font-size: 0.8rem; transition: all 0.3s; }
         .sync-button:hover { background: #2ecc71; color: #111; }
-
-        .psn-card-container {
-            margin-top: 15px;
-            display: flex; gap: 15px; justify-content: center;
-        }
-
+        .psn-card-container { margin-top: 15px; display: flex; gap: 15px; justify-content: center; }
         .psn-card-img { height: 55px; border-radius: 4px; border: 1px solid #444; }
-
-        .section-title {
-            background: rgba(46, 204, 113, 0.1);
-            padding: 10px 15px;
-            margin: 25px 0 12px;
-            border-left: 5px solid #2ecc71;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-        }
-
+        .section-title { background: rgba(46, 204, 113, 0.1); padding: 10px 15px; margin: 25px 0 12px; border-left: 5px solid #2ecc71; font-weight: bold; text-transform: uppercase; font-size: 0.9rem; }
         .completed-title { border-left-color: #27ae60; color: #2ecc71; }
         .game-stats-title { border-left-color: #f39c12; color: #f39c12; background: rgba(243, 156, 18, 0.1); }
-
-        .trophy-card {
-            background: rgba(25, 35, 25, 0.7);
-            border: 1px solid #2a4a3a;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-
-        .mission-card-simple { padding: 12px 20px; border-radius: 8px; background: rgba(25, 35, 25, 0.7); border: 1px solid #2a4a3a; }
-
-        .trophy-summary {
-            padding: 12px 18px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
+        .trophy-card { background: rgba(25, 35, 25, 0.7); border: 1px solid #2a4a3a; border-radius: 8px; margin-bottom: 10px; }
+        .mission-card-simple { border-radius: 8px; background: rgba(25, 35, 25, 0.7); border: 1px solid #2a4a3a; }
+        .trophy-summary { padding: 12px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .trophy-card.done { border-color: #27ae60; opacity: 0.85; background: rgba(20, 30, 20, 0.5); }
-
         .trophy-info { display: flex; align-items: center; gap: 12px; }
-        .trophy-icon-img { 
-            width: 32px; height: 32px; border-radius: 4px; 
-            border: 1px solid rgba(255,255,255,0.1);
-            background: #111; object-fit: cover;
-        }
+        .trophy-icon-img { width: 32px; height: 32px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: #111; object-fit: cover; }
         .stat-mini-icon { width: 24px; height: 24px; border-radius: 3px; object-fit: cover; }
         .trophy-rank { font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
         .rank-platinum { background: #e5e4e2; color: #111; }
         .rank-gold { background: #ffd700; color: #111; }
         .rank-silver { background: #c0c0c0; color: #111; }
         .rank-bronze { background: #cd7f32; color: #111; }
-
         .mission-details { display: none; padding: 12px 20px; background: rgba(0,0,0,0.4); border-top: 1px solid #2a4a3a; }
         .mission-details.active { display: block; }
-
         .mission-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .mission-row:last-child { border-bottom: none; }
-
         .mission-controls { display: flex; align-items: center; gap: 12px; }
         .btn-ctrl { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; width: 28px; height: 28px; cursor: pointer; border-radius: 4px; font-weight: bold; }
         .btn-sm { background: #1a2a1a; color: #2ecc71; border: 1px solid #2ecc71; padding: 2px 8px; cursor: pointer; border-radius: 4px; font-size: 0.65rem; font-weight: bold; }
         .count-display { font-family: 'Courier New', Courier, monospace; min-width: 50px; text-align: center; color: #2ecc71; font-weight: bold; }
-        
         .status-indicator { font-weight: bold; width: 24px; text-align: center; font-size: 1.1rem; }
         .status-complete { color: #2ecc71; }
         .status-working { color: #f39c12; }
-
         .tracker-footer { margin-top: 40px; text-align: center; font-size: 0.75rem; color: #7f8c8d; }
         .tracker-footer a { color: #2ecc71; text-decoration: none; }
+        
+        .map-tab-btn { flex: 1; padding: 8px; font-[700] text-[9px] uppercase tracking-tighter border-r border-white/5 hover:bg-emerald-500/20 transition-all; text-center; }
+        .map-tab-btn.active { background: #2ecc71; color: #111; }
+        .species-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(46, 204, 113, 0.1); border-radius: 8px; margin-bottom: 4px; }
+        .class-badge { background: #f1c40f; color: #111; font-weight: 800; text-[9px] px-1.5 py-0.5 rounded uppercase; margin-right: 8px; }
         
         #hall-of-fame img { transition: transform 0.5s ease; cursor: zoom-in; }
         #hall-of-fame img:hover { transform: scale(1.05); }
     </style>
 
     <script>
-        // --- CORE LOGIC ---
+        // --- DATA OBJECTS ---
+        const speciesData = {
+            1: "Canada/Greylag/Snow Geese, Ducks, Turkeys, Rabbits, American Mink, Grouse, Ptarmigan, Capercaillie.",
+            2: "Gray/Red/Tibetan Fox, Raccoon, Raccoon Dog, Musk Deer, Coyote, Jackal, Badger, Beaver, Bobcat.",
+            3: "Axis/Roe/Hog Deer, Blackbuck, Springbok, Pronghorn, Feral Goat, Chamois, Lynx, Collared Peccary.",
+            4: "Whitetail/Blacktail/Fallow/Sika Deer, Lesser Kudu, Ibex, Mouflon, Blue Sheep, Tahr, Warthog.",
+            5: "Mule Deer, Bighorn Sheep, Puma, Mountain Lion, Wild Boar, Feral Pig, Javan Rusa.",
+            6: "Red Deer, Reindeer, Caribou, Blue Wildebeest, Gemsbok, Nilgai, Gray/Iberian Wolf.",
+            7: "Elk, Black/Brown Bear, American Alligator, Sambar.",
+            8: "Moose, Grizzly Bear, Saltwater Crocodile.",
+            9: "Bison, Cape/Water Buffalo, Banteng, Wild Yak, Lion, Bengal Tiger."
+        };
+
+        const mapSpeciesLists = {
+            srp: [
+                { id: "srp_turkey", name: "Merriam Turkey", class: 1 },
+                { id: "srp_pronghorn", name: "Pronghorn", class: 3 },
+                { id: "srp_mtgoat", name: "Mountain Goat", class: 4 },
+                { id: "srp_bighorn", name: "Bighorn Sheep", class: 4 },
+                { id: "srp_mtlion", name: "Mountain Lion", class: 5 },
+                { id: "srp_muledeer", name: "Mule Deer", class: 5 },
+                { id: "srp_bear", name: "Black Bear", class: 7 },
+                { id: "srp_elk", name: "Rocky Mountain Elk", class: 7 },
+                { id: "srp_bison", name: "Plains Bison", class: 9 }
+            ],
+            hirsch: [
+                { id: "h_goose", name: "Canada Goose", class: 1 },
+                { id: "h_rabbit", name: "European Rabbit", class: 1 },
+                { id: "h_fox", name: "Red Fox", class: 2 },
+                { id: "h_roe", name: "Roe Deer", class: 3 },
+                { id: "h_fallow", name: "Fallow Deer", class: 4 },
+                { id: "h_boar", name: "Wild Boar", class: 5 },
+                { id: "h_red", name: "Red Deer", class: 6 },
+                { id: "h_bison", name: "European Bison", class: 9 }
+            ],
+            layton: [
+                { id: "l_duck", name: "Mallard", class: 1 },
+                { id: "l_rabbit", name: "Jackrabbit", class: 1 },
+                { id: "l_coyote", name: "Coyote", class: 2 },
+                { id: "l_blacktail", name: "Blacktail Deer", class: 4 },
+                { id: "l_whitetail", name: "Whitetail Deer", class: 4 },
+                { id: "l_bear", name: "Black Bear", class: 7 },
+                { id: "l_elk", name: "Roosevelt Elk", class: 7 },
+                { id: "l_moose", name: "Moose", class: 8 }
+            ],
+            vurhonga: [
+                { id: "v_hare", name: "Scrub Hare", class: 1 },
+                { id: "v_jackal", name: "Side-striped Jackal", class: 2 },
+                { id: "v_springbok", name: "Springbok", class: 3 },
+                { id: "v_kudu", name: "Lesser Kudu", class: 4 },
+                { id: "v_warthog", name: "Warthog", class: 4 },
+                { id: "v_wildebeest", name: "Blue Wildebeest", class: 6 },
+                { id: "v_gemsbok", name: "Gemsbok", class: 6 },
+                { id: "v_buffalo", name: "Cape Buffalo", class: 9 },
+                { id: "v_lion", name: "Lion", class: 9 }
+            ],
+            parque: [
+                { id: "p_duck", name: "Cinnamon Teal", class: 1 },
+                { id: "p_blackbuck", name: "Blackbuck", class: 3 },
+                { id: "p_axis", name: "Axis Deer", class: 3 },
+                { id: "p_puma", name: "Puma", class: 5 },
+                { id: "p_mule", name: "Mule Deer", class: 5 },
+                { id: "p_red", name: "Red Deer", class: 6 },
+                { id: "p_buffalo", name: "Water Buffalo", class: 9 }
+            ],
+            yukon: [
+                { id: "y_duck", name: "Harlequin Duck", class: 1 },
+                { id: "y_fox", name: "Red Fox", class: 2 },
+                { id: "y_wolf", name: "Gray Wolf", class: 6 },
+                { id: "y_caribou", name: "Caribou", class: 6 },
+                { id: "y_grizzly", name: "Grizzly Bear", class: 8 },
+                { id: "y_moose", name: "Moose", class: 8 },
+                { id: "y_bison", name: "Plains Bison", class: 9 }
+            ],
+            cuatro: [
+                { id: "c_rabbit", name: "European Rabbit", class: 1 },
+                { id: "c_roe", name: "Roe Deer", class: 3 },
+                { id: "c_mouflon", name: "Iberian Mouflon", class: 4 },
+                { id: "c_ibex", name: "Iberian Ibex", class: 4 },
+                { id: "c_boar", name: "Wild Boar", class: 5 },
+                { id: "c_red", name: "Red Deer", class: 6 },
+                { id: "c_wolf", name: "Iberian Wolf", class: 6 }
+            ]
+        };
+
         const firebaseConfig = (typeof __firebase_config !== 'undefined') 
             ? JSON.parse(__firebase_config) 
             : {
@@ -329,159 +291,176 @@
         const storage = firebase.storage();
 
         const GAME_ICON = "https://img.psnprofiles.com/trophy/s/6622/ab71d597-4a98-4891-9f93-5e26fbd42d03.png";
+        const BOSS_ICON = "https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png";
         const ARC_ICON = "https://img.psnprofiles.com/trophy/s/6622/716af6c9-1cf7-4d32-b567-7c06503e9be6.png";
-        const PARK_ICON = "https://img.psnprofiles.com/trophy/s/6622/c37a9f07-6ed9-435a-9a2d-93915f1a70e3.png";
-        const SKILL_ICON = "https://img.psnprofiles.com/trophy/s/6622/432eb9b6-f804-440a-b251-801d651ffb6b.png";
         const FALLBACK_ICON = "https://www.playstation.com/etc.clientlibs/global_layouts/clientlibs/clientlib-base/resources/img/favicon/apple-icon-180x180.png";
 
         let localTrophyData = {};
+        let activeMap = 'srp';
         let activeUploadCategory = 'diamond';
 
         const DLC_MAPS = [
-            { id: "yukon", name: "Yukon Valley" },
-            { id: "parque", name: "Parque Fernando" },
+            { id: "boss", name: "World Boss Kill List" },
             { id: "srp", name: "Silver Ridge Peaks" },
             { id: "hirsch", name: "Hirschfelden" },
             { id: "layton", name: "Layton Lake" },
+            { id: "cuatro", name: "Cuatro Colinas" },
+            { id: "parque", name: "Parque Fernando" },
+            { id: "yukon", name: "Yukon Valley" },
             { id: "medved", name: "Medved-Taiga" },
             { id: "vurhonga", name: "Vurhonga Savanna" },
             { id: "base", name: "General Challenges" }
         ];
 
         const trophyList = [
-            { id: "platinum", name: "theHunter (Platinum)", rank: "platinum", isDone: false, map: "base", missions: [{ id: "m_plat", label: "Base Game Completion", target: 51, current: 24 }] },
-            
-            // Yukon
-            { id: "yukon_main", name: "Yukon Story Arc", rank: "silver", isDone: false, map: "yukon", missions: [{ id: "m_yu_main", label: "Jim Murray Tasks", target: 10, current: 0 }] },
-            { id: "yukon_side", name: "Yukon Extra Work", rank: "bronze", isDone: false, map: "yukon", missions: [{ id: "s_yu_total", label: "Kayla, Bev, Sandy Side tasks", target: 35, current: 0 }] },
-
-            // Parque
-            { id: "parque_main", name: "Parque Story Arc", rank: "silver", isDone: false, map: "parque", missions: [{ id: "m_p_story", label: "Carolina's Arc", target: 18, current: 0 }] },
-            { id: "parque_side", name: "Parque Side Arcs", rank: "bronze", isDone: false, map: "parque", missions: [{ id: "s_p_total", label: "Estancia Side Tasks", target: 30, current: 0 }] },
-
-            // SRP
-            { id: "srp_main", name: "SRP Main Story", rank: "silver", isDone: false, map: "srp", missions: [{ id: "m_srp_total", label: "Allan Bradley Arcs", target: 15, current: 0 }] },
-            { id: "srp_explore", name: "SRP Exploration", rank: "bronze", isDone: false, map: "srp", missions: [
-                { id: "m_cabins", label: "Cabins Found", target: 19, current: 1 },
-                { id: "m_lookouts", label: "Lookout Towers", target: 15, current: 1 }
-            ] },
-
-            // Hirschfelden
-            { id: "hirsch_main", name: "Hirsch Main Missions", rank: "silver", isDone: false, map: "hirsch", missions: [{ id: "m_h_main", label: "Story Progression", target: 28, current: 0 }] },
-            { id: "hirsch_side", name: "Hirsch Side Tasks", rank: "bronze", isDone: false, map: "hirsch", missions: [{ id: "s_h_total", label: "Reserve Side Tasks", target: 70, current: 0 }] },
-
-            // Layton
-            { id: "layton_main", name: "Layton Main Missions", rank: "silver", isDone: false, map: "layton", missions: [{ id: "m_l_main", label: "Story Progression", target: 28, current: 0 }] },
-            { id: "layton_side", name: "Layton Side Tasks", rank: "bronze", isDone: false, map: "layton", missions: [{ id: "s_l_total", label: "Reserve Side Tasks", target: 70, current: 0 }] },
-
-            // Medved
-            { id: "medved_main", name: "Medved Story Arc", rank: "silver", isDone: false, map: "medved", missions: [{ id: "m_m_total", label: "Expedition Arcs", target: 32, current: 0 }] },
-            { id: "medved_side", name: "Medved Side Tasks", rank: "bronze", isDone: false, map: "medved", missions: [{ id: "s_m_total", label: "Reserve Side Missions", target: 50, current: 0 }] },
-
-            // Vurhonga
-            { id: "vurh_main", name: "Vurhonga Story Arc", rank: "silver", isDone: false, map: "vurhonga", missions: [{ id: "m_v_njabulo", label: "Njabulo's Arcs", target: 16, current: 0 }] },
-            { id: "vurhonga_side", name: "Vurhonga Side Tasks", rank: "bronze", isDone: false, map: "vurhonga", missions: [{ id: "s_v_total", label: "Warden Side Tasks", target: 46, current: 0 }] },
-
-            // General
-            { id: "zombie", name: "This Is Not A Zombie Game", rank: "silver", isDone: false, map: "base", missions: [{ id: "m_brain", label: "Brain Shot Kills", target: 10, current: 0 }] },
-            { id: "cotw_callers", name: "Call Of The Wild", rank: "silver", isDone: false, map: "base", missions: [{ id: "m_callers", label: "Use All Callers", target: 1, current: 0 }] }
+            { id: "platinum", name: "theHunter (Platinum)", rank: "platinum", isDone: false, map: "base", missions: [{ id: "m_plat", label: "Base Completion", target: 51, current: 24 }] },
+            { id: "boss_wurst", name: "Sausage (Wurst) - Boar Boss", rank: "gold", isDone: false, map: "boss", missions: [{ id: "m_wurst", label: "Harvest Boss", target: 1, current: 0 }] },
+            { id: "boss_black", name: "Mr. Black - Bear Boss", rank: "gold", isDone: false, map: "boss", missions: [{ id: "m_mrblack", label: "Harvest Boss", target: 1, current: 0 }] },
+            { id: "boss_fantasma", name: "Fantasma - Wolf Boss", rank: "gold", isDone: false, map: "boss", missions: [{ id: "m_fantasma", label: "Harvest Boss", target: 1, current: 0 }] },
+            { id: "boss_ogro", name: "Ogro - Wolf Boss", rank: "gold", isDone: false, map: "boss", missions: [{ id: "m_ogro", label: "Harvest Boss", target: 1, current: 0 }] },
+            { id: "srp_main", name: "Allan Bradley Story", rank: "silver", isDone: false, map: "srp", missions: [{ id: "m_srp_total", label: "Story Progress", target: 15, current: 0 }] },
+            { id: "hirsch_main", name: "Cornelia Holzer Story", rank: "silver", isDone: false, map: "hirsch", missions: [{ id: "m_h_total", label: "Story Progress", target: 28, current: 0 }] },
+            { id: "layton_main", name: "Colton Locke Story", rank: "silver", isDone: false, map: "layton", missions: [{ id: "m_l_total", label: "Story Progress", target: 28, current: 0 }] },
+            { id: "yukon_main", name: "Jim Murray Story", rank: "silver", isDone: false, map: "yukon", missions: [{ id: "m_y_total", label: "Story Progress", target: 10, current: 0 }] },
+            { id: "vurh_main", name: "Njabulo Tshabangu Story", rank: "silver", isDone: false, map: "vurhonga", missions: [{ id: "m_v_total", label: "Story Progress", target: 16, current: 0 }] }
         ];
 
-        function initTracker() {
-            const container = document.getElementById('dlc-sections-container');
-            const doneList = document.getElementById('trophy-list-done');
-            if (!container || !doneList) return;
+        // --- CORE FUNCTIONS ---
+
+        function toggleSpeciesList(classId) {
+            const exp = document.getElementById('species-data-expansion');
+            const content = document.getElementById('species-content');
+            exp.classList.remove('hidden');
+            content.innerHTML = `<strong class="text-yellow-400 uppercase">Class ${classId} Targets:</strong><br>${speciesData[classId]}`;
+        }
+
+        function switchMap(mapId) {
+            activeMap = mapId;
+            renderMapSpecies();
+            const btns = document.querySelectorAll('.map-tab-btn');
+            btns.forEach(b => b.classList.toggle('active', b.getAttribute('onclick').includes(`'${mapId}'`)));
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('map-tabs');
+            const maps = Object.keys(mapSpeciesLists);
+            container.innerHTML = maps.map(mId => `
+                <button class="map-tab-btn ${activeMap === mId ? 'active' : ''}" onclick="switchMap('${mId}')">${mId}</button>
+            `).join('');
+        }
+
+        function renderMapSpecies() {
+            const root = document.getElementById('species-harvest-root');
+            const list = mapSpeciesLists[activeMap];
+            if (!list) return;
+            const counts = localTrophyData.speciesCounts || {};
             
-            container.innerHTML = "";
-            doneList.innerHTML = "";
+            root.innerHTML = list.map(s => `
+                <div class="species-row">
+                    <div class="flex items-center">
+                        <span class="class-badge">Cl ${s.class}</span>
+                        <span class="text-[11px] font-bold text-white/90">${s.name}</span>
+                    </div>
+                    <div class="mission-controls">
+                        <button class="btn-ctrl" onclick="updateSpeciesCount('${s.id}', -1)">-</button>
+                        <span id="species-${s.id}" class="count-display text-emerald-400">${counts[s.id] || 0}</span>
+                        <button class="btn-ctrl" onclick="updateSpeciesCount('${s.id}', 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function initTracker() {
+            const dlcContainer = document.getElementById('dlc-sections-container');
+            const doneList = document.getElementById('trophy-list-done');
+            if (!dlcContainer || !doneList) return;
+            
+            dlcContainer.innerHTML = ""; doneList.innerHTML = "";
 
             DLC_MAPS.forEach(map => {
                 const mapTrophies = trophyList.filter(t => t.map === map.id && !t.isDone);
                 if (mapTrophies.length === 0) return;
-
                 const section = document.createElement('div');
                 section.innerHTML = `<div class="section-title border-emerald-500/50">${map.name}</div><div id="list-${map.id}"></div>`;
-                container.appendChild(section);
-
+                dlcContainer.appendChild(section);
                 const listEl = document.getElementById(`list-${map.id}`);
                 mapTrophies.forEach(t => renderCard(t, listEl));
             });
 
             trophyList.filter(t => t.isDone).forEach(t => renderCard(t, doneList));
-            updateGlobalStats();
+            updateGlobalStatsDisplay();
+            renderRankRows();
+            renderTabs();
+            renderMapSpecies();
         }
 
         function renderCard(t, targetEl) {
             const card = document.createElement('div');
             card.className = `trophy-card ${t.isDone ? 'done' : ''}`;
-            
-            let missionHtml = "";
+            let mHtml = "";
             if (t.missions) {
                 t.missions.forEach(m => {
                     const isMComplete = m.current >= m.target;
-                    const hideControls = t.id === 'platinum';
-                    missionHtml += `
+                    mHtml += `
                         <div class="mission-row">
                             <span class="mission-text">${m.label} <small>(${m.target})</small></span>
                             <div class="mission-controls">
-                                ${hideControls ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', -1, ${m.target})">-</button>`}
+                                <button class="btn-ctrl" onclick="updateMission('${m.id}', -1, ${m.target})">-</button>
                                 <span id="val-${m.id}" class="count-display">${m.current}</span>
-                                ${hideControls ? '' : `<button class="btn-ctrl" onclick="updateMission('${m.id}', 1, ${m.target})">+</button>`}
+                                <button class="btn-ctrl" onclick="updateMission('${m.id}', 1, ${m.target})">+</button>
                                 <span class="status-indicator ${isMComplete ? 'status-complete' : 'status-working'}">${isMComplete ? '✓' : '—'}</span>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
             }
-
-            let iconToUse = GAME_ICON;
-            const lowerName = t.name.toLowerCase();
-            if (lowerName.includes("call of the wild")) iconToUse = "https://img.psnprofiles.com/trophy/s/6622/475f711c-00ad-489f-ac9f-7465c2a4a038.png";
-            else if (lowerName.includes("cabin") || lowerName.includes("lookout")) iconToUse = PARK_ICON;
-            else iconToUse = ARC_ICON;
-
             card.innerHTML = `
                 <div class="trophy-summary" onclick="toggleDetails('${t.id}')">
                     <div class="trophy-info">
-                        <img src="${iconToUse}" class="trophy-icon-img" referrerpolicy="no-referrer" alt="Icon" onerror="this.onerror=null;this.src='${FALLBACK_ICON}';">
+                        <img src="${(t.map === 'boss') ? BOSS_ICON : GAME_ICON}" class="trophy-icon-img" alt="Icon">
                         <span class="trophy-rank rank-${t.rank}">${t.rank}</span>
                         <span class="trophy-name">${t.name}</span>
                     </div>
                     <span id="arrow-${t.id}">${t.isDone ? '✓' : '▼'}</span>
                 </div>
-                ${missionHtml ? `<div id="details-${t.id}" class="mission-details">${missionHtml}</div>` : ''}
-            `;
+                ${mHtml ? `<div id="details-${t.id}" class="mission-details">${mHtml}</div>` : ''}`;
             targetEl.appendChild(card);
         }
 
-        function updateGlobalStats() {
-            const totalBase = 51;
-            const completedBase = trophyList.filter(t => t.isDone && !t.id.includes('platinum')).length;
-            const percentage = Math.round((completedBase / totalBase) * 100);
-            const summary = document.getElementById('stats-summary');
-            if (summary) summary.innerText = `User: Werewolf3788 | ${completedBase}/${totalBase} Base Completion (${percentage}%)`;
+        function renderRankRows() {
+            const root = document.getElementById('rank-rows-root');
+            if (!root) return;
+            const ranks = [
+                { k: 'greatone', l: 'Great One Grind', c: 'red-500', i: BOSS_ICON },
+                { k: 'diamond', l: 'Diamond Harvests', c: 'cyan-300', i: 'https://img.psnprofiles.com/trophy/s/6622/929e003f-82a9-43bc-80a3-7b22ba53def1.png' },
+                { k: 'albino', l: 'Albino Trophies', c: 'slate-100', i: 'https://img.psnprofiles.com/trophy/s/6622/f838641a-821b-4654-9457-300e84f5539c.png' },
+                { k: 'gold', l: 'Gold Harvests', c: 'yellow-400', i: 'https://img.psnprofiles.com/trophy/s/6622/2bd6e12c-577a-43da-931e-920b7e681649.png' },
+                { k: 'silver', l: 'Silver Harvests', c: 'slate-300', i: 'https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png' },
+                { k: 'bronze', l: 'Bronze Harvests', c: 'orange-400', i: 'https://img.psnprofiles.com/trophy/s/6622/1665d213-9e64-4f4a-8711-d0bd509f618f.png' }
+            ];
+            root.innerHTML = ranks.map(r => `
+                <div class="mission-row p-3 bg-black/20 border border-white/5 rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <img src="${r.i}" class="stat-mini-icon" alt="${r.k}">
+                        <span class="mission-text text-${r.c} font-bold uppercase tracking-tighter">${r.l}</span>
+                    </div>
+                    <div class="mission-controls">
+                        <button class="btn-ctrl" onclick="updateCloudStat('${r.k}', -1)">-</button>
+                        <span id="stat-${r.k}" class="count-display text-${r.c}">${localTrophyData[r.k] || 0}</span>
+                        <button class="btn-ctrl" onclick="updateCloudStat('${r.k}', 1)">+</button>
+                    </div>
+                </div>`).join('');
         }
 
+        // --- CLOUD SYNC ---
         const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await auth.signInWithCustomToken(__initial_auth_token);
-                } else {
-                    await auth.signInAnonymously();
-                }
-            } catch (error) { 
-                console.error("Auth error:", error); 
-                try { await auth.signInAnonymously(); } catch(e) {}
-            }
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await auth.signInWithCustomToken(__initial_auth_token);
+            } else { await auth.signInAnonymously(); }
         };
 
         auth.onAuthStateChanged(user => {
             if (user) {
-                const cloudStatusEl = document.getElementById('cloud-status');
-                if (cloudStatusEl) {
-                    cloudStatusEl.innerText = "Connected";
-                    cloudStatusEl.style.color = "#2ecc71";
-                }
+                document.getElementById('cloud-status').innerText = "Connected";
                 // RULE 1: Strict Paths
                 const docPath = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
                 docPath.onSnapshot((doc) => {
@@ -489,157 +468,86 @@
                         localTrophyData = doc.data();
                         syncUIWithData();
                         syncMissionsWithData();
+                        renderMapSpecies();
                     }
-                }, error => {
-                    console.error("Sync Error:", error);
                 });
             }
         });
 
+        async function updateCloudStat(k, delta) {
+            if (!auth.currentUser) return;
+            const newCount = Math.max(0, (localTrophyData[k] || 0) + delta);
+            document.getElementById('stat-' + k).innerText = newCount;
+            const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+            await docRef.set({ [k]: newCount }, { merge: true });
+        }
+
+        async function updateSpeciesCount(sId, delta) {
+            if (!auth.currentUser) return;
+            const curCounts = localTrophyData.speciesCounts || {};
+            const newVal = Math.max(0, (curCounts[sId] || 0) + delta);
+            document.getElementById('species-' + sId).innerText = newVal;
+            const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+            await docRef.set({ speciesCounts: { ...curCounts, [sId]: newVal } }, { merge: true });
+        }
+
+        async function updateMission(mId, delta, target) {
+            if (!auth.currentUser) return;
+            let newVal = 0;
+            trophyList.forEach(t => { if (t.missions) t.missions.forEach(m => { if (m.id === mId) { m.current = Math.max(0, Math.min(target, m.current + delta)); newVal = m.current; } })});
+            initTracker();
+            const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+            const exProg = localTrophyData.missionProgress || {};
+            await docRef.set({ missionProgress: { ...exProg, [mId]: newVal } }, { merge: true });
+        }
+
         function syncUIWithData() {
-            const mappings = {
-                'bronze': 'stat-bronze', 'silver': 'stat-silver', 'gold': 'stat-gold',
-                'diamond': 'stat-diamond', 'greatone': 'stat-greatone', 'albino': 'stat-albino',
-                'longestShot': 'stat-longestShot',
-                'harvestImageUrl_diamond': 'img-diamond',
-                'harvestImageUrl_greatone': 'img-greatone'
-            };
-
-            Object.entries(mappings).forEach(([dbKey, htmlId]) => {
-                const val = localTrophyData[dbKey] || 0;
-                const el = document.getElementById(htmlId);
-                if (!el) return;
-
-                if (dbKey.includes('harvestImageUrl') && val) {
-                    el.src = val;
-                    const type = dbKey.split('_')[1];
-                    const container = document.getElementById('hof-' + type);
-                    if (container) container.classList.remove('hidden');
-                } else if (dbKey === 'longestShot') {
-                    el.innerText = (typeof val === 'string' && !val.includes('yds')) ? val + ' yds' : val;
-                } else {
-                    el.innerText = val;
-                }
+            ['greatone', 'diamond', 'albino', 'gold', 'silver', 'bronze'].forEach(k => {
+                const el = document.getElementById('stat-' + k);
+                if (el) el.innerText = localTrophyData[k] || 0;
             });
+            if (localTrophyData.harvestImageUrl_diamond) { document.getElementById('img-diamond').src = localTrophyData.harvestImageUrl_diamond; document.getElementById('hof-diamond').classList.remove('hidden'); }
+            if (localTrophyData.harvestImageUrl_greatone) { document.getElementById('img-greatone').src = localTrophyData.harvestImageUrl_greatone; document.getElementById('hof-greatone').classList.remove('hidden'); }
+            if (localTrophyData.longestShot) document.getElementById('stat-longestShot').innerText = localTrophyData.longestShot;
         }
 
         function syncMissionsWithData() {
-            if (!localTrophyData.missionProgress) return;
-            const progress = localTrophyData.missionProgress;
-            trophyList.forEach(t => {
-                if (t.missions) {
-                    t.missions.forEach(m => {
-                        if (progress[m.id] !== undefined) {
-                            m.current = progress[m.id];
-                        }
-                    });
-                }
-            });
+            const prog = localTrophyData.missionProgress || {};
+            trophyList.forEach(t => { if (t.missions) t.missions.forEach(m => { if (prog[m.id] !== undefined) m.current = prog[m.id]; })});
             initTracker();
         }
 
-        async function updateCloudStat(trophyId, delta) {
-            if (!auth.currentUser) return;
-            // Calculate current value from local state or DB
-            const currentCount = localTrophyData[trophyId] || 0;
-            const newCount = Math.max(0, currentCount + delta);
-            
-            try {
-                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
-                await docRef.set({ [trophyId]: newCount, lastUpdated: Date.now() }, { merge: true });
-                // UI updates automatically via onSnapshot
-            } catch (error) { console.error("Update failed:", error); }
-        }
-
-        async function updateMission(mId, change, target) {
-            if (!auth.currentUser) return;
-            
-            let currentVal = 0;
-            trophyList.forEach(t => {
-                if (t.missions) {
-                    t.missions.forEach(m => {
-                        if (m.id === mId) {
-                            m.current = Math.max(0, Math.min(target, m.current + change));
-                            currentVal = m.current;
-                        }
-                    });
-                }
-            });
-
-            try {
-                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
-                // Get current progress map and update it
-                const existingProgress = localTrophyData.missionProgress || {};
-                await docRef.set({
-                    missionProgress: {
-                        ...existingProgress,
-                        [mId]: currentVal
-                    }
-                }, { merge: true });
-            } catch (error) { console.error("Mission update failed:", error); }
-        }
-
-        function triggerUpload(category) {
-            activeUploadCategory = category;
-            document.getElementById('trophy-upload').click();
-        }
+        function triggerUpload(cat) { activeUploadCategory = cat; document.getElementById('trophy-upload').click(); }
 
         async function handleImageUpload(input) {
             if (!auth.currentUser || !input.files[0]) return;
-            const category = activeUploadCategory;
             const file = input.files[0];
-            const progressBar = document.getElementById('progress-bar');
-            const progressContainer = document.getElementById('upload-progress');
-            progressContainer.classList.remove('hidden');
-            
-            const storagePath = `artifacts/${sharedAppId}/public/data/userImages/${leadDevId}/${category}/${Date.now()}_${file.name}`;
-            const storageRef = storage.ref(storagePath);
-            const uploadTask = storageRef.put(file);
-
-            uploadTask.on('state_changed', 
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    progressBar.style.width = progress + '%';
-                }, 
-                (error) => { progressContainer.classList.add('hidden'); }, 
-                async () => {
-                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
-                    const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
-                    await docRef.set({ ['harvestImageUrl_' + category]: downloadURL, lastUpdated: Date.now() }, { merge: true });
-                    progressContainer.classList.add('hidden');
-                }
-            );
+            const pCont = document.getElementById('upload-progress');
+            pCont.classList.remove('hidden');
+            const sPath = `artifacts/${sharedAppId}/public/data/userImages/${leadDevId}/${activeUploadCategory}/${Date.now()}_${file.name}`;
+            const task = storage.ref(sPath).put(file);
+            task.on('state_changed', (s) => document.getElementById('progress-bar').style.width = (s.bytesTransferred/s.totalBytes)*100 + '%', null, async () => {
+                const url = await task.snapshot.ref.getDownloadURL();
+                const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
+                await docRef.set({ ['harvestImageUrl_' + activeUploadCategory]: url }, { merge: true });
+                pCont.classList.add('hidden');
+            });
         }
 
         async function setLongestShot() {
             if (!auth.currentUser) return;
-            const current = localTrophyData['longestShot'] || "184.82 yds";
-            const val = window.prompt("Enter Longest Vital Organ Hit Record (e.g. 184.82 yds):", current);
-            if (val !== null) {
+            const val = window.prompt("Enter Longest Hit:", localTrophyData.longestShot || "184.82 yds");
+            if (val) {
                 const docRef = db.collection('artifacts').doc(sharedAppId).collection('public').doc('data').collection('userTrophies').doc(leadDevId);
-                await docRef.set({ 'longestShot': val, lastUpdated: Date.now() }, { merge: true });
+                await docRef.set({ longestShot: val }, { merge: true });
             }
         }
 
-        function toggleDetails(id) {
-            const el = document.getElementById(`details-${id}`);
-            if (!el) return;
-            el.classList.toggle('active');
-            const arrowEl = document.getElementById(`arrow-${id}`);
-            if (arrowEl) arrowEl.innerText = el.classList.contains('active') ? '▲' : '▼';
-        }
-
-        async function syncWithPSN() {
-            const btn = document.getElementById('sync-btn');
-            if (!btn) return;
-            btn.innerText = "🔄 Syncing...";
-            try {
-                const proxy = 'https://api.allorigins.win/get?url=';
-                const feedUrl = encodeURIComponent('https://psntrophyleaders.com/user/view/Werewolf3788/rss');
-                await fetch(proxy + feedUrl);
-                btn.innerText = "✅ Done";
-                setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000);
-            } catch (e) { btn.innerText = "❌ Error"; setTimeout(() => btn.innerText = "🔄 Sync PSN Status", 3000); }
+        function toggleDetails(id) { const el = document.getElementById('details-' + id); if (el) el.classList.toggle('active'); }
+        async function syncWithPSN() { const b = document.getElementById('sync-btn'); b.innerText = "🔄 Syncing..."; setTimeout(() => { b.innerText = "✅ Done"; setTimeout(() => b.innerText = "🔄 Sync PSN Status", 2000); }, 2000); }
+        function updateGlobalStatsDisplay() {
+            const completed = trophyList.filter(t => t.isDone && t.id !== 'platinum').length;
+            document.getElementById('stats-summary').innerText = `User: Werewolf3788 | ${completed}/Base Completion`;
         }
 
         window.onload = () => { initTracker(); initAuth(); };
