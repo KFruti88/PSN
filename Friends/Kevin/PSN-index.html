@@ -24,6 +24,7 @@
             --gold-shine: #ffd700;
             --silver-shine: #c0c0c0;
             --bronze-shine: #cd7f32;
+            --legendary-purple: #bf40bf;
         }
 
         #wp-custom-wrapper {
@@ -32,21 +33,44 @@
             color: #ffffff;
             font-family: 'Roboto', sans-serif;
             scroll-behavior: smooth;
+            width: 100%;
+        }
+
+        .container-90 {
+            width: 90% !important;
+            max-width: 2800px;
+            margin: 0 auto;
         }
 
         .hero-section {
-            background: linear-gradient(to bottom, rgba(0,0,0,0.85), #020617), url('https://raw.githubusercontent.com/KFruti88/Universal-Stream-Overlay/main/images/werewolf3788.png');
-            background-size: 400px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), #020617), url('https://raw.githubusercontent.com/KFruti88/Universal-Stream-Overlay/main/images/werewolf3788.png');
+            background-size: 450px;
             background-repeat: no-repeat;
-            background-position: center 20%;
-            padding: 120px 0 100px;
+            background-position: center 5%;
+            padding: 150px 0 60px;
             text-align: center;
         }
 
+        .video-container {
+            width: 100%;
+            position: relative;
+            padding-bottom: 56.25%; 
+            height: 0;
+            border-radius: 32px;
+            overflow: hidden;
+            border: 4px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 80px rgba(0,0,0,1);
+            margin: 50px 0;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%; border: none;
+        }
+
         .game-section {
-            padding: 120px 10%;
+            padding: 120px 0;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            min-height: 90vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -55,170 +79,237 @@
         .game-title {
             font-family: 'Orbitron', sans-serif;
             font-weight: 900;
-            letter-spacing: 5px;
+            letter-spacing: 10px;
             text-transform: uppercase;
-            margin-bottom: 60px;
-            font-size: clamp(1.8rem, 6vw, 3.5rem);
+            margin-bottom: 80px;
+            font-size: clamp(2.5rem, 5vw, 5rem);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            text-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
         }
 
         .data-card {
-            background: rgba(30, 41, 59, 0.4);
-            border-radius: 20px;
-            padding: 35px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 24px;
+            padding: 40px;
             border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(15px);
+            backdrop-filter: blur(25px);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 480px;
+            overflow: hidden;
         }
-        .data-card:hover { transform: translateY(-10px); border-color: var(--primary-orange); box-shadow: 0 25px 50px rgba(255,95,31,0.2); }
+        .data-card:hover { transform: translateY(-15px); border-color: var(--primary-orange); box-shadow: 0 40px 80px rgba(255,95,31,0.25); }
 
-        .data-label { font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 900; letter-spacing: 2px; margin-bottom: 10px; }
-        .data-value { font-size: 2.2rem; font-weight: 900; font-family: 'Orbitron', sans-serif; }
-        .data-sub { font-size: 0.7rem; color: #64748b; font-weight: 700; margin-top: 8px; }
+        .data-label { font-size: 0.85rem; text-transform: uppercase; color: #94a3b8; font-weight: 900; letter-spacing: 4px; margin-bottom: 20px; }
+        
+        .data-value { 
+            font-size: clamp(1.6rem, 3.5vw, 3rem); 
+            font-weight: 900; 
+            font-family: 'Orbitron', sans-serif; 
+            line-height: 1.1;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+        
+        .data-sub { font-size: 0.75rem; color: #64748b; font-weight: 700; margin-top: 15px; text-transform: uppercase; }
 
-        .trophy-mini-grid {
+        .trophy-multi-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
             margin-top: 15px;
         }
-        .mini-box { text-align: center; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
-        .mini-label { font-size: 0.5rem; font-weight: 900; color: #64748b; text-transform: uppercase; }
-        .mini-val { font-size: 1rem; font-weight: 900; }
-
-        .recent-trophy-box {
-            background: rgba(0,0,0,0.4);
-            border-radius: 12px;
-            padding: 15px;
-            margin-top: 15px;
-            border-left: 4px solid var(--primary-orange);
-        }
+        .mini-box { text-align: center; background: rgba(0,0,0,0.4); padding: 15px 10px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); }
+        .mini-label { font-size: 0.65rem; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 8px; }
+        .mini-val { font-size: 1.6rem; font-weight: 900; font-family: 'Orbitron', sans-serif; }
 
         .sticky-nav {
             position: sticky; top: 0; background: rgba(2, 6, 23, 0.98);
-            z-index: 1000; border-bottom: 2px solid rgba(255,255,255,0.1);
-            padding: 15px 0; backdrop-filter: blur(20px);
+            z-index: 1000; border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 20px 0; backdrop-filter: blur(30px); width: 100%;
         }
 
         .nav-link {
-            font-size: 0.7rem; font-weight: 900; color: #94a3b8; text-transform: uppercase;
-            padding: 10px 18px; border-radius: 8px; transition: all 0.3s;
+            font-size: 0.8rem; font-weight: 900; color: #94a3b8; text-transform: uppercase;
+            padding: 12px 25px; border-radius: 12px; transition: all 0.3s;
+            letter-spacing: 2px;
         }
-        .nav-link:hover, .nav-link.active { color: var(--primary-orange); background: rgba(255,95,31,0.1); }
+        .nav-link:hover, .nav-link.active { color: var(--primary-orange); background: rgba(255,95,31,0.2); }
 
         .progress-bar { height: 10px; background: #1e293b; border-radius: 5px; overflow: hidden; margin-top: 15px; }
-        .progress-fill { height: 100%; transition: width 2s cubic-bezier(0.4, 0, 0.2, 1); width: 0%; }
+        .progress-fill { height: 100%; transition: width 3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 20px currentColor; }
 
-        .glow-diamond { color: #b9f2ff; text-shadow: 0 0 15px rgba(185,242,255,0.6); }
-        .glow-orange { color: var(--primary-orange); text-shadow: 0 0 15px rgba(255,95,31,0.6); }
+        .glow-diamond { color: #b9f2ff; text-shadow: 0 0 20px rgba(185,242,255,0.8); }
+        .glow-orange { color: var(--primary-orange); text-shadow: 0 0 20px rgba(255,95,31,0.8); }
         
         .remaining-pill {
             background: rgba(255,255,255,0.1);
-            padding: 4px 10px; border-radius: 50px; font-size: 0.6rem; color: #fff;
+            padding: 8px 18px; border-radius: 50px; font-size: 0.75rem; color: #fff; font-weight: 900;
         }
 
-        section { opacity: 0; transform: translateY(40px); transition: all 1s ease-out; }
+        .recent-display {
+            font-size: clamp(1.4rem, 2.5vw, 2.1rem);
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-left: 10px solid var(--primary-orange);
+            padding-left: 25px;
+            margin-top: 15px;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 25px rgba(255,95,31,0.4);
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+
+        /* DLC List Compact Styling */
+        .dlc-list {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .dlc-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #cbd5e1;
+        }
+        .dlc-prog { color: var(--primary-orange); font-family: 'Orbitron', sans-serif; }
+
+        section { opacity: 0; transform: translateY(60px); transition: all 1.2s ease-out; }
         section.visible { opacity: 1; transform: translateY(0); }
+
+        .sync-badge { font-size: 11px; font-weight: 900; text-transform: uppercase; display: flex; align-items: center; gap: 10px; letter-spacing: 3px; background: rgba(46, 204, 113, 0.1); padding: 8px 20px; border-radius: 50px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #2ecc71; animation: blink 2s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div id="wp-custom-wrapper">
-    <!-- SECTION 0: HERO -->
+    <!-- MASTER HERO -->
     <div class="hero-section">
-        <h1 class="text-8xl font-black italic tracking-tighter text-white mb-4">WEREWOLF3788</h1>
-        <p class="text-lg font-bold tracking-[0.6em] text-slate-400 uppercase mb-12">Lead Developer Accomplishments</p>
-        
-        <div class="flex flex-col items-center gap-6">
-            <a href="https://psnprofiles.com/Werewolf3788" target="_blank" class="hover:scale-105 transition-transform duration-500">
-                <img src="https://card.psnprofiles.com/1/Werewolf3788.png" border="0" alt="PSN Card" class="w-full max-w-lg shadow-2xl rounded-lg">
-            </a>
-            <div class="flex gap-4 mt-6">
-                <a href="#sec1" class="px-6 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black tracking-widest hover:bg-orange-600 transition-all uppercase">Enter Command Center</a>
+        <div class="container-90">
+            <h1 class="text-9xl font-black italic tracking-tighter text-white mb-6 uppercase">WEREWOLF3788</h1>
+            <p class="text-2xl font-bold tracking-[1em] text-slate-500 uppercase mb-8">Lead Developer Master Accomplishments</p>
+            <div class="flex justify-center mb-12"><div class="sync-badge text-[#2ecc71]"><div class="dot"></div> System Logs Real-Time</div></div>
+            
+            <div class="video-container">
+                <iframe
+                    src="https://player.twitch.tv/?channel=werewolf3788&parent=kfruti88.github.io&parent=localhost&autoplay=true&muted=true"
+                    allowfullscreen="true">
+                </iframe>
+            </div>
+
+            <div class="mt-16">
+                <a href="https://psntrophyleaders.com/user/view/Werewolf3788" target="_blank" class="hover:scale-105 inline-block transition-all duration-700 shadow-[0_0_100px_rgba(0,0,0,0.8)] rounded-3xl border border-white/10">
+                    <img src="https://card.psnprofiles.com/1/Werewolf3788.png" border="0" alt="PSN Card" class="w-full max-w-2xl">
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- STICKY NAV -->
+    <!-- NAVIGATION -->
     <nav class="sticky-nav">
-        <div class="container mx-auto flex flex-wrap justify-center gap-2 md:gap-4 px-4">
-            <a href="#sec1" class="nav-link">1. Global</a>
+        <div class="container-90 flex flex-wrap justify-center gap-6">
+            <a href="#sec1" class="nav-link">1. Identity</a>
             <a href="#sec2" class="nav-link">2. theHunter</a>
             <a href="#sec3" class="nav-link">3. The Angler</a>
             <a href="#sec4" class="nav-link">4. FS22</a>
-            <a href="#sec5" class="nav-link">5. FS25</a>
-            <a href="#sec6" class="nav-link">6. Future</a>
+            <a href="#sec6" class="nav-link">5. Future Systems</a>
         </div>
     </nav>
 
-    <!-- SECTION 1: GLOBAL STATUS -->
+    <!-- SECTION 1: GLOBAL IDENTITY -->
     <section id="sec1" class="game-section">
-        <h2 class="game-title bg-gradient-to-r from-orange-500 via-red-500 to-orange-600">S1: SYSTEM IDENTITY</h2>
-        <div class="stat-grid">
-            <div class="data-card">
-                <div class="data-label">PlayStation Level</div>
-                <div id="psn-level" class="data-value glow-orange">226</div>
-                <div class="data-sub">ELITE MASTERY RANK</div>
-            </div>
-            <div class="data-card">
-                <div class="data-label">Career Trophies</div>
-                <div id="psn-total" class="data-value">1156</div>
-                <div class="trophy-mini-grid">
-                    <div class="mini-box"><div class="mini-label">Plat</div><div class="mini-val text-[#e5e4e2]">5</div></div>
-                    <div class="mini-box"><div class="mini-label">Gold</div><div class="mini-val text-[#ffd700]">70</div></div>
-                    <div class="mini-box"><div class="mini-label">Silv</div><div class="mini-val text-[#c0c0c0]">183</div></div>
-                    <div class="mini-box"><div class="mini-label">Bron</div><div class="mini-val text-[#cd7f32]">898</div></div>
+        <div class="container-90">
+            <h2 class="game-title bg-gradient-to-r from-orange-500 via-red-500 to-orange-600">S1: SYSTEM IDENTITY</h2>
+            <div class="stat-grid">
+                <div class="data-card">
+                    <div class="data-label">PlayStation Level</div>
+                    <div id="psn-level" class="data-value text-orange-500">226</div>
+                    <div class="data-sub">Elite Mastery Sync</div>
                 </div>
-            </div>
-            <div class="data-card">
-                <div class="data-label">Identity Access</div>
-                <div class="data-value text-green-500">Werewolf3788</div>
-                <div class="data-sub">LEAD DEVELOPER CLEARANCE</div>
+                <div class="data-card">
+                    <div class="data-label">Total Trophy Case</div>
+                    <div id="psn-total" class="data-value">1156</div>
+                    <div class="trophy-multi-grid">
+                        <div class="mini-box"><div class="mini-label">Plat</div><div id="glob-plat" class="mini-val text-[#e5e4e2]">5</div></div>
+                        <div class="mini-box"><div class="mini-label">Gold</div><div id="glob-gold" class="mini-val text-[#ffd700]">70</div></div>
+                        <div class="mini-box"><div class="mini-label">Silv</div><div id="glob-silver" class="mini-val text-[#c0c0c0]">183</div></div>
+                        <div class="mini-box"><div class="mini-label">Bron</div><div id="glob-bronze" class="mini-val text-[#cd7f32]">898</div></div>
+                    </div>
+                </div>
+                <div class="data-card">
+                    <div class="data-label">Identity Access</div>
+                    <div class="data-value text-green-500">WEREWOLF3788</div>
+                    <div class="data-sub">Lead Developer Clearance</div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- SECTION 2: THEHUNTER -->
     <section id="sec2" class="game-section">
-        <h2 class="game-title bg-gradient-to-r from-green-400 via-emerald-500 to-green-600">S2: THEHUNTER COTW</h2>
-        <div class="stat-grid">
-            <div class="data-card">
-                <div class="data-label">Completion Status</div>
-                <div class="flex justify-between items-end">
-                    <div id="hunter-psn-val" class="data-value">0%</div>
-                    <div id="hunter-rem" class="remaining-pill">-- REMAINING</div>
+        <div class="container-90">
+            <h2 class="game-title bg-gradient-to-r from-green-400 via-emerald-500 to-green-600">S2: THEHUNTER COTW</h2>
+            <div class="stat-grid">
+                <div class="data-card">
+                    <div id="hunter-mastery-label" class="data-label">Platinum Path Progress (64%)</div>
+                    <div class="flex justify-between items-end">
+                        <div id="hunter-psn-val" class="data-value">64%</div>
+                        <div id="hunter-rem" class="remaining-pill">19 TROPHIES TO PLATINUM</div>
+                    </div>
+                    <div class="progress-bar"><div id="hunter-psn-bar" class="progress-fill bg-emerald-500" style="width: 64%"></div></div>
+                    <p class="data-sub mt-4">Total Trophies: 41 / 115 (39%)</p>
                 </div>
-                <div class="progress-bar"><div id="hunter-psn-bar" class="progress-fill bg-emerald-500"></div></div>
-                <div id="hunter-recent" class="recent-trophy-box">
-                    <div class="data-label !mb-1">Most Recent Trophy</div>
-                    <div class="text-xs font-bold text-slate-300">Syncing System Log...</div>
+                <div class="data-card">
+                    <div class="data-label">Animal Trophy Ratings</div>
+                    <div class="trophy-multi-grid">
+                        <div class="mini-box"><div class="mini-label">G.One</div><div id="hunter-go" class="mini-val glow-purple">0</div></div>
+                        <div class="mini-box"><div class="mini-label">Diam</div><div id="hunter-di" class="mini-val glow-diamond">0</div></div>
+                        <div class="mini-box"><div class="mini-label">Gold</div><div id="hunter-go-val" class="mini-val text-yellow-500">0</div></div>
+                        <div class="mini-box"><div class="mini-label">Silv</div><div id="hunter-si" class="mini-val text-slate-400">0</div></div>
+                        <div class="mini-box"><div class="mini-label">Bron</div><div id="hunter-br" class="mini-val text-orange-700">0</div></div>
+                    </div>
+                    <div class="data-sub">Live Harvest Sync Active</div>
                 </div>
-            </div>
-            <div class="data-card">
-                <div class="data-label">Animal Trophy: Great One</div>
-                <div id="hunter-greatone" class="data-value text-purple-500">0</div>
-                <div class="data-sub">RAREST HARVESTS SYNCED</div>
-            </div>
-            <div class="data-card">
-                <div class="data-label">Animal Trophy: Diamond</div>
-                <div id="hunter-diamond" class="data-value glow-diamond">0</div>
-                <div class="data-sub">LIVE FIREBASE STATUS</div>
-            </div>
-            <div class="data-card">
-                <div class="data-label">Exploration Hub</div>
-                <div class="space-y-4 mt-2">
-                    <div class="flex justify-between text-[10px] font-black uppercase"><span>Missions</span><span class="text-emerald-400">142 Completed</span></div>
-                    <div class="flex justify-between text-[10px] font-black uppercase"><span>Points of Interest</span><span class="text-emerald-400">Synced</span></div>
+                <div class="data-card">
+                    <div class="data-label">Reserve Expansion Tracker</div>
+                    <div class="dlc-list">
+                        <div class="dlc-item"><span>Medved-Taiga</span><span class="dlc-prog">0 / 12</span></div>
+                        <div class="dlc-item"><span>Vurhonga Savanna</span><span class="dlc-prog">1 / 12</span></div>
+                        <div class="dlc-item"><span>Parque Fernando</span><span class="dlc-prog">1 / 11</span></div>
+                        <div class="dlc-item"><span>Yukon Valley</span><span class="dlc-prog">1 / 10</span></div>
+                        <div class="dlc-item"><span>Cuatro Colinas</span><span class="dlc-prog">0 / 11</span></div>
+                        <div class="dlc-item"><span>Silver Ridge Peaks</span><span class="dlc-prog">8 / 10</span></div>
+                    </div>
+                    <div class="data-sub">142 Missions Completed</div>
+                </div>
+                <div class="data-card border-l-[16px] border-l-orange-600 bg-orange-600/5">
+                    <div class="data-label !text-orange-500">System Log: Recent Trophy</div>
+                    <div id="hunter-recent" class="recent-display">Hitting the Mark</div>
+                    <p class="data-sub mt-4">Unlocked: Sep 29, 2025</p>
                 </div>
             </div>
         </div>
@@ -226,107 +317,121 @@
 
     <!-- SECTION 3: THE ANGLER -->
     <section id="sec3" class="game-section">
-        <h2 class="game-title bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-600">S3: THE ANGLER COTW</h2>
-        <div class="stat-grid">
-            <div class="data-card">
-                <div class="data-label">Completion Status</div>
-                <div class="flex justify-between items-end">
-                    <div id="angler-psn-val" class="data-value">0%</div>
-                    <div id="angler-rem" class="remaining-pill">-- REMAINING</div>
+        <div class="container-90">
+            <h2 class="game-title bg-gradient-to-r from-cyan-400 via-blue-500 to-cyan-600">S3: THE ANGLER COTW</h2>
+            <div class="stat-grid">
+                <div class="data-card">
+                    <div id="angler-mastery-label" class="data-label">Platinum Path Status (26%)</div>
+                    <div class="flex justify-between items-end">
+                        <div id="angler-psn-val" class="data-value">26%</div>
+                        <div id="angler-rem" class="remaining-pill">35 TROPHIES TO PLATINUM</div>
+                    </div>
+                    <div class="progress-bar"><div id="angler-psn-bar" class="progress-fill bg-blue-400" style="width: 26%"></div></div>
+                    <p class="data-sub mt-4">Target: 51 Base Game Trophies</p>
                 </div>
-                <div class="progress-bar"><div id="angler-psn-bar" class="progress-fill bg-blue-400"></div></div>
-                <div id="angler-recent" class="recent-trophy-box">
-                    <div class="data-label !mb-1">Most Recent Trophy</div>
-                    <div class="text-xs font-bold text-slate-300">Syncing System Log...</div>
+                <div class="data-card">
+                    <div class="data-label">Animal Trophy Ratings</div>
+                    <div class="trophy-multi-grid">
+                        <div class="mini-box"><div class="mini-label">Diam</div><div id="angler-di" class="mini-val glow-diamond">0</div></div>
+                        <div class="mini-box"><div class="mini-label">Gold</div><div id="angler-go" class="mini-val text-yellow-500">0</div></div>
+                        <div class="mini-box"><div class="mini-label">Silv</div><div id="angler-si" class="mini-val text-slate-400">0</div></div>
+                        <div class="mini-box"><div class="mini-label">Bron</div><div id="angler-br" class="mini-val text-orange-700">0</div></div>
+                    </div>
+                    <div class="data-sub">Firestore Catch Link Active</div>
                 </div>
-            </div>
-            <div class="data-card">
-                <div class="data-label">Exploration Progress</div>
-                <div class="space-y-4 mt-2">
-                    <div class="flex justify-between text-[10px] font-black uppercase"><span>POIs Found</span><span>50 / 97</span></div>
-                    <div class="progress-bar !mt-1"><div class="progress-fill bg-blue-500" style="width: 51%"></div></div>
-                    <div class="flex justify-between text-[10px] font-black uppercase"><span>Lookouts</span><span>17 / 22</span></div>
-                    <div class="progress-bar !mt-1"><div class="progress-fill bg-blue-700" style="width: 77%"></div></div>
-                    <div class="flex justify-between text-[10px] font-black uppercase"><span>Cabins</span><span>17 / 19</span></div>
-                    <div class="progress-bar !mt-1"><div class="progress-fill bg-cyan-600" style="width: 89%"></div></div>
+                <div class="data-card">
+                    <div class="data-label">Reserve Expansion Tracker</div>
+                    <div class="dlc-list">
+                        <div class="dlc-item"><span>Norway Reserve</span><span class="dlc-prog">0 / 5</span></div>
+                        <div class="dlc-item"><span>Spain Reserve</span><span class="dlc-prog">0 / 5</span></div>
+                        <div class="dlc-item"><span>South Africa</span><span class="dlc-prog">0 / 5</span></div>
+                        <div class="dlc-item"><span>Japan Reserve</span><span class="dlc-prog">0 / 5</span></div>
+                    </div>
+                    <div class="data-sub">POI: 50 | LOOK: 17 | CABIN: 17</div>
                 </div>
-            </div>
-            <div class="data-card">
-                <div class="data-label">Animal Trophy: Diamond</div>
-                <div id="angler-diamond" class="data-value glow-diamond">0</div>
-                <div class="data-sub">RESERVE RECORD SYNCED</div>
-            </div>
-            <div class="data-card">
-                <div class="data-label">Objectives</div>
-                <div class="data-value text-yellow-500">Active</div>
-                <div class="data-sub">SEARCHING FOR BIGFOOT REPORTS</div>
+                <div class="data-card border-l-[16px] border-l-blue-600 bg-blue-600/5">
+                    <div class="data-label !text-blue-500">System Log: Recent Trophy</div>
+                    <div id="angler-recent" class="recent-display">Marathon</div>
+                    <p class="data-sub mt-4">Feb 22, 2026 1:15:58 AM</p>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- SECTION 4: FARM SIM 22 -->
     <section id="sec4" class="game-section">
-        <h2 class="game-title bg-gradient-to-r from-red-600 via-orange-600 to-red-500">S4: FARMING SIMULATOR 22</h2>
-        <div class="stat-grid">
-            <div class="data-card">
-                <div class="data-label">Trophy Master Status</div>
-                <div class="flex justify-between items-end">
-                    <div id="fs22-psn-val" class="data-value">0%</div>
-                    <div id="fs22-rem" class="remaining-pill">-- REMAINING</div>
+        <div class="container-90">
+            <h2 class="game-title bg-gradient-to-r from-red-600 via-orange-600 to-red-500">S4: FARMING SIMULATOR 22</h2>
+            <div class="stat-grid">
+                <div class="data-card">
+                    <div id="fs22-mastery-label" class="data-label">Mastery Progress (44%)</div>
+                    <div class="flex justify-between items-end">
+                        <div id="fs22-psn-val" class="data-value">44%</div>
+                        <div id="fs22-rem" class="remaining-pill">23 TROPHIES TO 100%</div>
+                    </div>
+                    <div class="progress-bar"><div id="fs22-psn-bar" class="progress-fill bg-red-600" style="width: 44%"></div></div>
+                    <p class="data-sub mt-4">Trophies Earned: 23 of 46</p>
                 </div>
-                <div class="progress-bar"><div id="fs22-psn-bar" class="progress-fill bg-red-600"></div></div>
-                <div id="fs22-recent" class="recent-trophy-box">
-                    <div class="data-label !mb-1">Most Recent Trophy</div>
-                    <div class="text-xs font-bold text-slate-300">Syncing System Log...</div>
+                <div class="data-card flex flex-col justify-center text-center">
+                    <div class="data-label">Host Status</div>
+                    <div class="data-value text-green-400">ONLINE</div>
+                    <div class="data-sub">G-PORTAL DEDICATED SERVER ACTIVE</div>
                 </div>
-            </div>
-            <div class="data-card">
-                <div class="data-label">G-Portal Status</div>
-                <div class="data-value text-green-400">ONLINE</div>
-                <p class="text-[10px] text-slate-500 mt-4 italic">DEDICATED SERVER: Werewolf3788 Farm</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 5: FARM SIM 25 -->
-    <section id="sec5" class="game-section">
-        <h2 class="game-title bg-gradient-to-r from-slate-600 via-slate-400 to-slate-700">S5: FARMING SIMULATOR 25</h2>
-        <div class="stat-grid">
-            <div class="data-card opacity-50">
-                <div class="data-label">Sync Status</div>
-                <div class="flex justify-between items-end">
-                    <div id="fs25-psn-val" class="data-value italic">PENDING</div>
-                    <div id="fs25-rem" class="remaining-pill">RESERVED</div>
+                <div class="data-card flex flex-col justify-center text-center">
+                    <div class="data-label">Owned Territory</div>
+                    <div class="data-value text-yellow-500">12 FIELDS</div>
+                    <div class="data-sub">Real Estate Expansion Sync</div>
                 </div>
-                <div class="progress-bar"><div id="fs25-psn-bar" class="progress-fill bg-slate-500"></div></div>
-                <div id="fs25-recent" class="recent-trophy-box"><div class="data-label !mb-1">Most Recent</div><div class="text-xs font-bold text-slate-300">Awaiting Release...</div></div>
+                <div class="data-card border-l-[16px] border-l-red-600 bg-red-600/5">
+                    <div class="data-label !text-red-500">System Log: Recent Trophy</div>
+                    <div id="fs22-recent" class="recent-display">Thoroughbred!</div>
+                    <p class="data-sub mt-4">Feb 16, 2026 11:33:54 PM</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- SECTION 6: FUTURE EXPANSION -->
+    <!-- SECTION 6: DISCOVERY -->
     <section id="sec6" class="game-section">
-        <h2 class="game-title bg-gradient-to-r from-purple-500 via-indigo-600 to-purple-800">S6: FUTURE PROJECTS</h2>
-        <div class="stat-grid" id="dynamic-sections">
-            <div class="data-card bg-slate-900/20 border-dashed border-2 border-slate-700 flex flex-col items-center justify-center py-20">
-                <div class="data-label">System Monitoring</div>
-                <div class="data-value text-sm text-slate-500 uppercase tracking-widest text-center">New Games Found on psnprofiles will appear here</div>
+        <div class="container-90">
+            <h2 class="game-title bg-gradient-to-r from-purple-500 via-indigo-600 to-purple-800">S5: FUTURE SYSTEMS</h2>
+            <div id="dynamic-game-container">
+                <div id="no-discovery" class="data-card bg-slate-900/20 border-dashed border-4 border-slate-800 flex flex-col items-center justify-center py-40">
+                    <div class="data-label text-slate-600">Discovery Engine Online</div>
+                    <div class="data-value text-base text-slate-700 uppercase tracking-[0.5em] text-center">Monitoring Identity Mastery List</div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- MASTER FOOTER -->
-    <footer class="py-32 text-center bg-slate-950">
-        <div class="flex justify-center mb-10">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" class="border-4 border-slate-800 rounded-3xl p-4 shadow-2xl bg-white" alt="Amazon Support">
+    <footer class="py-48 text-center bg-slate-950 border-t border-white/5">
+        <div class="container-90">
+            <div class="flex justify-center mb-16">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" class="border-4 border-slate-800 rounded-[48px] p-8 shadow-2xl bg-white hover:scale-110 transition-transform duration-700" alt="Support QR">
+            </div>
+            <p class="text-lg font-black uppercase tracking-[0.8em] text-slate-400 mb-6">Lead Developer Werewolf3788</p>
+            <p class="text-sm text-slate-600 max-w-4xl mx-auto italic leading-relaxed">Master Accomplishments Hub v30.0 | DLC Expansion Hub | Ultra-Wide fluid layout | All Rights Reserved.</p>
         </div>
-        <p class="text-sm font-black uppercase tracking-[0.4em] text-slate-400 mb-4">Lead Developer Werewolf3788</p>
-        <p class="text-[11px] text-slate-600 max-w-lg mx-auto">Master Portfolio v13.0 | Synced via AllOrigins & Firestore | All Rights Reserved.</p>
     </footer>
 </div>
 
 <script>
-    // --- FIREBASE CONFIG ---
+    const PROXY_LIST = [
+        url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        url => `https://corsproxy.io/?${encodeURIComponent(url)}`
+    ];
+
+    async function robustFetch(targetUrl) {
+        for (let p of PROXY_LIST) {
+            try {
+                const res = await fetch(p(targetUrl));
+                if (res.ok) return await res.text();
+            } catch (e) { continue; }
+        }
+        return null;
+    }
+
     const firebaseConfig = {
         apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
         authDomain: "angler-squad-tracker.firebaseapp.com",
@@ -335,93 +440,160 @@
         messagingSenderId: "325679067980",
         appId: "1:325679067980:web:57edbad70fe12b988355e9"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    // --- SCRAPER ENGINE ---
-    async function fetchAllPSN() {
-        const target = 'https://psnprofiles.com/Werewolf3788';
-        // Multi-proxy fallback to fix fetch issues
-        const proxies = [
-            `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`,
-            `https://corsproxy.io/?${encodeURIComponent(target)}`
-        ];
-        
-        let html = "";
-        for (let p of proxies) {
-            try {
-                const res = await fetch(p);
-                if (res.ok) {
-                    html = await res.text();
-                    break;
-                }
-            } catch (e) { continue; }
-        }
+    const GLOBAL_TROPHY_MAP = {};
 
+    async function syncRSS() {
+        const rssXml = await robustFetch('https://psntrophyleaders.com/user/view/Werewolf3788/rss');
+        if (!rssXml) return;
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(rssXml, 'text/xml');
+        const items = xmlDoc.querySelectorAll('item');
+
+        items.forEach(item => {
+            const title = item.querySelector('title')?.textContent || "";
+            const inIndex = title.indexOf(' in ');
+            const earnedIndex = title.indexOf(' earned ');
+            if (inIndex !== -1 && earnedIndex !== -1) {
+                const trophyName = title.substring(earnedIndex + 8, inIndex).trim().replace(/'/g, "");
+                const gameName = title.substring(inIndex + 4).trim();
+                
+                let key = "";
+                if (gameName.includes("theHunter")) key = "hunter";
+                else if (gameName.includes("Angler")) key = "angler";
+                else if (gameName.includes("Farming Simulator 22")) key = "fs22";
+                else key = gameName;
+
+                if (!GLOBAL_TROPHY_MAP[key]) GLOBAL_TROPHY_MAP[key] = trophyName;
+                
+                const el = document.getElementById(`${key}-recent`);
+                if (el) el.innerText = trophyName;
+            }
+        });
+    }
+
+    function buildNewGameSection(name, progress, earned, total) {
+        const safeId = name.replace(/[^a-z0-9]/gi, '').toLowerCase();
+        if (document.getElementById(`${safeId}-section`)) return;
+
+        const container = document.getElementById('dynamic-game-container');
+        const placeholder = document.getElementById('no-discovery');
+        if (placeholder) placeholder.remove();
+
+        const section = document.createElement('div');
+        section.id = `${safeId}-section`;
+        section.className = "mb-20";
+        section.innerHTML = `
+            <h3 class="text-3xl font-black text-slate-400 mb-10 tracking-[0.3em] italic uppercase">${name} DISCOVERED</h3>
+            <div class="stat-grid">
+                <div class="data-card">
+                    <div class="data-label">Mastery Progress (${progress})</div>
+                    <div class="flex justify-between items-end">
+                        <div class="data-value">${progress}</div>
+                        <div class="remaining-pill">${total - earned} TROPHIES TO 100%</div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill bg-indigo-500" style="width: ${progress}"></div></div>
+                </div>
+                <div class="data-card">
+                    <div class="data-label">System Stats</div>
+                    <div class="data-value text-indigo-400">${earned} / ${total}</div>
+                    <div class="data-sub">Hardware Verification Complete</div>
+                </div>
+                <div class="data-card">
+                    <div class="data-label">Platform Mastery</div>
+                    <div class="data-value text-indigo-400">SYNCED</div>
+                    <div class="data-sub">Discovery Engine Link Active</div>
+                </div>
+                <div class="data-card border-l-[16px] border-l-indigo-600 bg-indigo-600/5">
+                    <div class="data-label !text-indigo-400">System Log: Recent Trophy</div>
+                    <div id="${safeId}-recent" class="recent-display">${GLOBAL_TROPHY_MAP[name] || "Milestone Verified"}</div>
+                    <p class="data-sub mt-4">Verified PlayStation RSS Feed</p>
+                </div>
+            </div>
+        `;
+        container.appendChild(section);
+    }
+
+    async function syncMastery() {
+        const html = await robustFetch('https://psntrophyleaders.com/user/view/Werewolf3788');
         if (!html) return;
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
 
-        // Update Level from Scrape if possible, else keep 226
-        const scrapedLevel = doc.querySelector('.stat.level')?.innerText.trim();
-        if (scrapedLevel) document.getElementById('psn-level').innerText = scrapedLevel;
+        const level = doc.querySelector('.level-value')?.innerText.trim();
+        if (level) document.getElementById('psn-level').innerText = level;
 
-        const games = doc.querySelectorAll('tr'); 
-        games.forEach(row => {
-            const title = row.querySelector('.title')?.innerText || "";
-            const earnedEl = row.querySelector('.earned b');
-            const totalEl = row.querySelector('.earned'); 
-            const progressText = row.querySelector('.progress-bar span')?.innerText || "0%";
+        const allRows = doc.querySelectorAll('tr, .user-game-row');
+        allRows.forEach(row => {
+            const text = row.innerText || "";
+            const gameTitleEl = row.querySelector('a');
+            const gameName = gameTitleEl ? gameTitleEl.innerText.trim() : "";
             
-            let earnedNum = parseInt(earnedEl?.innerText) || 0;
-            let totalStr = totalEl?.innerText || "0";
-            let totalNum = parseInt(totalStr.split('/').pop()) || 0;
-            let remaining = totalNum - earnedNum;
-
             let key = "";
-            if (title.includes("theHunter")) key = "hunter";
-            else if (title.includes("The Angler")) key = "angler";
-            else if (title.includes("Farming Simulator 22")) key = "fs22";
-            else if (title.includes("Farming Simulator 25")) key = "fs25";
+            let baseTotal = 0;
 
-            if (key && totalNum > 0) {
-                document.getElementById(`${key}-psn-val`).innerText = progressText;
-                document.getElementById(`${key}-psn-bar`).style.width = progressText;
-                document.getElementById(`${key}-rem`).innerText = `${remaining} TROPHIES TO 100%`;
-                
-                const recentBox = document.getElementById(`${key}-recent`);
-                if (recentBox) {
-                    // Pulling last earned date or icon if visible in scrape
-                    recentBox.querySelector('div:last-child').innerText = `Status: ${earnedNum}/${totalNum} Collected`;
+            if (text.includes("theHunter")) { key = "hunter"; baseTotal = 49; }
+            else if (text.includes("Angler")) { key = "angler"; baseTotal = 51; }
+            else if (text.includes("Farming Simulator 22")) { key = "fs22"; baseTotal = 46; }
+
+            const percMatch = text.match(/(\d+)%/);
+            const trophyMatch = text.match(/(\d+)\s+(?:of|\/)\s+(\d+)/);
+            
+            if (key) {
+                if (percMatch) {
+                    const progress = percMatch[0];
+                    document.getElementById(`${key}-psn-val`).innerText = progress;
+                    document.getElementById(`${key}-psn-bar`).style.width = progress;
+                    document.getElementById(`${key}-mastery-label`).innerText = `Mastery Progress (${progress})`;
                 }
+                if (trophyMatch) {
+                    const earned = parseInt(trophyMatch[1]);
+                    let baseEarned = earned; 
+                    if (key === 'hunter') baseEarned = 30; 
+                    if (key === 'angler') baseEarned = 16; 
+                    if (key === 'fs22') baseEarned = 23;
+
+                    const rem = baseTotal > 0 ? (baseTotal - baseEarned) : 0;
+                    document.getElementById(`${key}-rem`).innerText = `${rem} TROPHIES TO PLATINUM`;
+                }
+            } else if (gameName && percMatch && trophyMatch) {
+                buildNewGameSection(gameName, percMatch[0], parseInt(trophyMatch[1]), parseInt(trophyMatch[2]));
             }
         });
     }
 
     function syncFirebase() {
-        auth.signInAnonymously().then(() => {
+        firebase.auth().signInAnonymously().then(() => {
             db.collection('catches').doc('Werewolf3788').onSnapshot(doc => {
                 if (doc.exists) {
                     const data = doc.data();
-                    document.getElementById('angler-diamond').innerText = data.Diamond || 0;
-                    document.getElementById('hunter-diamond').innerText = data.Diamond || 0;
-                    document.getElementById('hunter-greatone').innerText = data.GreatOne || 0;
+                    document.getElementById('hunter-go').innerText = data.GreatOne || 0;
+                    document.getElementById('hunter-di').innerText = data.Diamond || 0;
+                    document.getElementById('hunter-go-val').innerText = data.Gold || 0;
+                    document.getElementById('hunter-si').innerText = data.Silver || 0;
+                    document.getElementById('hunter-br').innerText = data.Bronze || 0;
+                    document.getElementById('angler-di').innerText = data.Diamond || 0;
+                    document.getElementById('angler-go').innerText = data.Gold || 0;
+                    document.getElementById('angler-si').innerText = data.Silver || 0;
+                    document.getElementById('angler-br').innerText = data.Bronze || 0;
                 }
             });
         });
     }
 
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+        entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.1 });
 
     window.onload = () => {
         document.querySelectorAll('section').forEach(s => observer.observe(s));
-        fetchAllPSN();
-        syncFirebase();
-        setInterval(fetchAllPSN, 600000); 
+        syncRSS().then(() => {
+            syncMastery();
+            syncFirebase();
+        });
+        setInterval(() => { syncRSS().then(syncMastery); }, 600000); 
     };
 </script>
 
