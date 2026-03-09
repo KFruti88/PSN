@@ -3,9 +3,9 @@ const game = gameName.toLowerCase();
 let mode = 'default-mode';
 
 if (game.includes('doki doki') || game.includes('barbie') || game.includes('dreamhouse') || game.includes('princess')) {
-    mode = 'pink-mode'; // Hot Pink / Aesthetic
+    mode = 'pink-mode'; 
 } else if (game.includes('dragon ball') || game.includes('seven deadly sins') || game.includes('jump force') || game.includes('bleach') || game.includes('tokyo ghoul') || game.includes('demon slayer') || game.includes('one punch man') || game.includes('naruto') || game.includes('anime')) {
-    mode = 'anime-mode'; // Vibrant Cyan / Action Yellow
+    mode = 'anime-mode'; 
 } else if (game.includes('doom') || game.includes('infamous') || game.includes('prototype') || game.includes('evil west') || game.includes('sifu') || game.includes('uncharted')) {
     mode = 'action-mode';
 } else if (game.includes('dead by daylight') || game.includes('resident evil') || game.includes('evil dead') || game.includes('texas chain saw') || game.includes('vampyr') || game.includes('until dawn') || game.includes('akai') || game.includes('alan wake') || game.includes('the medium') || game.includes('beast inside') || game.includes('little nightmares') || game.includes('zombi')) {
@@ -15,7 +15,7 @@ if (game.includes('doki doki') || game.includes('barbie') || game.includes('drea
 } else if (game.includes('tekken') || game.includes('mortal kombat') || game.includes('street fighter') || game.includes('multiversus') || game.includes('vf5') || game.includes('smite') || game.includes('ufc') || game.includes('tsushima')) {
     mode = 'fighting-mode';
 } else if (game.includes('abzu') || game.includes('fishing') || game.includes('angler') || game.includes('surfing') || game.includes('underwater') || game.includes('fish')) {
-    mode = 'water-mode'; 
+    mode = 'water-mode';  
 } else if (game.includes('stray') || game.includes('endling') || game.includes('maneater') || game.includes('spirit of the north') || game.includes('nature') || game.includes('lost ember')) {
     mode = 'nature-mode';
 } else if (game.includes('hogwarts') || game.includes('harry potter') || game.includes('elden ring') || game.includes('hades') || game.includes('sekiro') || game.includes('nioh') || game.includes('tiny tina') || game.includes('blasphemous') || game.includes('god of war') || game.includes('black myth') || game.includes('wo long')) {
@@ -34,6 +34,12 @@ if (game.includes('doki doki') || game.includes('barbie') || game.includes('drea
     game.includes('patrol') || game.includes('racing') || game.includes('forza') || game.includes('fast & furious')
 ) {
     mode = 'speed-mode';
+} else if (
+    game.includes('farming') || game.includes('simulator 22') || game.includes('simulator 25') || 
+    game.includes('stardew') || game.includes('harvest') || game.includes('tractor') || 
+    game.includes('ranch') || game.includes('farm')
+) {
+    mode = 'farming-mode';
 }
 
 /* --- GHOSTLY OVERRIDE --- */
