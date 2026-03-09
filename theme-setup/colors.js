@@ -34,12 +34,8 @@ if (game.includes('doki doki') || game.includes('barbie') || game.includes('drea
     game.includes('patrol') || game.includes('racing') || game.includes('forza') || game.includes('fast & furious')
 ) {
     mode = 'speed-mode';
-} else if (
-    game.includes('farming') || game.includes('simulator 22') || game.includes('simulator 25') || 
-    game.includes('stardew') || game.includes('harvest') || game.includes('tractor') || 
-    game.includes('ranch') || game.includes('farm')
-) {
-    mode = 'farming-mode';
+} else if (game.includes('farming') || game.includes('simulator') || game.includes('stardew') || game.includes('harvest') || game.includes('tractor')) {
+    mode = 'farming-mode'; // Forest Green / Harvest Gold
 }
 
 /* --- GHOSTLY OVERRIDE --- */
@@ -49,4 +45,15 @@ if (game.includes('ghost')) {
     document.body.classList.remove('ghostly-pulse');
 }
 
+// Final assignment
 document.body.className = mode;
+
+/* --- DYNAMIC THEME COLORS --- */
+if (mode === 'farming-mode') {
+    document.body.style.background = 'linear-gradient(180deg, #1b5e20 0%, #3e2723 100%)'; // Green to Brown
+    const boxes = document.querySelectorAll('#wp-custom-wrapper, .game-card');
+    boxes.forEach(box => {
+        box.style.border = '2px solid #8bc34a'; // Lime Glow
+        box.style.boxShadow = '0 0 15px #8bc34a';
+    });
+}
