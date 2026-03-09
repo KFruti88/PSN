@@ -1,1 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MjolnirGaming | Profile</title>
+    <script src="https://embed.twitch.tv/v1/embed.js"></script>
+    <style>
+        /* PSN Theme Setup Colors & Glow */
+        :root {
+            --psn-blue: #0072ce;
+            --psn-glow: #00d2ff;
+            --psn-dark: #0a0a0a;
+            --psn-accent: #9d50bb;
+        }
 
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--psn-dark);
+            color: #ffffff;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Galaxy Background with Radial Glow */
+        .galaxy-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, #1a2a6c, #0a0a0a 70%);
+            z-index: -1;
+        }
+
+        /* WP Custom Wrapper & Grid */
+        #wp-custom-wrapper {
+            width: 90%;
+            max-width: 1300px;
+            margin: 30px auto;
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid var(--psn-blue);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 114, 206, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .profile-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .profile-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 4px solid var(--psn-glow);
+            box-shadow: 0 0 20px var(--psn-glow);
+            margin-bottom: 20px;
+        }
+
+        .username {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #fff;
+            text-shadow: 0 0 10px var(--psn-glow), 0 0 20px var(--psn-blue);
+        }
+
+        .game-status {
+            margin: 15px 0;
+            padding: 8px 25px;
+            background: rgba(0, 210, 255, 0.15);
+            border: 1px solid var(--psn-glow);
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--psn-glow);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Twitch Embed Container */
+        #twitch-embed {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            margin: 30px 0;
+            border-radius: 8px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        .bio {
+            max-width: 800px;
+            color: #bbb;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* Responsive Social Buttons */
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .btn {
+            flex: 1;
+            max-width: 200px;
+            padding: 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+            transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .twitch { background: #6441a5; box-shadow: 0 0 15px rgba(100, 65, 165, 0.5); }
+        .tiktok { background: #010101; border: 1px solid #ff0050; box-shadow: 0 0 15px rgba(255, 0, 80, 0.3); }
+        .youtube { background: #ff0000; box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            filter: brightness(1.2);
+            box-shadow: 0 0 25px var(--psn-glow);
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            #wp-custom-wrapper { width: 95%; padding: 20px; }
+            .social-links { flex-direction: column; align-items: center; }
+            .btn { width: 100%; max-width: 280px; aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
+            .username { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="galaxy-bg"></div>
+
+    <div id="wp-custom-wrapper">
+        <div class="profile-card">
+            <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/6b984b2f-9b16-43c6-a699-4fd019576faf-profile_image-70x70.png" class="profile-img" alt="MjolnirGaming">
+            
+            <h1 class="username">MjolnirGaming</h1>
+            
+            <div class="game-status">
+                ⚡ CURRENTLY PLAYING: <span id="current-game">FETCHING...</span>
+            </div>
+
+            <div id="twitch-embed"></div>
+
+            <p class="bio">
+                Here to have a shockingly good time, make some friends, and most importantly be a part of this wonderful community! 😁😁
+            </p>
+
+            <div class="social-links">
+                <a href="https://www.twitch.tv/mjolnirgaming" class="btn twitch" target="_blank">Twitch</a>
+                <a href="https://www.tiktok.com/@mjolnirgaming" class="btn tiktok" target="_blank">TikTok</a>
+                <a href="https://youtube.com/@mjolnirgaming4795" class="btn youtube" target="_blank">YouTube</a>
+            </div>
+            
+            <p style="margin-top: 30px; font-size: 0.8rem; color: #444;">
+                Lead Dev: Werewolf3788 | GitHub: KFruti88
+            </p>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Embed Twitch Player
+        new Twitch.Embed("twitch-embed", {
+            width: "100%",
+            height: "100%",
+            channel: "mjolnirgaming",
+            parent: ["localhost", "kfruti88.github.io", window.location.hostname],
+            layout: "video"
+        });
+
+        // Fetch Live Game via Decapi
+        async function getGame() {
+            try {
+                const res = await fetch('https://decapi.me/twitch/game/mjolnirgaming');
+                const game = await res.text();
+                document.getElementById('current-game').innerText = game.toUpperCase() || "OFFLINE";
+            } catch (e) {
+                document.getElementById('current-game').innerText = "SYSTEM ERROR";
+            }
+        }
+        getGame();
+    </script>
+</body>
+</html>
