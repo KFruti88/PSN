@@ -29,7 +29,7 @@ if (game.includes('doki doki') || game.includes('barbie') || game.includes('drea
 } else if (game.includes('sea of thieves') || game.includes('skull and bones') || game.includes('black flag') || game.includes('pirate')) {
     mode = 'pirate-mode';
 } else if (
-    game.includes('need for speed') || game.includes('hot pursuit') || game.includes('police') || 
+    game.includes('need for speed') || game.includes('hot pursuit') || game.includes('police') || game.includes('ready or not') || 
     game.includes('swat') || game.includes('enforcer') || game.includes('sheriff') || 
     game.includes('patrol') || game.includes('racing') || game.includes('forza') || game.includes('fast & furious')
 ) {
