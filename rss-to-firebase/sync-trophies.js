@@ -1,11 +1,9 @@
-const firebase = require('firebase/app');
-require('firebase/firestore');
+const admin = require('firebase-admin');
 const Parser = require('rss-parser');
 
 (async function() {
     /**
      * PROTECTIVE SCOPE & INITIALIZATION
-     * Using your preferred named instance and IIFE pattern.
      */
     const parser = new Parser();
 
@@ -14,13 +12,19 @@ const Parser = require('rss-parser');
     try {
         firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
     } catch (e) {
-        console.error("Error parsing FIREBASE_CONFIG secret. Make sure it's valid JSON.");
+        console.error("CRITICAL ERROR: FIREBASE_CONFIG secret is missing or invalid JSON.");
         process.exit(1);
     }
 
-    // Initialize with a unique name as per your requirements
-    const app = firebase.initializeApp(firebaseConfig, 'AnglerSquadSyncInstance');
-    const db = firebase.firestore(app);
+    // Initialize using the Admin SDK for Node.js stability
+    // Uses your required named instance pattern
+    const app = admin.initializeApp({
+        credential: admin.credential.cert(firebaseConfig),
+        // Dynamically sets the URL based on your Project ID
+        databaseURL: `https://${firebaseConfig.project_id}.firebaseio.com`
+    }, 'AnglerSquadSyncInstance');
+
+    const db = admin.firestore(app);
 
     // User handles and their specific RSS feeds
     const users = [
@@ -43,27 +47,26 @@ const Parser = require('rss-parser');
 
     /**
      * SYNC LOGIC
-     * Loops through each user and checks their latest 10 trophies.
      */
     async function syncUserTrophies(user) {
         try {
-            console.log(`--- Starting Sync for ${user.handle} ---`);
+            console.log(`\n--- Starting Sync for ${user.handle} ---`);
             const feed = await parser.parseURL(user.rss);
 
-            // We check the top 10 items to ensure no overlap is missed between cron runs
+            // Check the top 10 items to ensure no trophies are missed between runs
             const recentItems = feed.items.slice(0, 10);
 
             for (const item of recentItems) {
                 for (const [gameTitle, firestorePath] of Object.entries(gameMapping)) {
                     
-                    // Case-insensitive check to handle variations in naming
+                    // Case-insensitive check to handle variations
                     if (item.title.toLowerCase().includes(gameTitle.toLowerCase())) {
-                        console.log(`Match Found: ${user.handle} earned [${item.title}]`);
+                        console.log(`[MATCH] ${user.handle}: ${item.title}`);
 
                         // Platform detection for FS22 (PS4 vs PS5)
                         const platform = item.title.includes("(PS5)") ? "PS5" : "PS4";
 
-                        // Targeted document: e.g., artifacts/fs22-master/public/data/user_profiles/Werewolf3788
+                        // Target document path
                         const docRef = db.doc(`${firestorePath}/${user.handle}`);
 
                         await docRef.set({
@@ -72,18 +75,18 @@ const Parser = require('rss-parser');
                             link: item.link,
                             platform: platform,
                             sync_source: "GitHub Action RSS Bridge"
-                        }, { merge: true }); // Merge keeps existing user profile data safe
+                        }, { merge: true });
                     }
                 }
             }
         } catch (error) {
-            console.error(`Sync failed for ${user.handle}:`, error.message);
+            console.error(`[ERROR] Sync failed for ${user.handle}:`, error.message);
         }
     }
 
-    // Run sync for both users simultaneously
+    // Execute sync for all users
     await Promise.all(users.map(syncUserTrophies));
     
-    console.log("--- All Syncs Complete ---");
+    console.log("\n--- All Syncs Complete. Closing Instance. ---");
     process.exit(0);
 })();
