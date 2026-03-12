@@ -1,0 +1,29 @@
+name: Sync PSN Trophies to Firebase
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Runs every 30 minutes
+  workflow_dispatch: # Allows you to click "Run workflow" manually
+  push:
+    branches: [ main ]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        # We run this inside the folder where your script/package.json lives
+        working-directory: ./rss-to-firebase
+        run: npm install firebase rss-parser
+
+      - name: Run Sync Script
+        env:
+          FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
+        # Pointing directly to the file in your subfolder
+        run: node rss-to-firebase/sync-trophies.js
