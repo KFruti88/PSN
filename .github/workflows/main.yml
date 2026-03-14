@@ -1,8 +1,8 @@
 name: Sync PSN Trophies to Firebase
 on:
   schedule:
-    - cron: '*/30 * * * *'
-  workflow_dispatch:
+    - cron: '*/30 * * * *' # Runs every 30 minutes
+  workflow_dispatch: # Allows you to run it manually from GitHub
   push:
     branches: [ main ]
 
@@ -12,15 +12,16 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          # This automatically looks for package-lock.json in your subfolder
+          cache-dependency-path: ./rss-to-firebase/package-lock.json
 
       - name: Install Dependencies
-        # REMOVE 'working-directory' if your files are in the main folder
-        # Or ensure this folder exists in your GitHub repo
         working-directory: ./rss-to-firebase
         run: npm install
 
