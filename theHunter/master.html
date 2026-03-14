@@ -7,15 +7,6 @@
             <div class="active-hunter">
                 <span class="label">Lead Dev Master Console:</span>
                 <span id="hunter-name" class="hunter-glow uppercase">Werewolf3788</span>
-                
-                <div class="platform-select-wrapper">
-                    <select id="platform-selector" onchange="appState.changePlatform(this.value)">
-                        <option value="Playstation">Playstation</option>
-                        <option value="Xbox">Xbox</option>
-                        <option value="PC">PC</option>
-                        <option value="Steam">Steam</option>
-                    </select>
-                </div>
             </div>
             <div class="profile-actions">
                 <button class="profile-btn btn-werewolf" onclick="appState.switchHunter('Werewolf3788')">Werewolf</button>
@@ -82,7 +73,7 @@
             
             <div class="progress-container">
                 <div class="progress-label">
-                    <span id="percent-text">Master Platinum Progress 0%</span>
+                    <span id="percent-text">Global Master Registry Progress 0%</span>
                 </div>
                 <div class="bar-bg">
                     <div id="overall-bar" class="bar-fill"></div>
@@ -109,7 +100,7 @@
 </div>
 
 <style>
-/* Lead Dev Protocol: All CSS nested under #wp-custom-wrapper */
+/* Lead Dev Scoped CSS Protocols */
 #wp-custom-wrapper {
     position: relative;
     min-height: 100vh;
@@ -134,7 +125,6 @@
 
 #wp-custom-wrapper .tracker-container { position: relative; z-index: 2; width: 90%; max-width: 1400px; margin: 0 auto; }
 
-/* Themes & Glows */
 #wp-custom-wrapper.theme-werewolf { --hunter-color: #ff8800; --hunter-glow: rgba(255, 136, 0, 0.6); }
 #wp-custom-wrapper.theme-ray { --hunter-color: #ef4444; --hunter-glow: rgba(239, 68, 68, 0.6); }
 #wp-custom-wrapper.theme-tj { --hunter-color: #a855f7; --hunter-glow: rgba(168, 85, 247, 0.6); }
@@ -148,42 +138,52 @@
 
 #wp-custom-wrapper .hunter-glow { font-size: 1.5rem; font-weight: 900; color: var(--hunter-color); text-shadow: 0 0 15px var(--hunter-glow); }
 
-#wp-custom-wrapper select {
-    background: #020617; color: var(--hunter-color); border: 2px solid var(--hunter-color);
-    padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 900; cursor: pointer;
-}
-
 #wp-custom-wrapper .profile-btn {
     background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1);
     color: white; padding: 10px 18px; border-radius: 0.8rem; font-weight: 900; cursor: pointer; transition: 0.3s;
 }
 
-#wp-custom-wrapper .rank-title { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; color: #94a3b8; margin-bottom: 20px; text-align: center;}
-#wp-custom-wrapper .rank-grid { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+/* Animal Rank Grid: Side-by-side on large screens */
+#wp-custom-wrapper .rank-grid { 
+    display: flex; flex-direction: row; justify-content: center; gap: 12px; flex-wrap: nowrap; width: 100%;
+}
 #wp-custom-wrapper .rank-item {
     background: rgba(15, 23, 42, 0.95); border: 2px solid rgba(255,255,255,0.1);
-    border-radius: 1rem; padding: 12px; min-width: 120px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    border-radius: 1rem; padding: 12px; min-width: 120px; flex: 1; max-width: 180px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
-#wp-custom-wrapper .rank-emoji { font-size: 2rem; }
-#wp-custom-wrapper .rank-label { font-size: 0.65rem; font-weight: 900; text-transform: uppercase; color: #cbd5e1; }
-#wp-custom-wrapper .rank-controls { display: flex; align-items: center; gap: 8px; width: 100%; justify-content: space-between; }
+#wp-custom-wrapper .rank-controls { display: flex; width: 100%; justify-content: space-between; align-items: center; }
 #wp-custom-wrapper .rank-controls button { background: rgba(0,0,0,0.5); border: 1px solid var(--hunter-color); color: var(--hunter-color); border-radius: 4px; width: 24px; cursor: pointer; font-weight: 900; }
-#wp-custom-wrapper .rank-controls span { font-family: monospace; font-size: 1rem; font-weight: 900; }
+#wp-custom-wrapper .rank-controls span { font-family: monospace; font-size: 1.1rem; font-weight: 900; }
 
-#wp-custom-wrapper .progress-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 30px 0; }
-
-/* Main UI */
 #wp-custom-wrapper .main-header {
     background: rgba(2, 6, 23, 0.85); padding: 40px; border-radius: 2rem;
     border: 3px solid var(--hunter-color); box-shadow: 0 0 50px var(--hunter-glow);
     text-align: center; margin-bottom: 60px;
 }
-#wp-custom-wrapper #game-title { color: var(--hunter-color); text-shadow: 0 0 10px var(--hunter-glow); }
 
 #wp-custom-wrapper .bar-bg { background: #000; height: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; overflow: hidden; }
 #wp-custom-wrapper .bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--hunter-color), #fff); transition: width 1.2s; }
 
-/* COLLAPSIBLE SECTIONS */
+/* Dynamic Card Colors */
+#wp-custom-wrapper .trophy-card {
+    background: rgba(30, 41, 59, 0.95); border: 2px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.5rem; padding: 20px; display: flex; flex-direction: column;
+    justify-content: space-between; transition: all 0.4s ease;
+}
+
+#wp-custom-wrapper .trophy-card.status-red { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); }
+#wp-custom-wrapper .trophy-card.status-yellow { border-color: #eab308; box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); }
+#wp-custom-wrapper .trophy-card.status-green { border-color: #22c55e; box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+#wp-custom-wrapper .trophy-card.completed { border-color: #22c55e; animation: pulse-green-glow 2s infinite; }
+
+@keyframes pulse-green-glow {
+    0% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); }
+    50% { box-shadow: 0 0 35px rgba(34, 197, 94, 0.8); }
+    100% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); }
+}
+
+/* Original Collapsible Layout Protocols */
 #wp-custom-wrapper .category-section { scroll-margin-top: 30px; margin-bottom: 20px; }
 #wp-custom-wrapper .category-header { 
     display: flex; justify-content: space-between; align-items: center; 
@@ -205,15 +205,6 @@
 #wp-custom-wrapper .cat-bar-fill { height: 100%; background: var(--hunter-color); transition: width 0.8s; }
 
 #wp-custom-wrapper .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
-
-/* Trophy Card */
-#wp-custom-wrapper .trophy-card {
-    background: rgba(30, 41, 59, 0.95); border: 2px solid rgba(255, 255, 255, 0.08);
-    border-radius: 1.5rem; padding: 20px; display: flex; flex-direction: column;
-    justify-content: space-between; position: relative; overflow: hidden;
-    transition: 0.3s;
-}
-#wp-custom-wrapper .trophy-card.completed { border-color: var(--hunter-color); box-shadow: 0 0 25px var(--hunter-glow); }
 
 #wp-custom-wrapper .trophy-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 #wp-custom-wrapper .trophy-icon-img { width: 40px; height: 40px; border-radius: 8px; flex-shrink: 0; background: #000; object-fit: cover; }
@@ -247,9 +238,10 @@
 #wp-custom-wrapper .sub-item-text { font-size: 0.65rem; color: #cbd5e1; max-width: 70%; line-height: 1.2; }
 #wp-custom-wrapper .check-btn { background: #1e293b; border: 1px solid #334155; color: #fff; font-size: 0.6rem; padding: 5px 8px; border-radius: 6px; }
 
-/* Mobile Aspect Ratio & Grid */
 @media (max-width: 768px) {
     #wp-custom-wrapper .tracker-container { width: 95%; }
+    #wp-custom-wrapper .rank-grid { flex-direction: column; align-items: center; }
+    #wp-custom-wrapper .rank-item { width: 100%; max-width: 250px; }
     #wp-custom-wrapper .trophy-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     #wp-custom-wrapper .trophy-card { aspect-ratio: 1 / 1; padding: 10px; }
     #wp-custom-wrapper .trophy-desc { display: none; }
@@ -291,91 +283,75 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
 
     const missionSet = (n=5) => Array.from({length:n}, (_,i) => ({name:`Mission ${i+1}`,done:false}));
 
-    // FULL AUDIT: BASE GAME (49 Trophies)
+    // AUDITED 115 TOTAL TROPHY REGISTRY
     const baseGameTrophies = [
-        { id: 'plat_cotw', cat: 'Base Game', name: 'theHunter', rank: 'platinum', current: 0, goal: 1, type: 'toggle', plat: false, desc: 'Collect every trophy.' },
-        { id: 'the_mile', cat: 'Base Game', name: 'The Mile', rank: 'bronze', current: 0, goal: 1, type: 'numeric', plat: true, desc: 'Travel 1 mile on foot.' },
-        { id: 'scand_mile', cat: 'Base Game', name: 'Scandinavian Mile', rank: 'bronze', current: 0, goal: 6.2, type: 'numeric', plat: true, desc: 'Travel 6.2 miles on foot.' },
-        { id: 'marathon', cat: 'Base Game', name: 'The Marathon', rank: 'silver', current: 0, goal: 26.2, type: 'numeric', plat: true, desc: 'Travel 26.2 miles on foot.' },
-        { id: 'ultra', cat: 'Base Game', name: 'The Ultramarathon', rank: 'gold', current: 0, goal: 100, type: 'numeric', plat: true, desc: 'Travel 100 miles on foot.' },
-        { id: 'jager', cat: 'Base Game', name: 'Jäger Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'sommer', cat: 'Base Game', name: 'Sommer Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'bhandari', cat: 'Base Game', name: 'Bhandari Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'fleischer', cat: 'Base Game', name: 'Fleischer Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'tressler', cat: 'Base Game', name: 'Tressler Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'hope', cat: 'Base Game', name: 'Hope Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'trampfine', cat: 'Base Game', name: 'Trampfine Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'vualez', cat: 'Base Game', name: 'Vualez Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'connors', cat: 'Base Game', name: 'Connors Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'beatty', cat: 'Base Game', name: 'Beatty Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', plat: true, subItems: missionSet(5) },
-        { id: 'hir_master', cat: 'Base Game', name: 'Hirschfelden Master', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true },
-        { id: 'lay_master', cat: 'Base Game', name: 'Layton Lake Master', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true },
-        { id: 'novice_m', cat: 'Base Game', name: 'Novice Marksman', rank: 'bronze', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Hit animal from 50m+.' },
-        { id: 'skilled_m', cat: 'Base Game', name: 'Skilled Marksman', rank: 'bronze', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Hit animal from 100m+.' },
-        { id: 'expert_m', cat: 'Base Game', name: 'Expert Marksman', rank: 'silver', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Hit animal from 200m+.' },
-        { id: 'legend_m', cat: 'Base Game', name: 'Legendary Marksman', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Hit animal from 400m+.' },
-        { id: 'moby_deer', cat: 'Base Game', name: 'Moby Deer', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Harvest albino deer.' },
-        { id: 'hero_h', cat: 'Base Game', name: 'Hero of Hirschfelden', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Harvest in every subregion.' },
-        { id: 'lord_l', cat: 'Base Game', name: 'Lord of the Lakes', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Harvest in every subregion.' },
-        { id: 'stay_target', cat: 'Base Game', name: 'Stay On Target', rank: 'bronze', current: 0, goal: 50, type: 'numeric', plat: true, desc: '50 tracks same animal.' },
-        { id: 'persist', cat: 'Base Game', name: 'Persistence Is Futile', rank: 'silver', current: 0, goal: 100, type: 'numeric', plat: true, desc: '100 tracks same animal.' },
-        { id: 'belief', cat: 'Base Game', name: 'Seeing Is Believing', rank: 'bronze', current: 0, goal: 10, type: 'numeric', plat: true, desc: 'Spot 10 animals.' },
-        { id: 'stalker', cat: 'Base Game', name: 'Stalker', rank: 'silver', current: 0, goal: 100, type: 'numeric', plat: true, desc: 'Spot 100 animals.' },
-        { id: 'jack', cat: 'Base Game', name: 'Jack Of All Trades', rank: 'gold', current: 0, goal: 4, type: 'numeric', plat: true, desc: '4 weapon type kills.' },
-        { id: 'blind', cat: 'Base Game', name: 'Blind Shot', rank: 'silver', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Hit animal barely visible.' },
-        { id: 'leave_no', cat: 'Base Game', name: 'Leave No Animal Behind', rank: 'bronze', current: 0, goal: 1, type: 'toggle', plat: true },
-        { id: 'calls_wild', cat: 'Base Game', name: 'Call Of The Wild', rank: 'silver', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Use all callers once.' },
-        { id: 'insomniac', cat: 'Base Game', name: 'Insomniac', rank: 'bronze', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Down animal at night.' },
-        { id: 'scarecrow', cat: 'Base Game', name: 'Scarecrow', rank: 'bronze', current: 0, goal: 1000, type: 'numeric', plat: true, desc: 'Scare 1000 animals.' },
-        { id: 'globetrot', cat: 'Base Game', name: 'Globetrotter', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Visit all regions.' },
-        { id: 'up_close', cat: 'Base Game', name: 'Up Close And Personal', rank: 'silver', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Hit within 15m undetected.' },
-        { id: 'paparazzi', cat: 'Base Game', name: 'Wildlife Paparazzi', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Photo every trophy species.' },
-        { id: 'potty', cat: 'Base Game', name: 'Potty Humor', rank: 'bronze', current: 0, goal: 100, type: 'numeric', plat: true, desc: 'Examine 100 droppings.' },
-        { id: 'make_count', cat: 'Base Game', name: 'Make It Count', rank: 'bronze', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Down w/ last round.' },
-        { id: 'diamonds_ever', cat: 'Base Game', name: 'Diamonds Are Forever', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true },
-        { id: 'goldmember', cat: 'Base Game', name: 'Goldmember', rank: 'silver', current: 0, goal: 1, type: 'toggle', plat: true },
-        { id: 'silverlining', cat: 'Base Game', name: 'Silver Lining', rank: 'bronze', current: 0, goal: 1, type: 'toggle', plat: true },
-        { id: 'itsomething', cat: 'Base Game', name: "It's Something", rank: 'bronze', current: 0, goal: 1, type: 'toggle', plat: true },
-        { id: 'bucket_list', cat: 'Base Game', name: 'Bucket List', rank: 'gold', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Spot every trophy animal.' },
-        { id: 'eavesdrop', cat: 'Base Game', name: 'Eavesdropping', rank: 'silver', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'ID call from every species.' },
-        { id: 'nerves_steel', cat: 'Base Game', name: 'Nerves Of Steel', rank: 'bronze', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Down with elevated HR.' },
-        { id: 'old_fashioned', cat: 'Base Game', name: 'The Old Fashioned Way', rank: 'silver', current: 0, goal: 1, type: 'toggle', plat: true, desc: 'Unscoped rifle down.' },
-        { id: 'head_shoulders', cat: 'Base Game', name: 'Head/Shoulders/Knees/Toes', rank: 'silver', current: 0, goal: 3, type: 'numeric', plat: true, desc: 'Stand, Kneel, Prone harvests.' },
-        { id: 'not_zombie', cat: 'Base Game', name: 'Not A Zombie Game', rank: 'silver', current: 0, goal: 10, type: 'numeric', plat: true, desc: '10 brain hit kills.' },
+        { id: 'plat_cotw', cat: 'Base Game', name: 'theHunter', rank: 'platinum', current: 0, goal: 1, type: 'toggle', desc: 'Collect every trophy.' },
+        { id: 'the_mile', cat: 'Base Game', name: 'The Mile', rank: 'bronze', current: 0, goal: 1, type: 'numeric', desc: 'Travel 1 mile on foot.' },
+        { id: 'scand_mile', cat: 'Base Game', name: 'Scandinavian Mile', rank: 'bronze', current: 0, goal: 6.2, type: 'numeric', desc: 'Travel 6.2 miles on foot.' },
+        { id: 'marathon', cat: 'Base Game', name: 'The Marathon', rank: 'silver', current: 0, goal: 26.2, type: 'numeric', desc: 'Travel 26.2 miles on foot.' },
+        { id: 'ultra', cat: 'Base Game', name: 'The Ultramarathon', rank: 'gold', current: 0, goal: 100, type: 'numeric', desc: 'Travel 100 miles on foot.' },
+        { id: 'jager', cat: 'Base Game', name: 'Jäger Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Barnyashev story missions.' },
+        { id: 'sommer', cat: 'Base Game', name: 'Sommer Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Sommer story missions.' },
+        { id: 'bhandari', cat: 'Base Game', name: 'Bhandari Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Bhandari story missions.' },
+        { id: 'fleischer', cat: 'Base Game', name: 'Fleischer Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Fleischer story missions.' },
+        { id: 'tressler', cat: 'Base Game', name: 'Tressler Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Tressler story missions.' },
+        { id: 'hope', cat: 'Base Game', name: 'Hope Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Hope story missions.' },
+        { id: 'trampfine', cat: 'Base Game', name: 'Trampfine Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Trampfine story missions.' },
+        { id: 'vualez', cat: 'Base Game', name: 'Vualez Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Vualez story missions.' },
+        { id: 'connors', cat: 'Base Game', name: 'Connors Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Connors story missions.' },
+        { id: 'beatty', cat: 'Base Game', name: 'Beatty Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Beatty story missions.' },
+        { id: 'hir_master', cat: 'Base Game', name: 'Hirschfelden Master', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Complete Hirschfelden missions.' },
+        { id: 'lay_master', cat: 'Base Game', name: 'Layton Lake Master', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Complete Layton Lake missions.' },
+        { id: 'novice_m', cat: 'Base Game', name: 'Novice Marksman', rank: 'bronze', current: 0, goal: 1, type: 'toggle', desc: 'Hit animal from 50m+.' },
+        { id: 'skilled_m', cat: 'Base Game', name: 'Skilled Marksman', rank: 'bronze', current: 0, goal: 1, type: 'toggle', desc: 'Hit animal from 100m+.' },
+        { id: 'expert_m', cat: 'Base Game', name: 'Expert Marksman', rank: 'silver', current: 0, goal: 1, type: 'toggle', desc: 'Hit animal from 200m+.' },
+        { id: 'legend_m', cat: 'Base Game', name: 'Legendary Marksman', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Hit animal from 400m+.' },
+        { id: 'moby_deer', cat: 'Base Game', name: 'Moby Deer', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Harvest albino deer.' },
+        { id: 'hero_h', cat: 'Base Game', name: 'Hero of Hirschfelden', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Harvest in every subregion.' },
+        { id: 'lord_l', cat: 'Base Game', name: 'Lord of the Lakes', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Harvest in every subregion.' },
+        { id: 'stay_target', cat: 'Base Game', name: 'Stay On Target', rank: 'bronze', current: 0, goal: 50, type: 'numeric', desc: '50 tracks same animal.' },
+        { id: 'persist', cat: 'Base Game', name: 'Persistence Is Futile', rank: 'silver', current: 0, goal: 100, type: 'numeric', desc: '100 tracks same animal.' },
+        { id: 'belief', cat: 'Base Game', name: 'Seeing Is Believing', rank: 'bronze', current: 0, goal: 10, type: 'numeric', desc: 'Spot 10 animals.' },
+        { id: 'stalker', cat: 'Base Game', name: 'Stalker', rank: 'silver', current: 0, goal: 100, type: 'numeric', desc: 'Spot 100 animals.' },
+        { id: 'jack', cat: 'Base Game', name: 'Jack Of All Trades', rank: 'gold', current: 0, goal: 4, type: 'numeric', desc: '4 weapon type kills.' },
+        { id: 'blind', cat: 'Base Game', name: 'Blind Shot', rank: 'silver', current: 0, goal: 1, type: 'toggle', desc: 'Hit animal barely visible.' },
+        { id: 'leave_no', cat: 'Base Game', name: 'Leave No Animal Behind', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'calls_wild', cat: 'Base Game', name: 'Call Of The Wild', rank: 'silver', current: 0, goal: 1, type: 'toggle', desc: 'Use all callers once.' },
+        { id: 'insomniac', cat: 'Base Game', name: 'Insomniac', rank: 'bronze', current: 0, goal: 1, type: 'toggle', desc: 'Down animal at night.' },
+        { id: 'scarecrow', cat: 'Base Game', name: 'Scarecrow', rank: 'bronze', current: 0, goal: 1000, type: 'numeric', desc: 'Scare 1000 animals.' },
+        { id: 'globetrot', cat: 'Base Game', name: 'Globetrotter', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Visit all regions.' },
+        { id: 'up_close', cat: 'Base Game', name: 'Up Close And Personal', rank: 'silver', current: 0, goal: 1, type: 'toggle', desc: 'Hit within 15m undetected.' },
+        { id: 'paparazzi', cat: 'Base Game', name: 'Wildlife Paparazzi', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Photo every trophy species.' },
+        { id: 'potty', cat: 'Base Game', name: 'Potty Humor', rank: 'bronze', current: 0, goal: 100, type: 'numeric', desc: 'Examine 100 droppings.' },
+        { id: 'make_count', base: true, cat: 'Base Game', name: 'Make It Count', rank: 'bronze', current: 0, goal: 1, type: 'toggle', desc: 'Down w/ last round.' },
+        { id: 'diamonds_ever', cat: 'Base Game', name: 'Diamonds Are Forever', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'goldmember', cat: 'Base Game', name: 'Goldmember', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'silverlining', cat: 'Base Game', name: 'Silver Lining', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'itsomething', cat: 'Base Game', name: "It's Something", rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'bucket_list', cat: 'Base Game', name: 'Bucket List', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Spot every trophy species.' },
+        { id: 'eavesdrop', cat: 'Base Game', name: 'Eavesdropping', rank: 'silver', current: 0, goal: 1, type: 'toggle', desc: 'ID call from every species.' },
+        { id: 'nerves_steel', cat: 'Base Game', name: 'Nerves Of Steel', rank: 'bronze', current: 0, goal: 1, type: 'toggle', desc: 'Down with elevated HR.' },
+        { id: 'old_fashioned', cat: 'Base Game', name: 'The Old Fashioned Way', rank: 'silver', current: 0, goal: 1, type: 'toggle', desc: 'Unscoped rifle down.' },
+        { id: 'head_shoulders', cat: 'Base Game', name: 'Head/Shoulders/Knees/Toes', rank: 'silver', current: 0, goal: 3, type: 'numeric', desc: 'Stand, Kneel, Prone harvests.' },
+        { id: 'not_zombie', cat: 'Base Game', name: 'Not A Zombie Game', rank: 'silver', current: 0, goal: 10, type: 'numeric', desc: '10 brain hit kills.' },
 
-        // DLC AUDITS (Medved, Vurhonga, etc. below)
-        { id: 'med_anatoly', cat: 'DLC: Medved-Taiga', name: 'Anatoly Barnyashev Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: [
-            {name: "The Best Defense", done: false}, {name: "Out of the Way", done: false}, {name: "The Lost One", done: false}, {name: "A Grave Concern", done: false}, {name: "A New Home", done: false}
-        ]},
-        { id: 'med_columbus', cat: 'DLC: Medved-Taiga', name: 'Columbus Neidell Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: [
-            {name: "The New World", done: false}, {name: "A Helping Hand", done: false}, {name: "Into the Unknown", done: false}, {name: "The High Ground", done: false}, {name: "The Heart of the Taiga", done: false}
-        ]},
-        { id: 'med_pushkin', cat: 'DLC: Medved-Taiga', name: 'Dimi Pushkin Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: [
-            {name: "The Frozen Eye", done: false}, {name: "The Dead of Night", done: false}, {name: "In the Shadows", done: false}, {name: "The Light of Day", done: false}
-        ]},
-        { id: 'med_georgy', cat: 'DLC: Medved-Taiga', name: 'Georgy Grankin Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: [
-            {name: "A Ghost from the Past", done: false}, {name: "The Old Guard", done: false}, {name: "The Last Stand", done: false}, {name: "A Quiet Night", done: false}
-        ]},
-        { id: 'med_katerina', cat: 'DLC: Medved-Taiga', name: 'Katerina Khasavovna Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: [
-            {name: "The Hunter's Path", done: false}, {name: "The Spirit of the Taiga", done: false}, {name: "The Great Bear", done: false}, {name: "The Final Test", done: false}
-        ]},
-        { id: 'med_svetlana', cat: 'DLC: Medved-Taiga', name: 'Svetlana Isakova Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: [
-            {name: "The Heart of the Lake", done: false}, {name: "The Silent Sentinel", done: false}, {name: "The Frozen River", done: false}, {name: "The Eternal Winter", done: false}
-        ]},
+        // DLC: Medved-Taiga (12 Entries)
         { id: 'med_park_arc', cat: 'DLC: Medved-Taiga', name: 'Medved Master', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
-        { id: 'med_apex', cat: 'DLC: Medved-Taiga', name: 'The Apex Hunter', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: [
-            {name: "Harvest Brown Bear", done: false}, {name: "Harvest Lynx", done: false}, {name: "Harvest Reindeer", done: false}, {name: "Harvest Moose", done: false}, {name: "Harvest Musk Deer", done: false}
-        ]},
-        { id: 'med_sheds', cat: 'DLC: Medved-Taiga', name: 'Shed Hunter', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Collect all antler sheds.' },
-        { id: 'med_paleo', cat: 'DLC: Medved-Taiga', name: 'Paleontology 101', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Find all artifacts.' },
-        { id: 'med_critic', cat: 'DLC: Medved-Taiga', name: 'Art Critic', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Find all cave paintings.' },
-        { id: 'med_pilgrim', cat: 'DLC: Medved-Taiga', name: 'Pilgrim', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Find all monuments.' },
+        { id: 'med_anatoly', cat: 'DLC: Medved-Taiga', name: 'Anatoly Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Barnyashev missions.' },
+        { id: 'med_apex', cat: 'DLC: Medved-Taiga', name: 'Apex Hunter', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5), desc: 'Harvest Taiga apex species.' },
+        { id: 'med_sheds', cat: 'DLC: Medved-Taiga', name: 'Shed Hunter', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Collect all sheds.' },
+        { id: 'med_paleo', cat: 'DLC: Medved-Taiga', name: 'Paleontology', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Find artifacts.' },
+        { id: 'med_critic', cat: 'DLC: Medved-Taiga', name: 'Art Critic', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Find cave paintings.' },
+        { id: 'med_pilgrim', cat: 'DLC: Medved-Taiga', name: 'Pilgrim', rank: 'gold', current: 0, goal: 1, type: 'toggle', desc: 'Find monuments.' },
+        { id: 'med_columbus', cat: 'DLC: Medved-Taiga', name: 'Columbus Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'med_pushkin', cat: 'DLC: Medved-Taiga', name: 'Dimi Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: missionSet(4) },
+        { id: 'med_georgy', cat: 'DLC: Medved-Taiga', name: 'Georgy Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: missionSet(4) },
+        { id: 'med_katerina', cat: 'DLC: Medved-Taiga', name: 'Katerina Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: missionSet(4) },
+        { id: 'med_svetlana', cat: 'DLC: Medved-Taiga', name: 'Svetlana Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: missionSet(4) },
 
+        // DLC: Vurhonga Savanna (12 Entries)
         { id: 'vur_arc', cat: 'DLC: Vurhonga Savanna', name: 'Savanna Master', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
-        { id: 'vur_warden', cat: 'DLC: Vurhonga Savanna', name: 'Warden Arc', rank: 'gold', current: 0, goal: 10, type: 'checklist', subItems: [
-            {name: "Welcome", done: false}, {name: "Traps", done: false}, {name: "Across Savanna", done: false}, {name: "Ancestors", done: false}, {name: "Tribes", done: false},
-            {name: "Mucking", done: false}, {name: "Mampara", done: false}, {name: "Last Rhino", done: false}, {name: "Traffic Jam", done: false}, {name: "Observe", done: false}
-        ]},
+        { id: 'vur_warden', cat: 'DLC: Vurhonga Savanna', name: 'Warden Arc', rank: 'gold', current: 0, goal: 10, type: 'checklist', subItems: missionSet(10), desc: 'Complete Warden arc.' },
         { id: 'vur_mboweni', cat: 'DLC: Vurhonga Savanna', name: 'Mboweni Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
         { id: 'vur_ospreay', cat: 'DLC: Vurhonga Savanna', name: 'Ospreay Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
         { id: 'vur_maritz', cat: 'DLC: Vurhonga Savanna', name: 'Maritz Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
@@ -385,20 +361,23 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
         { id: 'vur_kudu', cat: 'DLC: Vurhonga Savanna', name: 'Camouflage', rank: 'gold', current: 0, goal: 50, type: 'numeric' },
         { id: 'vur_widow', cat: 'DLC: Vurhonga Savanna', name: 'Widowmaker Match', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'vur_spring', cat: 'DLC: Vurhonga Savanna', name: 'Springbok City', rank: 'silver', current: 0, goal: 25, type: 'numeric' },
-        { id: 'vur_lion', cat: 'DLC: Vurhonga Savanna', name: 'Lion of Vurhonga', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'vur_lion', cat: 'DLC: Vurhonga Savanna', name: 'Lion Hunter', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
 
+        // DLC: Parque Fernando (11 Entries)
         { id: 'par_ave_maria', cat: 'DLC: Parque Fernando', name: 'Ave María!', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'par_milanesa', cat: 'DLC: Parque Fernando', name: 'Truth in Milanesa', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
         { id: 'par_mark', cat: 'DLC: Parque Fernando', name: 'Hitting the Mark', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'par_targets_full', cat: 'DLC: Parque Fernando', name: "Carolina's Hits", rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'par_collection', cat: 'DLC: Parque Fernando', name: 'Trophy Collection', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'par_world_class', cat: 'DLC: Parque Fernando', name: 'World Class Reserve', rank: 'gold', current: 0, goal: 7, type: 'numeric' },
-        { id: 'par_vicente', cat: 'DLC: Parque Fernando', name: 'Vicente Vargas Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
-        { id: 'par_chinita', cat: 'DLC: Parque Fernando', name: 'Beatriz Cabrera Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
-        { id: 'par_matmat', cat: 'DLC: Parque Fernando', name: 'Matias Mateo Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
-        { id: 'par_luna', cat: 'DLC: Parque Fernando', name: 'Mariana Luna Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
-        { id: 'par_juliana', cat: 'DLC: Parque Fernando', name: 'Juliana Ferrari Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_vicente', cat: 'DLC: Parque Fernando', name: 'Vicente Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_chinita', cat: 'DLC: Parque Fernando', name: 'Cabrera Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_matmat', cat: 'DLC: Parque Fernando', name: 'Mateo Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_luna', cat: 'DLC: Parque Fernando', name: 'Luna Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_juliana', cat: 'DLC: Parque Fernando', name: 'Juliana Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
 
+        // DLC: Yukon Valley (10 Entries)
+        { id: 'yuk_yukon_arc', cat: 'DLC: Yukon Valley', name: 'Yukon Valley Arc', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'yuk_murray', cat: 'DLC: Yukon Valley', name: 'Sandy Murray Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
         { id: 'yuk_freeman', cat: 'DLC: Yukon Valley', name: 'Oscar Freeman Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
         { id: 'yuk_johnson', cat: 'DLC: Yukon Valley', name: 'Kayla Johnson Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
@@ -406,15 +385,15 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
         { id: 'yuk_bev', cat: 'DLC: Yukon Valley', name: 'Bev Parker Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
         { id: 'yuk_spark', cat: 'DLC: Yukon Valley', name: 'Spark, Blaze, Ashes', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'yuk_sourdough', cat: 'DLC: Yukon Valley', name: 'Closer to Sourdough', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
-        { id: 'yuk_yukon_arc', cat: 'DLC: Yukon Valley', name: 'Yukon Valley Arc', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'yuk_grizzly', cat: 'DLC: Yukon Valley', name: 'Grizzled Veteran', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
-        { id: 'yuk_ghost', cat: 'DLC: Yukon Valley', name: 'Ghost', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'yuk_ghost', cat: 'DLC: Yukon Valley', name: 'The Ghost', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
 
+        // DLC: Cuatro Colinas (11 Entries)
+        { id: 'cua_master', cat: 'DLC: Cuatro Colinas', name: 'Cuatro Colinas Arc', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'cua_carpet', cat: 'DLC: Cuatro Colinas', name: 'Reddish Carpet', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'cua_faith', cat: 'DLC: Cuatro Colinas', name: 'Faith Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
         { id: 'cua_shady', cat: 'DLC: Cuatro Colinas', name: 'Shady Dealings', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'cua_justice', cat: 'DLC: Cuatro Colinas', name: 'Justice is Served', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
-        { id: 'cua_master', cat: 'DLC: Cuatro Colinas', name: 'Cuatro Colinas Arc', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'cua_slam', cat: 'DLC: Cuatro Colinas', name: 'Slam of Glory', rank: 'gold', current: 0, goal: 4, type: 'numeric' },
         { id: 'cua_hubris', cat: 'DLC: Cuatro Colinas', name: 'Hubris Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
         { id: 'cua_tradition', cat: 'DLC: Cuatro Colinas', name: 'Tradition Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
@@ -422,25 +401,23 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
         { id: 'cua_rebirth', cat: 'DLC: Cuatro Colinas', name: 'Rebirth Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
         { id: 'cua_opport', cat: 'DLC: Cuatro Colinas', name: 'Opportunism Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
 
+        // DLC: Silver Ridge Peaks (10 Entries)
         { id: 'srp_turkeys', cat: 'DLC: Silver Ridge', name: 'Gobble Gobble', rank: 'silver', current: 0, goal: 50, type: 'numeric' },
         { id: 'srp_badname', cat: 'DLC: Silver Ridge', name: 'Bad Name', rank: 'gold', current: 0, goal: 10, type: 'numeric' },
         { id: 'srp_thanks', cat: 'DLC: Silver Ridge', name: 'Thanksgiving!', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
         { id: 'srp_ruled', cat: 'DLC: Silver Ridge', name: 'When they ruled', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
         { id: 'srp_heavy', cat: 'DLC: Silver Ridge', name: 'Heavy Weight', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
-        { id: 'srp_reaction', cat: 'DLC: Silver Ridge', name: 'Better Put This Back', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'srp_reaction', cat: 'DLC: Silver Ridge', name: 'Dangerous Reaction', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
         { id: 'srp_bearme', cat: 'DLC: Silver Ridge', name: 'Bear with Me', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
         { id: 'srp_sabotage', cat: 'DLC: Silver Ridge', name: 'Sabotage', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
         { id: 'srp_peace', cat: 'DLC: Silver Ridge', name: 'Bear... with Her!', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
         { id: 'srp_ascent', cat: 'DLC: Silver Ridge', name: 'Ascended', rank: 'silver', current: 0, goal: 1, type: 'toggle' }
     ];
 
-    const defaultTrophies = [...baseGameTrophies];
-
     const appState = {
         activeHunter: 'Werewolf3788',
         hunterData: [],
         animalRankData: { bronze: 0, silver: 0, gold: 0, diamond: 0, greatone: 0 },
-        hunterMeta: { platform: 'Playstation' },
         auth: null, db: null,
         unsubscribeMaster: null, unsubscribeLegacy: null,
         collapsedSections: {},
@@ -452,14 +429,14 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
             this.render();
 
             try {
-                const appInstance = initializeApp(firebaseConfig, 'COTW-Master-Restore-Audit');
+                const appInstance = initializeApp(firebaseConfig, 'COTW-Master-Restore-Protected');
                 this.auth = getAuth(appInstance);
                 this.db = getFirestore(appInstance);
                 await signInAnonymously(this.auth);
                 onAuthStateChanged(this.auth, (user) => { 
                     if (user) {
                         this.loadHunter(this.activeHunter);
-                        document.getElementById('stat-line').innerText = `Sync: 49 Base + DLC Audit Loaded`;
+                        document.getElementById('stat-line').innerText = `Sync: 115 Registry Entries Verified Linked`;
                     }
                 });
             } catch (err) { console.error(err); }
@@ -469,24 +446,60 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
             if (!this.db || !this.auth.currentUser) return;
             this.activeHunter = name;
             localStorage.setItem('cotw_master_active_id', name);
-            document.getElementById('hunter-name').innerText = name;
-            document.getElementById('wp-custom-wrapper').className = name === 'Werewolf3788' ? 'theme-werewolf' : name === 'Raymystyro' ? 'theme-ray' : 'theme-tj';
+            const hn = document.getElementById('hunter-name');
+            if (hn) hn.innerText = name;
+            const wrap = document.getElementById('wp-custom-wrapper');
+            if (wrap) wrap.className = name === 'Werewolf3788' ? 'theme-werewolf' : name === 'Raymystyro' ? 'theme-ray' : 'theme-tj';
 
             const masterRef = doc(this.db, 'artifacts', MASTER_ID, 'public', 'data', 'userTrophies', name);
             if (this.unsubscribeMaster) this.unsubscribeMaster();
+            
             this.unsubscribeMaster = onSnapshot(masterRef, (snap) => {
-                if (snap.exists()) {
-                    const incoming = snap.data().trophies || [];
-                    this.hunterData = baseGameTrophies.map(dt => {
-                        const found = incoming.find(it => it.id === dt.id);
-                        if (!found) return dt;
-                        if (dt.type === 'checklist' && found.subItems) {
-                             dt.subItems = dt.subItems.map((si, idx) => { if (found.subItems[idx]) si.done = found.subItems[idx].done; return si; });
-                        } else { dt.current = found.current || 0; }
+                let currentSet = JSON.parse(JSON.stringify(baseGameTrophies));
+                let forceSyncNeeded = false;
+
+                if (name === 'Raymystyro') {
+                    const rayDoneList = {
+                        itsomething: 1, the_mile: 1, scand_mile: 6.2, novice_m: 1, skilled_m: 1, 
+                        make_count: 1, leave_no: 1, goldmember: 1, silverlining: 1, up_close: 1, 
+                        old_fashioned: 1, scarecrow: 1000, head_shoulders: 3, expert_m: 1, belief: 10, 
+                        marathon: 26.2, eavesdrop: 1, potty: 100, stalker: 100, insomniac: 1, 
+                        ultra: 100, nerves_steel: 1, diamonds_ever: 1, srp_reaction: 1, srp_bearme: 1, 
+                        srp_sabotage: 1, srp_peace: 1, srp_ascent: 1, srp_ruled: 1, not_zombie: 10, 
+                        bucket_list: 1, globetrot: 1, jack: 4, srp_heavy: 1, calls_wild: 1, stay_target: 50
+                    };
+                    const cloudData = snap.exists() ? (snap.data().trophies || []) : [];
+                    this.hunterData = currentSet.map(dt => {
+                        const cloudMatch = cloudData.find(it => it.id === dt.id);
+                        const recoveryVal = rayDoneList[dt.id] || 0;
+                        const cloudVal = cloudMatch ? (cloudMatch.current || 0) : 0;
+                        if (recoveryVal > cloudVal) forceSyncNeeded = true;
+                        dt.current = Math.max(cloudVal, recoveryVal);
+                        if (dt.type === 'checklist' && cloudMatch?.subItems) {
+                             dt.subItems = dt.subItems.map((si, idx) => { if (cloudMatch.subItems[idx]) si.done = cloudMatch.subItems[idx].done; return si; });
+                        }
                         return dt;
                     });
+                } else if (snap.exists()) {
+                    const incoming = snap.data().trophies || [];
+                    this.hunterData = currentSet.map(dt => {
+                        const found = incoming.find(it => it.id === dt.id);
+                        if (found) { 
+                            dt.current = found.current || 0; 
+                            if (dt.type === 'checklist' && found.subItems) {
+                                dt.subItems = dt.subItems.map((si, idx) => {
+                                    if (found.subItems[idx]) si.done = found.subItems[idx].done;
+                                    return si;
+                                });
+                            }
+                        }
+                        return dt;
+                    });
+                } else {
+                    this.hunterData = currentSet;
                 }
                 this.render();
+                if (forceSyncNeeded) this.sync(); 
             });
 
             const legacyRef = doc(this.db, 'artifacts', LEGACY_ID, 'public', 'data', 'userTrophies', name);
@@ -513,6 +526,7 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
 
         toggleSection: function(sectionId) {
             const el = document.getElementById(sectionId);
+            if (!el) return;
             const isCollapsed = el.classList.contains('section-collapsed');
             if (isCollapsed) el.classList.remove('section-collapsed');
             else el.classList.add('section-collapsed');
@@ -523,32 +537,32 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
             if (!catId) return;
             const el = document.getElementById(catId);
             if (el) {
-                el.classList.remove('section-collapsed');
+                el.classList.remove('section-collapsed'); // Force open so they see where they went
+                this.collapsedSections[catId] = false;
                 el.scrollIntoView({ behavior: 'smooth' });
             }
         },
 
         switchHunter: function(name) { this.loadHunter(name); },
-        changePlatform: async function(val) { this.hunterMeta.platform = val; await this.sync(); },
         sync: async function() {
             if (!this.db || !this.auth.currentUser) return;
             const masterRef = doc(this.db, 'artifacts', MASTER_ID, 'public', 'data', 'userTrophies', this.activeHunter);
-            await setDoc(masterRef, { trophies: this.hunterData, platform: this.hunterMeta.platform }, { merge: true });
+            await setDoc(masterRef, { trophies: this.hunterData }, { merge: true });
         },
 
         getIcon: function(t) {
             const n = t.name.toLowerCase();
             if (n.includes('arc') || n.includes('master')) return ICONS.ARC;
             if (n.includes('photo') || n.includes('ruled')) return ICONS.PHOTO;
-            if (n.includes('mile') || n.includes('marathon')) return ICONS.TRAVEL;
-            if (n.includes('marksman') || n.includes('zombie') || n.includes('hit') || n.includes('bad name')) return ICONS.MARK;
-            if (n.includes('track') || n.includes('stalker') || n.includes('potty')) return ICONS.TRACK;
+            if (n.includes('marksman') || n.includes('hit')) return ICONS.MARK;
             return ICONS.GAME;
         },
 
         render: function() {
             const container = document.getElementById('section-container');
             const selector = document.getElementById('reserve-selector');
+            if (!container || !selector) return;
+
             container.innerHTML = '';
             const categories = [...new Set(this.hunterData.map(t => t.cat))];
             
@@ -566,9 +580,9 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
                 const catItems = this.hunterData.filter(t => t.cat === cat);
                 let catMet = 0;
                 catItems.forEach(item => {
-                    if (item.type === 'checklist') item.current = item.subItems.filter(s => s.done).length;
+                    if (item.type === 'checklist') item.current = (item.subItems || []).filter(s => s.done).length;
                     if (item.current >= item.goal) catMet++;
-                    if (item.plat !== false) { globalTotal++; if (item.current >= item.goal) globalMet++; }
+                    globalTotal++; if (item.current >= item.goal) globalMet++;
                 });
                 
                 const catPercent = Math.round((catMet / catItems.length) * 100);
@@ -584,8 +598,9 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
                         <span class="category-arrow">▼</span>
                     </div>
                     <div class="section-content">
+                        <!-- CATEGORY PROGRESS BAR -->
                         <div class="cat-progress-container">
-                            <span class="cat-progress-label">AUDITED: ${catMet} / ${catItems.length} (${catPercent}%)</span>
+                            <span class="cat-progress-label">Audit Status: ${catMet} / ${catItems.length} (${catPercent}%)</span>
                             <div class="cat-bar-bg"><div class="cat-bar-fill" style="width: ${catPercent}%"></div></div>
                         </div>
                         <div class="trophy-grid" id="grid-${sectionId}"></div>
@@ -597,8 +612,16 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
                 catItems.forEach((t) => {
                     const globalIdx = this.hunterData.findIndex(hd => hd.id === t.id);
                     const isDone = t.current >= t.goal;
+                    const cardPercent = (t.current / t.goal) * 100;
+
+                    // COLOR TRANSFORMATION EFFECT (Red -> Yellow -> Green -> Pulsing)
+                    let statusClass = "status-red";
+                    if (isDone) statusClass = "status-green completed";
+                    else if (cardPercent >= 71) statusClass = "status-green";
+                    else if (cardPercent >= 30) statusClass = "status-yellow";
+
                     const card = document.createElement('div');
-                    card.className = `trophy-card ${isDone ? 'completed' : ''}`;
+                    card.className = `trophy-card ${statusClass}`;
 
                     let ctrl = t.type === 'numeric' ? 
                         `<div class="controls"><button class="btn" onclick="appState.adj(${globalIdx},-1)">-</button><span class="status-display">${t.current}/${t.goal}</span><button class="btn" onclick="appState.adj(${globalIdx},1)">+</button></div>` :
@@ -606,9 +629,9 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
                         `<div class="status-display" style="margin-bottom:8px; text-align:center; font-weight:900;">${isDone ? 'DONE' : '('+t.current+'/'+t.goal+')'}</div>
                             <button class="dropdown-trigger" onclick="appState.drop('${t.id}')">Details</button>
                             <div id="drop-${t.id}" class="dropdown-content">
-                                ${t.subItems.map((s, si) => `<div class="sub-item"><span class="sub-item-text">${s.name}</span><button class="check-btn" onclick="appState.sub(${globalIdx},${si})">${s.done?'✓':'Off'}</button></div>`).join('')}
+                                ${(t.subItems || []).map((s, si) => `<div class="sub-item"><span class="sub-item-text">${s.name}</span><button class="check-btn" onclick="appState.sub(${globalIdx},${si})">${s.done?'✓':'Off'}</button></div>`).join('')}
                             </div>` : 
-                        `<button class="toggle-btn ${isDone?'is-active':''}" onclick="appState.tog(${globalIdx})">${isDone?'DONE':'MARK'}</button>`;
+                        `<button class="toggle-btn" onclick="appState.tog(${globalIdx})">${isDone?'DONE':'MARK'}</button>`;
 
                     card.innerHTML = `
                         <div class="trophy-card-header">
@@ -626,8 +649,10 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
             });
 
             const p = globalTotal > 0 ? Math.round((globalMet / globalTotal) * 100) : 0;
-            document.getElementById('overall-bar').style.width = p + '%';
-            document.getElementById('percent-text').innerText = `Master Platinum Progress ${p}%`;
+            const ob = document.getElementById('overall-bar');
+            if (ob) ob.style.width = p + '%';
+            const pt = document.getElementById('percent-text');
+            if (pt) pt.innerText = `Global Master Registry Progress ${p}%`;
         },
 
         adj: function(i, a) { 
@@ -636,11 +661,23 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/f
             this.sync(); 
         },
         tog: function(i) { this.hunterData[i].current = this.hunterData[i].current === 0 ? 1 : 0; this.render(); this.sync(); },
-        drop: function(id) { document.getElementById(`drop-${id}`).classList.toggle('show'); },
-        sub: function(i, si) { this.hunterData[i].subItems[si].done = !this.hunterData[i].subItems[si].done; this.render(); this.sync(); }
+        drop: function(id) { 
+            const d = document.getElementById(`drop-${id}`);
+            if (d) d.classList.toggle('show'); 
+        },
+        sub: function(i, si) { 
+            this.hunterData[i].subItems[si].done = !this.hunterData[i].subItems[si].done; 
+            this.hunterData[i].current = this.hunterData[i].subItems.filter(s => s.done).length;
+            this.render(); 
+            this.sync(); 
+        }
     };
 
     window.appState = appState;
-    appState.init();
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => appState.init());
+    } else {
+        appState.init();
+    }
 })();
 </script>
