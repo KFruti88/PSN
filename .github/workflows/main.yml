@@ -9,13 +9,9 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    # This tells the runner that all commands happen inside your subfolder
-    defaults:
-      run:
-        working-directory: ./rss-to-firebase
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,10 +19,13 @@ jobs:
           node-version: '20'
 
       - name: Install Dependencies
+        # REMOVE 'working-directory' if your files are in the main folder
+        # Or ensure this folder exists in your GitHub repo
+        working-directory: ./rss-to-firebase
         run: npm install
 
       - name: Run Sync Script
+        working-directory: ./rss-to-firebase
         env:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
-        # Since we are already in the folder, we just call the filename
         run: node sync-trophies.js
