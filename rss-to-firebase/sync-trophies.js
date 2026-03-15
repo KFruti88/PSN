@@ -19,9 +19,18 @@ const Parser = require('rss-parser');
     try {
         firebaseConfig = JSON.parse(rawConfig);
         
-        // HEALING LOGIC: Fixes PEM formatting issues often caused by copy-pasting into GitHub Secrets
+        // AGGRESSIVE HEALING LOGIC
         if (firebaseConfig.private_key) {
-            firebaseConfig.private_key = firebaseConfig.private_key.replace(/\\n/g, '\n');
+            // First, convert literal "\n" strings to real newlines
+            let key = firebaseConfig.private_key.replace(/\\n/g, '\n');
+            
+            // Second, if the key is all one line, rebuild the PEM structure
+            if (!key.includes('\n')) {
+                key = key.replace('-----BEGIN PRIVATE KEY-----', '-----BEGIN PRIVATE KEY-----\n')
+                         .replace('-----END PRIVATE KEY-----', '\n-----END PRIVATE KEY-----\n');
+            }
+            
+            firebaseConfig.private_key = key;
         }
     } catch (e) {
         console.error("CRITICAL ERROR: FIREBASE_CONFIG is not valid JSON.");
