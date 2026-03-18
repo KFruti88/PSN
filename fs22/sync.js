@@ -2,7 +2,7 @@
  * FS22 G-Portal to Firebase Realtime Database Bridge
  * Save as: fs22/sync.js
  * Author: Werewolf3788
- * Version: 4.6 (Extreme Telemetry + Animals + Pallets + Attachments)
+ * Version: 4.7 (Logic Fix + Full Spectrum Intel + Attachments)
  */
 (function() {
     const admin = require('firebase-admin');
@@ -49,7 +49,7 @@
     };
 
     async function runFarmAudit() {
-        console.log("Commencing Full-Spectrum Command Audit v4.6...");
+        console.log("Commencing Full-Spectrum Command Audit v4.7...");
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
             const [statsR, vehicleR, placeR, farmLR, missR, farmsR, fieldsR, careerR, itemsR, envR] = await Promise.all([
@@ -62,6 +62,7 @@
             const stats = await parse(statsR);
             const vData = await parse(vehicleR);
             const pData = await parse(placeR);
+            const farmland = await parse(farmLR);
             const fData = await parse(fieldsR);
             const farms = await parse(farmsR);
             const career = await parse(careerR);
@@ -70,19 +71,24 @@
 
             // 1. ATTACHMENT MAP
             const attachmentMap = {};
-            vData?.vehicles?.attachments?.forEach(a => {
-                attachmentMap[getAttr(a, 'attachmentId')] = getAttr(a, 'rootVehicleId');
+            const vList = vData?.vehicles?.vehicle || [];
+            const attachments = vData?.vehicles?.attachments || [];
+            attachments.forEach(a => {
+                const root = getAttr(a, 'rootVehicleId');
+                const sub = getAttr(a, 'attachmentId');
+                if (root && sub) attachmentMap[sub] = root;
             });
 
             // 2. FLEET & CARGO
-            const fleet = (vData?.vehicles?.vehicle || []).map(v => {
+            const fleet = vList.map(v => {
                 const id = getAttr(v, 'id');
                 const fillUnits = getChild(v, 'fillUnit')?.unit || [];
                 return {
                     id: id,
-                    name: getAttr(v, 'name') || getAttr(v, 'category') || "Tool",
-                    farmId: getAttr(v, 'farmId'),
-                    x: parseFloat(getAttr(v, 'x')), z: parseFloat(getAttr(v, 'z')),
+                    name: getAttr(v, 'name') || getAttr(v, 'category') || "Equipment",
+                    farmId: getAttr(v, 'farmId') || "0",
+                    x: parseFloat(getAttr(v, 'x')) || 0,
+                    z: parseFloat(getAttr(v, 'z')) || 0,
                     fuel: Math.round(parseFloat(getAttr(fillUnits.find(u => getAttr(u, 'fillType') === "DIESEL"), 'fillLevel') || 0)),
                     damage: Math.round(parseFloat(getAttr(getChild(v, 'wearable'), 'damage') || 0) * 100),
                     dirt: Math.round(parseFloat(getAttr(getChild(v, 'washable')?.dirtNode?.[0], 'amount') || 0) * 100),
@@ -112,7 +118,7 @@
 
             // 4. FIELD & PROPERTY INTEL
             const landMap = {};
-            (farmlandData?.farmlands?.farmland || []).forEach(l => { landMap[getAttr(l, 'id')] = getAttr(l, 'farmId'); });
+            (farmland?.farmlands?.farmland || []).forEach(l => { landMap[getAttr(l, 'id')] = getAttr(l, 'farmId'); });
 
             const fieldIntel = (fData?.fields?.field || []).map(f => {
                 const id = getAttr(f, 'id');
@@ -127,30 +133,43 @@
                 };
             });
 
-            // 5. PALLET COUNT
-            const pallets = (items?.items?.item || []).filter(i => getAttr(i, 'className') === 'Pallet').length;
+            // 5. SERVER INFO & LOGIC
+            const envRoot = environment?.environment;
+            const rawDayTime = parseFloat(getChild(envRoot, 'dayTime') || 0);
+            const hours = Math.floor(rawDayTime) % 24;
+            const minutes = Math.floor((rawDayTime - Math.floor(rawDayTime)) * 60);
 
             const payload = {
                 server: {
-                    name: getAttr(stats?.dedicatedServer, 'name'),
-                    map: getAttr(stats?.dedicatedServer, 'mapName'),
+                    name: getAttr(stats?.dedicatedServer, 'name') || "618 crew",
+                    map: getAttr(stats?.dedicatedServer, 'mapName') || "Zielonka",
                     online: stats?.dedicatedServer?.Slots?.[0]?.$.numUsed || 0,
-                    players: (stats?.dedicatedServer?.Slots?.[0]?.Player || []).map(p => ({ name: p._, isAdmin: p.$.isAdmin === 'true', x: p.$.x, z: p.$.z })),
-                    gameTime: getAttr(environment?.environment, 'dayTime'),
-                    mods: (stats?.dedicatedServer?.Mods?.[0]?.Mod || []).map(m => m._)
+                    players: (stats?.dedicatedServer?.Slots?.[0]?.Player || []).map(p => ({ 
+                        name: p._, 
+                        isAdmin: p.$.isAdmin === 'true',
+                        x: parseFloat(p.$.x) || 0, 
+                        z: parseFloat(p.$.z) || 0 
+                    })),
+                    gameTime: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`,
+                    weather: getAttr(envRoot?.weather?.[0]?.forecast?.[0]?.instance?.[0], 'typeName') || "CLEAR",
+                    mods: (stats?.dedicatedServer?.Mods?.[0]?.Mod || []).map(m => m._).slice(0, 100)
                 },
                 farms: (farms?.farms?.farm || []).map(f => ({ id: getAttr(f, 'farmId'), name: getAttr(f, 'name'), money: getAttr(f, 'money') })),
                 fleet: fleet,
                 productions: productions,
                 animals: animalSummary,
                 fields: fieldIntel,
-                pallets: pallets,
-                lastUpdated: new Date().toLocaleString("en-US", { timeZone: "America/Chicago" })
+                pallets: (items?.items?.item || []).filter(i => getAttr(i, 'className') === 'Pallet').length,
+                lastUpdated: new Date().toLocaleString("en-US", { timeZone: "America/Chicago", hour: '2-digit', minute: '2-digit', second: '2-digit' })
             };
 
             await db.ref('fs22_live').set(payload);
+            console.log("Sync v4.7 Success.");
             process.exit(0);
-        } catch (e) { console.error(e); process.exit(1); }
+        } catch (e) {
+            console.error("Critical Failure:", e.message);
+            process.exit(1);
+        }
     }
     runFarmAudit();
 })();
