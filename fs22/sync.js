@@ -24,7 +24,9 @@
 
     const db = admin.app('fs22SyncInstance').database();
 
-    // UPDATED SERVER CONFIGURATION
+    /** * UPDATED SERVER CONFIGURATION (G-Portal New Server)
+     * Web API Interval set to 180s for 3-minute refresh cycles.
+     */
     const CODE = "CVzQ6vUR4l7iRtH4";
     const BASE_URL = "http://207.244.227.124:8130/feed/";
 
@@ -44,7 +46,7 @@
     const getAttr = (obj, attr) => obj?.$?.[attr] || obj?.[attr] || null;
 
     async function runFarmAudit() {
-        console.log("Commencing telemetry audit for '618 crew' on new server...");
+        console.log("Commencing telemetry audit for '618 crew' on new server (3m API Interval)...");
 
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
@@ -112,7 +114,7 @@
             };
 
             await db.ref('fs22_live').set(payload);
-            console.log(`Successfully synced ${liveFleet.length} vehicles for ${serverName} (New Server).`);
+            console.log(`Successfully synced ${liveFleet.length} vehicles for ${serverName}.`);
             process.exit(0);
         } catch (error) {
             console.error("Sync pipeline failed:", error.message);
