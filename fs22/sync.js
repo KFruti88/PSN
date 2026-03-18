@@ -2,6 +2,7 @@
  * FS22 G-Portal to Firebase Realtime Database Bridge
  * Save as: fs22/sync.js
  * Author: Werewolf3788
+ * Version: 2.5 (Maximum Telemetry - Chicago Sync)
  */
 (function() {
     const admin = require('firebase-admin');
@@ -24,9 +25,6 @@
 
     const db = admin.app('fs22SyncInstance').database();
 
-    /** * UPDATED SERVER CONFIGURATION (G-Portal New Server)
-     * Web API Interval set to 180s for 3-minute refresh cycles.
-     */
     const CODE = "CVzQ6vUR4l7iRtH4";
     const BASE_URL = "http://207.244.227.124:8130/feed/";
 
@@ -34,6 +32,8 @@
         STATS: `${BASE_URL}dedicated-server-stats.xml?code=${CODE}`,
         CAREER: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=careerSavegame`,
         VEHICLES: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=vehicles`,
+        PLACEABLES: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=placeables`,
+        FARMLAND: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=farmland`,
         ECONOMY: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=economy`,
         MAP: `${BASE_URL}dedicated-server-stats-map.jpg?code=${CODE}&quality=60&size=512`
     };
@@ -46,92 +46,155 @@
     const getAttr = (obj, attr) => obj?.$?.[attr] || obj?.[attr] || null;
 
     async function runFarmAudit() {
-        console.log("Commencing telemetry audit for '618 crew' (Central Time Sync)...");
+        console.log("Commencing Maximum Telemetry Audit for '618 crew'...");
 
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
-            const [statsRaw, careerRaw, vehicleRaw, economyRaw] = await Promise.all([
-                fetch(URLS.STATS), fetch(URLS.CAREER), fetch(URLS.VEHICLES), fetch(URLS.ECONOMY)
+            const [statsRaw, careerRaw, vehicleRaw, placeRaw, farmRaw, economyRaw] = await Promise.all([
+                fetch(URLS.STATS), fetch(URLS.CAREER), fetch(URLS.VEHICLES), fetch(URLS.PLACEABLES), fetch(URLS.FARMLAND), fetch(URLS.ECONOMY)
             ]);
 
             const parse = async (raw) => raw ? xml2js.parseStringPromise(raw).catch(() => ({})) : {};
             const stats = await parse(statsRaw);
             const career = await parse(careerRaw);
             const vehicles = await parse(vehicleRaw);
+            const placeables = await parse(placeRaw);
+            const farmland = await parse(farmRaw);
             const economy = await parse(economyRaw);
 
-            // 1. Core Server Data
             const serverInfo = stats?.Server || stats?.dedicatedServer;
-            const serverName = getAttr(serverInfo, 'name') || "618 crew";
-            const mapName = getAttr(serverInfo, 'mapName') || "Elmcreek";
             const mapSize = parseInt(getAttr(serverInfo, 'mapSize') || 2048);
 
-            // 2. Personnel Data
+            // 1. FLEET & TRAILERS (Fuel, Damage, Operating Hours)
+            const vRoot = getChild(vehicles, 'vehicles') || getChild(serverInfo, 'Vehicles');
+            const vList = vRoot?.vehicle || vRoot?.Vehicle || [];
+            const liveFleet = vList.map(v => {
+                const damage = parseFloat(getAttr(v, 'damageLevel') || 0);
+                const fuel = parseFloat(getAttr(v, 'fuelLevel') || 0);
+                const operatingTime = parseFloat(getAttr(v, 'operatingTime') || 0);
+                const isTrailer = getAttr(v, 'category')?.toLowerCase().includes('trailer') || false;
+
+                return {
+                    name: getAttr(v, 'name'),
+                    category: getAttr(v, 'category'),
+                    farmId: getAttr(v, 'farmId') || "1",
+                    x: parseFloat(getAttr(v, 'x') || 0),
+                    z: parseFloat(getAttr(v, 'z') || 0),
+                    fillType: getAttr(v, 'fillTypes') || "Empty",
+                    fillLevel: Math.round(parseFloat(getAttr(v, 'fillLevels') || 0)),
+                    fuel: Math.round(fuel),
+                    damage: Math.round(damage * 100),
+                    hours: (operatingTime / 3600).toFixed(1),
+                    type: getAttr(v, 'name')?.toLowerCase().includes('wagon') ? 'world' : 'owned',
+                    isTrailer: isTrailer
+                };
+            });
+
+            // 2. FACTORIES, GREENHOUSES & STORAGE (Pallets, Slurry, Silos)
+            const pList = placeables?.placeables?.placeable || [];
+            const factories = [];
+            const silos = [];
+
+            pList.forEach(p => {
+                const type = getAttr(p, 'type');
+                const pos = p.position ? p.position[0].$ : { x: 0, z: 0 };
+                
+                // Silo Storage
+                if (type && type.includes('silo')) {
+                    const storage = [];
+                    const pp = getChild(p, 'productionPoint') || p;
+                    if (pp?.storage?.[0]?.node) {
+                        pp.storage[0].node.forEach(n => {
+                            storage.push({ type: n.$.fillType, amount: Math.round(parseFloat(n.$.fillLevel)) });
+                        });
+                    }
+                    silos.push({ name: getAttr(p, 'modName') || "Silo", storage: storage });
+                }
+
+                // Production (Factories / Greenhouses)
+                if (type && (type.includes('productionPoint') || type.includes('greenhouse'))) {
+                    const storage = [];
+                    const pp = getChild(p, 'productionPoint');
+                    if (pp?.storage?.[0]?.node) {
+                        pp.storage[0].node.forEach(n => {
+                            storage.push({ 
+                                type: n.$.fillType, 
+                                amount: Math.round(parseFloat(n.$.fillLevel)),
+                                capacity: Math.round(parseFloat(n.$.capacity || 0))
+                            });
+                        });
+                    }
+                    factories.push({
+                        name: getAttr(p, 'modName') || "Production",
+                        x: parseFloat(pos.x),
+                        z: parseFloat(pos.z),
+                        storage: storage,
+                        isGreenhouse: type.includes('greenhouse')
+                    });
+                }
+            });
+
+            // 3. FIELD DATA (Growth, Lime, Fertilizer, Plow, Cultivate)
+            const fieldRecords = [];
+            const fList = getChild(farmland, 'farmlands')?.farmland || [];
+            const saveFields = getChild(career, 'careerSavegame')?.fields?.[0]?.field || [];
+
+            fList.forEach(f => {
+                const id = getAttr(f, 'id');
+                const ownerId = getAttr(f, 'farmId');
+                // Link with savegame field status
+                const status = saveFields.find(sf => getAttr(sf, 'id') === id) || {};
+
+                fieldRecords.push({
+                    id: id,
+                    farmId: ownerId,
+                    growth: getAttr(status, 'growthState') || "1",
+                    fertilizer: getAttr(status, 'fertilizerLevel') || "0",
+                    lime: getAttr(status, 'limeLevel') || "0",
+                    plow: getAttr(status, 'plowLevel') || "0",
+                    cultivate: getAttr(status, 'weedLevel') || "0", // Weed level often used as cultivation proxy in API
+                    fruit: getAttr(status, 'fruitType') || "Empty"
+                });
+            });
+
+            // 4. PERSONNEL & FARMS
             const slots = getChild(serverInfo, 'Slots') || getChild(serverInfo, 'players');
-            const onlineCount = parseInt(getAttr(slots, 'numUsed') || getAttr(slots, 'matched') || 0);
-            const maxSlots = parseInt(getAttr(slots, 'capacity') || 0);
-
-            // 3. Fleet & Positioning
-            const fleetRoot = getChild(serverInfo, 'Vehicles') || getChild(vehicles, 'vehicles');
-            const vehicleEntries = fleetRoot?.Vehicle || fleetRoot?.vehicle || [];
-            
-            const liveFleet = vehicleEntries.map(v => ({
-                name: getAttr(v, 'name'),
-                category: getAttr(v, 'category'),
-                x: parseFloat(getAttr(v, 'x') || 0),
-                z: parseFloat(getAttr(v, 'z') || 0),
-                fillType: getAttr(v, 'fillTypes') || "Empty",
-                fillLevel: Math.round(parseFloat(getAttr(v, 'fillLevels') || 0))
+            const farmList = career?.careerSavegame?.farms?.[0]?.farm || [];
+            const farmsData = farmList.filter(f => getAttr(f, 'farmId') !== "0").map(f => ({
+                id: getAttr(f, 'farmId'),
+                name: getAttr(f, 'name'),
+                money: parseInt(getChild(f, 'money') || 0)
             }));
-
-            // 4. Financials
-            const careerRoot = getChild(career, 'careerSavegame');
-            const farmName = getChild(careerRoot, 'settings')?.savegameName?.[0] || "618 crew";
-            
-            const moneyVal = getChild(careerRoot, 'farm')?.money?.[0] || 
-                             getChild(careerRoot, 'statistics')?.money?.[0] || 0;
-            
-            const playTimeVal = getChild(careerRoot, 'statistics')?.playTime?.[0] || 0;
 
             const payload = {
                 server: {
-                    name: serverName,
-                    map: mapName,
+                    name: getAttr(serverInfo, 'name') || "618 crew",
+                    map: getAttr(serverInfo, 'mapName') || "Elmcreek",
                     mapSize: mapSize,
-                    online: onlineCount,
-                    max: maxSlots,
-                    players: slots?.Player ? 
-                             slots.Player.filter(p => p.$?.name).map(p => ({
-                                name: p.$.name,
-                                isAdmin: p.$.isAdmin === 'true' || p.$.isAdmin === true
-                             })) : 
-                             []
+                    online: parseInt(getAttr(slots, 'numUsed') || 0),
+                    max: parseInt(getAttr(slots, 'capacity') || 6),
+                    players: (slots?.Player || []).map(p => ({
+                        name: p.$.name,
+                        isAdmin: p.$.isAdmin === 'true' || p.$.isAdmin === true
+                    })),
+                    farms: farmsData
                 },
-                career: {
-                    name: farmName,
-                    money: parseInt(moneyVal),
-                    playTime: Math.round(parseFloat(playTimeVal) / 60)
-                },
-                fleet: { 
-                    total: liveFleet.length,
-                    vehicles: liveFleet
-                },
-                // UPDATED: Forced Central Time (Chicago)
+                fleet: { total: liveFleet.length, vehicles: liveFleet },
+                factories: factories,
+                fields: fieldRecords,
+                silos: silos,
                 lastUpdated: new Date().toLocaleString("en-US", { 
                     timeZone: "America/Chicago",
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: true
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
                 }),
                 media: { mapUrl: URLS.MAP }
             };
 
             await db.ref('fs22_live').set(payload);
-            console.log(`Successfully synced ${liveFleet.length} vehicles. Local Time: ${payload.lastUpdated}`);
+            console.log(`Sync Successful. Chicago Time: ${payload.lastUpdated}`);
             process.exit(0);
         } catch (error) {
-            console.error("Sync pipeline failed:", error.message);
+            console.error("Telemetry pipeline failed:", error.message);
             process.exit(1);
         }
     }
