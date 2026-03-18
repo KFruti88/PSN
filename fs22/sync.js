@@ -2,7 +2,7 @@
  * FS22 G-Portal to Firebase Realtime Database Bridge
  * Save as: fs22/sync.js
  * Author: Werewolf3788
- * Version: 2.5 (Maximum Telemetry - Chicago Sync)
+ * Version: 3.0 (Absolute Maximum Telemetry - Chicago Sync)
  */
 (function() {
     const admin = require('firebase-admin');
@@ -46,7 +46,7 @@
     const getAttr = (obj, attr) => obj?.$?.[attr] || obj?.[attr] || null;
 
     async function runFarmAudit() {
-        console.log("Commencing Maximum Telemetry Audit for '618 crew'...");
+        console.log("Commencing Full System Telemetry Audit for '618 crew'...");
 
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
@@ -65,100 +65,85 @@
             const serverInfo = stats?.Server || stats?.dedicatedServer;
             const mapSize = parseInt(getAttr(serverInfo, 'mapSize') || 2048);
 
-            // 1. FLEET & TRAILERS (Fuel, Damage, Operating Hours)
-            const vRoot = getChild(vehicles, 'vehicles') || getChild(serverInfo, 'Vehicles');
-            const vList = vRoot?.vehicle || vRoot?.Vehicle || [];
-            const liveFleet = vList.map(v => {
-                const damage = parseFloat(getAttr(v, 'damageLevel') || 0);
-                const fuel = parseFloat(getAttr(v, 'fuelLevel') || 0);
-                const operatingTime = parseFloat(getAttr(v, 'operatingTime') || 0);
-                const isTrailer = getAttr(v, 'category')?.toLowerCase().includes('trailer') || false;
-
-                return {
-                    name: getAttr(v, 'name'),
-                    category: getAttr(v, 'category'),
-                    farmId: getAttr(v, 'farmId') || "1",
-                    x: parseFloat(getAttr(v, 'x') || 0),
-                    z: parseFloat(getAttr(v, 'z') || 0),
-                    fillType: getAttr(v, 'fillTypes') || "Empty",
-                    fillLevel: Math.round(parseFloat(getAttr(v, 'fillLevels') || 0)),
-                    fuel: Math.round(fuel),
-                    damage: Math.round(damage * 100),
-                    hours: (operatingTime / 3600).toFixed(1),
-                    type: getAttr(v, 'name')?.toLowerCase().includes('wagon') ? 'world' : 'owned',
-                    isTrailer: isTrailer
-                };
-            });
-
-            // 2. FACTORIES, GREENHOUSES & STORAGE (Pallets, Slurry, Silos)
+            // 1. ANIMALS & HUSBANDRY (Slurry, Health, Population)
+            const animalPens = [];
             const pList = placeables?.placeables?.placeable || [];
-            const factories = [];
-            const silos = [];
-
+            
             pList.forEach(p => {
                 const type = getAttr(p, 'type');
-                const pos = p.position ? p.position[0].$ : { x: 0, z: 0 };
-                
-                // Silo Storage
-                if (type && type.includes('silo')) {
+                if (type && (type.includes('husbandry') || type.includes('Animal'))) {
                     const storage = [];
-                    const pp = getChild(p, 'productionPoint') || p;
-                    if (pp?.storage?.[0]?.node) {
-                        pp.storage[0].node.forEach(n => {
-                            storage.push({ type: n.$.fillType, amount: Math.round(parseFloat(n.$.fillLevel)) });
-                        });
-                    }
-                    silos.push({ name: getAttr(p, 'modName') || "Silo", storage: storage });
-                }
-
-                // Production (Factories / Greenhouses)
-                if (type && (type.includes('productionPoint') || type.includes('greenhouse'))) {
-                    const storage = [];
-                    const pp = getChild(p, 'productionPoint');
-                    if (pp?.storage?.[0]?.node) {
-                        pp.storage[0].node.forEach(n => {
-                            storage.push({ 
-                                type: n.$.fillType, 
-                                amount: Math.round(parseFloat(n.$.fillLevel)),
-                                capacity: Math.round(parseFloat(n.$.capacity || 0))
+                    const h = getChild(p, 'husbandryAnimals') || getChild(p, 'husbandryFood');
+                    
+                    // Extract slurry/manure/milk levels
+                    const modules = p.husbandryAnimals?.[0]?.modules?.[0]?.module || [];
+                    modules.forEach(m => {
+                        if (m.$.fillType) {
+                            storage.push({
+                                type: m.$.fillType,
+                                amount: Math.round(parseFloat(m.$.fillLevel || 0))
                             });
-                        });
-                    }
-                    factories.push({
-                        name: getAttr(p, 'modName') || "Production",
-                        x: parseFloat(pos.x),
-                        z: parseFloat(pos.z),
-                        storage: storage,
-                        isGreenhouse: type.includes('greenhouse')
+                        }
+                    });
+
+                    animalPens.push({
+                        name: getAttr(p, 'modName') || "Animal Pen",
+                        type: type.split('.').pop(),
+                        health: Math.round(parseFloat(getChild(p, 'husbandryAnimals')?.$.health || 0)),
+                        population: parseInt(getChild(p, 'husbandryAnimals')?.$.numAnimals || 0),
+                        storage: storage
                     });
                 }
             });
 
-            // 3. FIELD DATA (Growth, Lime, Fertilizer, Plow, Cultivate)
+            // 2. FLEET & TRAILERS (Fuel, Damage, Wear)
+            const vRoot = getChild(vehicles, 'vehicles') || getChild(serverInfo, 'Vehicles');
+            const vList = vRoot?.vehicle || vRoot?.Vehicle || [];
+            const liveFleet = vList.map(v => ({
+                name: getAttr(v, 'name'),
+                category: getAttr(v, 'category'),
+                farmId: getAttr(v, 'farmId') || "1",
+                x: parseFloat(getAttr(v, 'x') || 0),
+                z: parseFloat(getAttr(v, 'z') || 0),
+                fillType: getAttr(v, 'fillTypes') || "Empty",
+                fillLevel: Math.round(parseFloat(getAttr(v, 'fillLevels') || 0)),
+                fuel: Math.round(parseFloat(getAttr(v, 'fuelLevel') || 0)),
+                damage: Math.round(parseFloat(getAttr(v, 'damageLevel') || 0) * 100),
+                hours: (parseFloat(getAttr(v, 'operatingTime') || 0) / 3600).toFixed(1),
+                type: getAttr(v, 'name')?.toLowerCase().includes('wagon') ? 'world' : 'owned'
+            }));
+
+            // 3. FIELDS (Growth, Lime, Fert, Plow, Cultivate)
             const fieldRecords = [];
-            const fList = getChild(farmland, 'farmlands')?.farmland || [];
             const saveFields = getChild(career, 'careerSavegame')?.fields?.[0]?.field || [];
-
-            fList.forEach(f => {
-                const id = getAttr(f, 'id');
-                const ownerId = getAttr(f, 'farmId');
-                // Link with savegame field status
-                const status = saveFields.find(sf => getAttr(sf, 'id') === id) || {};
-
+            saveFields.forEach(f => {
                 fieldRecords.push({
-                    id: id,
-                    farmId: ownerId,
-                    growth: getAttr(status, 'growthState') || "1",
-                    fertilizer: getAttr(status, 'fertilizerLevel') || "0",
-                    lime: getAttr(status, 'limeLevel') || "0",
-                    plow: getAttr(status, 'plowLevel') || "0",
-                    cultivate: getAttr(status, 'weedLevel') || "0", // Weed level often used as cultivation proxy in API
-                    fruit: getAttr(status, 'fruitType') || "Empty"
+                    id: getAttr(f, 'id'),
+                    farmId: getAttr(f, 'farmId') || "0",
+                    growth: getAttr(f, 'growthState') || "1",
+                    fertilizer: getAttr(f, 'fertilizerLevel') || "0",
+                    lime: getAttr(f, 'limeLevel') || "0",
+                    plow: getAttr(f, 'plowLevel') || "0",
+                    fruit: getAttr(f, 'fruitType') || "Bare"
                 });
             });
 
-            // 4. PERSONNEL & FARMS
+            // 4. COLLECTIBLES & AI STATUS
+            const statistics = getChild(getChild(career, 'careerSavegame'), 'statistics');
+            const collectibles = {
+                found: parseInt(statistics?.foundCollectibles?.[0] || 0),
+                total: 100 // Zielonka/Elmcreek standard
+            };
+
+            // 5. PERSONNEL (Human + Admin check)
             const slots = getChild(serverInfo, 'Slots') || getChild(serverInfo, 'players');
+            const players = (slots?.Player || []).map(p => ({
+                name: p.$.name,
+                isAdmin: p.$.isAdmin === 'true' || p.$.isAdmin === true,
+                farmId: p.$.farmId || "1"
+            }));
+
+            // 6. MULTI-FARM LIQUIDITY
             const farmList = career?.careerSavegame?.farms?.[0]?.farm || [];
             const farmsData = farmList.filter(f => getAttr(f, 'farmId') !== "0").map(f => ({
                 id: getAttr(f, 'farmId'),
@@ -171,18 +156,16 @@
                     name: getAttr(serverInfo, 'name') || "618 crew",
                     map: getAttr(serverInfo, 'mapName') || "Elmcreek",
                     mapSize: mapSize,
-                    online: parseInt(getAttr(slots, 'numUsed') || 0),
+                    online: players.length,
                     max: parseInt(getAttr(slots, 'capacity') || 6),
-                    players: (slots?.Player || []).map(p => ({
-                        name: p.$.name,
-                        isAdmin: p.$.isAdmin === 'true' || p.$.isAdmin === true
-                    })),
+                    players: players,
                     farms: farmsData
                 },
+                animals: animalPens,
                 fleet: { total: liveFleet.length, vehicles: liveFleet },
-                factories: factories,
                 fields: fieldRecords,
-                silos: silos,
+                collectibles: collectibles,
+                mods: (getChild(serverInfo, 'mods')?.mod || []).map(m => getAttr(m, 'filename')),
                 lastUpdated: new Date().toLocaleString("en-US", { 
                     timeZone: "America/Chicago",
                     hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
@@ -191,7 +174,7 @@
             };
 
             await db.ref('fs22_live').set(payload);
-            console.log(`Sync Successful. Chicago Time: ${payload.lastUpdated}`);
+            console.log(`Sync Successful. Chicago Time: ${payload.lastUpdated}. Found ${animalPens.length} pens.`);
             process.exit(0);
         } catch (error) {
             console.error("Telemetry pipeline failed:", error.message);
