@@ -2,7 +2,7 @@
  * FS22 G-Portal to Firebase Realtime Database Bridge
  * Save as: fs22/sync.js
  * Author: Werewolf3788
- * Version: 4.2 (Full Stats + Missions + Farmland Ownership + Chicago Sync)
+ * Version: 4.3 (Variable Fix + Maximum Telemetry + Chicago Sync)
  */
 (function() {
     const admin = require('firebase-admin');
@@ -70,7 +70,7 @@
     };
 
     async function runFarmAudit() {
-        console.log("Commencing Telemetry Audit v4.2: Maximum Intel for '618 crew'...");
+        console.log("Commencing Telemetry Audit v4.3: Maximum Intel for '618 crew'...");
 
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
@@ -126,13 +126,13 @@
                     name: getAttr(f, 'name'),
                     money: parseFloat(getAttr(f, 'money') || 0),
                     loan: parseFloat(getAttr(f, 'loan') || 0),
-                    playTime: (parseFloat(getChild(s, 'playTime') || 0) / 60).toFixed(1), // Hours
+                    playTime: (parseFloat(getChild(s, 'playTime') || 0) / 60).toFixed(1),
                     distance: parseFloat(getChild(s, 'traveledDistance') || 0).toFixed(2),
                     baleCount: parseInt(getChild(s, 'baleCount') || 0)
                 });
             });
 
-            // 3. FIELD PLANNING
+            // 3. FIELD PLANNING & OWNERSHIP
             const plannedFields = [];
             const fieldItems = fieldsData?.fields?.field || [];
             fieldItems.forEach(fi => {
@@ -140,6 +140,12 @@
                     id: getAttr(fi, 'id'),
                     plannedFruit: getAttr(fi, 'plannedFruit')
                 });
+            });
+
+            const landRegistry = [];
+            const landItems = farmland?.farmlands?.farmland || [];
+            landItems.forEach(land => {
+                landRegistry.push({ id: getAttr(land, 'id'), ownerId: getAttr(land, 'farmId') });
             });
 
             // 4. ENVIRONMENT & WEATHER
@@ -170,7 +176,7 @@
                     fillLevel: Math.round(parseFloat(getAttr(v, 'fillLevels') || 0)),
                     fuel: Math.round(parseFloat(getAttr(v, 'fuelLevel') || 0)),
                     damage: Math.round(parseFloat(getAttr(v, 'damageLevel') || 0) * 100),
-                    type: (rawName || "").toLowerCase().includes('wagon') ? 'world' : 'owned'
+                    type: cleanName.toLowerCase().includes('wagon') ? 'world' : 'owned'
                 };
             });
 
@@ -198,6 +204,7 @@
                     mapSize: mapSize
                 },
                 farms: deepFarms,
+                landRegistry: landRegistry,
                 missions: activeMissions,
                 fieldPlanning: plannedFields,
                 economy: marketPrices,
@@ -214,7 +221,7 @@
             };
 
             await db.ref('fs22_live').set(payload);
-            console.log(`Sync Successful v4.2. Farmland, Missions, and deep statistics updated for '618 crew'.`);
+            console.log(`Sync Successful v4.3. Chicago Time: ${payload.lastUpdated}.`);
             process.exit(0);
         } catch (error) {
             console.error("Critical Failure:", error.message);
