@@ -1,14 +1,17 @@
-name: FS22 Data Sync
+# Save as: .github/workflows/fs22.yml
+name: FS22 G-Portal Sync
+
 on:
   schedule:
-    - cron: '*/10 * * * *' # Reckon every 10 minutes is a good pace
-  workflow_dispatch:      # Lets you run it manually to test
+    - cron: '*/10 * * * *' # Runs every 10 minutes
+  workflow_dispatch:      # Lets you trigger it manually for testing
 
 jobs:
-  sync:
+  build:
     runs-with: ubuntu-latest
+
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Setup Node.js
@@ -17,10 +20,11 @@ jobs:
           node-version: '18'
 
       - name: Install Dependencies
+        # We need these three to talk to G-Portal and Firebase
         run: npm install firebase-admin axios xml2js
 
-      - name: Run the Brain
+      - name: Run Sync Script
+        # Pointing to your specific folder path
         run: node fs22/sync.js
         env:
-          # This pulls the secret we just saved and gives it to the script
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
