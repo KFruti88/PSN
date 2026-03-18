@@ -1,0 +1,369 @@
+<div id="wp-custom-wrapper">
+    <div id="library-header">
+        <div id="movie-counter">Syncing Cinema Library...</div>
+        
+        <div id="affiliate-disclosure">
+            <p>As an Amazon Associate, <strong>Werewolf3788</strong> earns from qualifying purchases. 
+            <br><span class="ma-highlight">🚀 PRO TIP:</span> If you see the <strong>Movies Anywhere (MA)</strong> button on a movie card, buying it on Amazon will automatically sync it to your other connected libraries! No MA button? It stays on Amazon.</p>
+            <div class="tag-row">
+                <span class="disclosure-tag">#CommissionEarned</span>
+                <span class="disclosure-tag">#MoviesAnywhere</span>
+            </div>
+        </div>
+
+        <div id="controls-container">
+            <input type="text" id="movie-search" placeholder="Search movies, years, or studios..." onkeyup="runFilters()">
+            <div id="filter-dropdowns">
+                <select id="studio-select" class="f-select" onchange="runFilters()"><option value="">All Studios</option></select>
+                <select id="genre-select" class="f-select" onchange="runFilters()"><option value="">All Genres</option></select>
+                <select id="sort-select" class="f-select" onchange="runFilters()">
+                    <option value="newest">Recently Added</option>
+                    <option value="free">Free to Watch</option>
+                    <option value="az">A-Z</option>
+                    <option value="za">Z-A</option>
+                    <option value="new-old">Year: New-Old</option>
+                    <option value="old-new">Year: Old-New</option>
+                </select>
+                <button class="f-btn btn-reset" onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="movie-library-grid"></div>
+
+    <div id="library-footer-tip">
+        <a href="https://streamlabs.com/werewolf3788/tip" target="_blank" class="tip-link">
+            <span class="tip-icon">💰</span> Support the Library - Send a Tip!
+        </a>
+    </div>
+</div>
+
+<style>
+/* --- UNIVERSAL LOCKED WRAPPER --- */
+#wp-custom-wrapper {
+    width: 90%;
+    max-width: 1800px;
+    margin: 0 auto;
+    color: #fff;
+    background: transparent !important;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    box-sizing: border-box;
+    padding-bottom: 140px;
+}
+
+#wp-custom-wrapper #library-header {
+    margin-bottom: 50px;
+    text-align: center;
+    background: rgba(0, 0, 0, 0.4); 
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 40px 20px;
+    border-radius: 24px;
+}
+
+#wp-custom-wrapper #affiliate-disclosure {
+    max-width: 800px;
+    margin: 0 auto 30px auto;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 153, 0, 0.3);
+}
+
+#wp-custom-wrapper .ma-highlight { color: #23a6d5; font-weight: 800; text-transform: uppercase; }
+#wp-custom-wrapper .disclosure-tag {
+    display: inline-block;
+    padding: 5px 12px;
+    background: #FF9900;
+    color: #000 !important;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 900;
+    margin: 0 5px;
+}
+
+#wp-custom-wrapper #movie-counter { font-size: 1.4rem; font-weight: 900; margin-bottom: 20px; text-transform: uppercase; text-shadow: 0 0 10px rgba(139, 0, 0, 0.7); }
+#wp-custom-wrapper #movie-counter span { color: #8b0000; }
+
+#wp-custom-wrapper #controls-container { display: flex; flex-direction: column; align-items: center; gap: 15px; }
+#wp-custom-wrapper #movie-search { width: 100%; max-width: 600px; padding: 15px 25px; border-radius: 30px; border: 2px solid #333; background: #111; color: #fff; outline: none; transition: 0.3s; }
+#wp-custom-wrapper #movie-search:focus { border-color: #FF9900; box-shadow: 0 0 15px rgba(255, 153, 0, 0.4); }
+
+#wp-custom-wrapper .f-select { background: #1a1a1a; color: #ff0 !important; border: 1px solid #444; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+#wp-custom-wrapper .f-btn { background: #8b0000; color: #fff; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+#wp-custom-wrapper .f-btn:hover { background: #ff0000; transform: scale(1.05); }
+
+/* --- GRID & CARDS --- */
+#wp-custom-wrapper #movie-library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
+#wp-custom-wrapper .movie-card {
+    background: rgba(10, 10, 10, 0.95);
+    border-radius: 18px;
+    border: 1px solid #222;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+}
+
+#wp-custom-wrapper .poster-box { 
+    width: 100%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    background: #000; 
+    aspect-ratio: 2/3;
+    overflow: hidden;
+    position: relative;
+}
+
+#wp-custom-wrapper .movie-card img { 
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#wp-custom-wrapper .movie-info { padding: 20px; text-align: center; width: 100%; box-sizing: border-box; flex-grow: 1; display: flex; flex-direction: column; }
+#wp-custom-wrapper .movie-title { font-size: 16px; font-weight: 800; color: #fff; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px; display: block; }
+#wp-custom-wrapper .stream-label { font-size: 9px; font-weight: 900; text-transform: uppercase; margin: 12px 0 6px; display: block; letter-spacing: 1px; }
+
+#wp-custom-wrapper .button-container { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; }
+
+#wp-custom-wrapper .m-link {
+    flex: 1 1 30%;
+    padding: 7px 5px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 800;
+    text-align: center;
+    text-decoration: none !important;
+    text-transform: uppercase;
+    transition: transform 0.2s;
+}
+#wp-custom-wrapper .m-link:hover { transform: scale(1.05); }
+
+/* --- PLATFORM BRAND COLORS --- */
+#wp-custom-wrapper .btn-netflix { background: #E50914 !important; color: #fff !important; }
+#wp-custom-wrapper .btn-disneyBundle { background: linear-gradient(135deg, #00afc4 0%, #1CE783 100%) !important; color: #000 !important; flex: 1 1 100% !important; border: none !important; }
+#wp-custom-wrapper .btn-max { background: #002be7 !important; color: #fff !important; }
+#wp-custom-wrapper .btn-peacock { background: #000 !important; border: 1px solid #00bdfe !important; color: #fff !important; }
+#wp-custom-wrapper .btn-paramount { background: #0064ff !important; color: #fff !important; }
+#wp-custom-wrapper .btn-shudder { background: #ff0000 !important; color: #fff !important; border: 1px solid #000 !important; }
+
+/* JustWatch Availability Tool */
+#wp-custom-wrapper .btn-justwatch { 
+    background: #000 !important; 
+    color: #fbc02d !important; 
+    border: 1px solid #fbc02d !important; 
+    flex: 1 1 100% !important; 
+    margin-top: 5px; 
+    box-shadow: 0 0 5px rgba(251, 192, 45, 0.4);
+}
+
+/* Free Platforms */
+#wp-custom-wrapper .btn-tubi { background: linear-gradient(135deg, #471B72 0%, #0B0019 100%) !important; color: #FFFF13 !important; }
+#wp-custom-wrapper .btn-roku { background: #662d91 !important; color: #fff !important; }
+#wp-custom-wrapper .btn-pluto { background: #000 !important; color: #ffff00 !important; border: 1px solid #ffff00 !important; }
+#wp-custom-wrapper .btn-plex { background: #000000 !important; color: #EBAF00 !important; border: 1px solid #EBAF00 !important; }
+#wp-custom-wrapper .btn-freevee { background: #00A8E1 !important; color: #fff !important; }
+#wp-custom-wrapper .btn-xumo { background: #20a0ff !important; color: #fff !important; }
+
+/* Buy Platforms */
+#wp-custom-wrapper .btn-google { background: #4285F4 !important; color: #fff !important; }
+#wp-custom-wrapper .btn-youtube { background: #FF0000 !important; color: #fff !important; }
+#wp-custom-wrapper .btn-appleTv { background: #ffffff !important; color: #007aff !important; border: 1px solid #007aff !important; }
+#wp-custom-wrapper .btn-fandango { background: #ff7300 !important; color: #fff !important; }
+#wp-custom-wrapper .btn-moviesAnywhere { background: #23a6d5 !important; color: #fff !important; box-shadow: 0 0 10px #23a6d5; }
+
+/* --- AMAZON GLOW & SHINE --- */
+#wp-custom-wrapper .btn-amazon { 
+    background: linear-gradient(135deg, #FF9900 0%, #ffb347 100%) !important; 
+    color: #000 !important;
+    position: relative; overflow: hidden;
+    box-shadow: 0 0 10px #FF9900;
+    animation: amazonPulse 2.5s infinite ease-in-out;
+}
+#wp-custom-wrapper .btn-amazon::after { 
+    content: ''; position: absolute; top: -50%; left: -60%; width: 20%; height: 200%; 
+    background: rgba(255, 255, 255, 0.4); transform: rotate(30deg); animation: masterShine 5s infinite linear; 
+}
+
+/* --- STICKY TIP FOOTER --- */
+#wp-custom-wrapper #library-footer-tip {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 90%;
+    max-width: 450px;
+}
+#wp-custom-wrapper .tip-link {
+    display: block;
+    padding: 15px;
+    background: linear-gradient(135deg, #8b0000 0%, #ff0000 100%);
+    color: #fff !important;
+    text-decoration: none !important;
+    font-weight: 900;
+    text-transform: uppercase;
+    border-radius: 50px;
+    border: 2px solid #fff;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(139, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
+    animation: tipPulse 2.5s infinite ease-in-out;
+}
+
+@keyframes amazonPulse { 0%, 100% { box-shadow: 0 0 10px #FF9900; } 50% { box-shadow: 0 0 20px #FF9900, 0 0 30px rgba(255, 153, 0, 0.5); } }
+@keyframes tipPulse { 0%, 100% { transform: scale(1) translateX(-50%); box-shadow: 0 0 15px rgba(139, 0, 0, 0.7); } 50% { transform: scale(1.05) translateX(-50%); box-shadow: 0 0 30px rgba(255, 0, 0, 0.9); } }
+@keyframes masterShine { 0% { left: -60%; } 15% { left: 120%; } 100% { left: 120%; } }
+
+/* Responsive Logic */
+@media (max-width: 768px) {
+    #wp-custom-wrapper #movie-library-grid { grid-template-columns: 1fr; }
+    #wp-custom-wrapper .movie-card, #wp-custom-wrapper .poster-box { aspect-ratio: 1/1; }
+    #wp-custom-wrapper #library-footer-tip { width: 95%; bottom: 10px; }
+}
+
+@media (min-width: 769px) {
+    #wp-custom-wrapper .movie-card:hover { transform: scale(1.04) translateY(-10px); border-color: #FF9900; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+    #wp-custom-wrapper .poster-box::after {
+        content: ''; position: absolute; top: -150%; left: -150%; width: 50%; height: 300%;
+        background: linear-gradient(to right, transparent, rgba(255,255,255,0.15), transparent);
+        transform: rotate(45deg); transition: 0.8s;
+    }
+    #wp-custom-wrapper .movie-card:hover .poster-box::after { left: 150%; }
+}
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+(function() {
+    let movies = [];
+    const myTag = "moviesanywhere02-20"; 
+    const config = { databaseURL: "https://werewolf-movie-library-default-rtdb.firebaseio.com/" };
+    
+    // Named Firebase Instance
+    if (!firebase.apps.length) {
+        firebase.initializeApp(config, 'werewolfLibrary');
+    }
+    const db = firebase.app('werewolfLibrary').database();
+
+    db.ref('movies').on('value', snap => {
+        movies = [];
+        let studios = new Set();
+        let genres = new Set();
+        snap.forEach(c => {
+            const d = c.val();
+            if (d && d.title) {
+                movies.push(d);
+                if (d.studio) studios.add(d.studio);
+                if (d.genre) d.genre.split(',').forEach(x => genres.add(x.trim()));
+            }
+        });
+        populateDropdown('studio-select', Array.from(studios).sort());
+        populateDropdown('genre-select', Array.from(genres).sort());
+        runFilters();
+    });
+
+    function populateDropdown(id, arr) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = `<option value="">All ${id.includes('studio') ? 'Studios' : 'Genres'}</option>`;
+        arr.forEach(i => {
+            if (i && i !== 'None') {
+                const o = document.createElement('option');
+                o.value = i; o.textContent = i;
+                el.appendChild(o);
+            }
+        });
+    }
+
+    window.renderMovies = list => {
+        const cnt = document.getElementById('movie-library-grid');
+        if (!cnt) return;
+        document.getElementById('movie-counter').innerHTML = `Results: <span>${list.length}</span>`;
+        cnt.innerHTML = '';
+        const f = document.createDocumentFragment();
+
+        list.forEach(m => {
+            const c = document.createElement('div');
+            c.className = 'movie-card';
+            
+            const buildBtn = (keys) => keys.map(p => {
+                let v = m[p.k];
+                if (!v || v === 'None' || v === '' || v === 'ACTIVE') return '';
+                let u = v.toString().includes('http') ? v : `https://www.amazon.com/s?k=${encodeURIComponent(m.title)}&tag=${myTag}`;
+                return `<a href="${u}" target="_blank" class="m-link btn-${p.k}">${p.l}</a>`;
+            }).join('');
+
+            const getBundleBtn = () => {
+                const bundle = m.disneyBundle;
+                if (!bundle || bundle === 'None' || bundle === '' || bundle === 'ACTIVE') return '';
+                const u = bundle.toString().includes('http') ? bundle : `https://www.google.com/search?q=watch+${encodeURIComponent(m.title)}+on+Disney+Plus+Hulu`;
+                return `<a href="${u}" target="_blank" class="m-link btn-disneyBundle">Disney+ / Hulu</a>`;
+            };
+
+            const subBtns = getBundleBtn() + buildBtn([{k:'netflix',l:'Netflix'},{k:'max',l:'Max'},{k:'peacock',l:'Peacock'},{k:'paramount',l:'Paramount+'},{k:'shudder',l:'Shudder'}]);
+            const freeBtns = buildBtn([{k:'tubi',l:'Tubi'},{k:'pluto',l:'Pluto'},{k:'roku',l:'Roku'},{k:'freevee',l:'Freevee'},{k:'plex',l:'Plex'},{k:'xumo',l:'Xumo Play'}]);
+            const buyBtns = buildBtn([{k:'amazon',l:'Amazon'},{k:'google',l:'Google'},{k:'youtube',l:'YouTube'},{k:'moviesAnywhere',l:'MA'},{k:'appleTv',l:'Apple'},{k:'fandango',l:'Fandango'}]);
+            
+            // JustWatch section for Availability Checks
+            const checkBtn = buildBtn([{k:'justwatch',l:'JustWatch'}]);
+
+            const hasMA = m.moviesAnywhere && m.moviesAnywhere !== 'None';
+            const syncLabel = hasMA ? "Buy / Rent / Sync" : "Buy / Rent";
+            const posterSrc = (m.image && m.image.includes('http')) ? m.image : 'https://raw.githubusercontent.com/KFruti88/Movies-Anywhere/main/images/default.jpg';
+
+            c.innerHTML = `
+                <div class="poster-box"><img src="${posterSrc}" loading="lazy" onerror="this.src='https://raw.githubusercontent.com/KFruti88/Movies-Anywhere/main/images/default.jpg'"></div>
+                <div class="movie-info">
+                    <span class="movie-title">${m.title} ${m.year ? `<span style="font-size:12px; color:#888;">(${m.year})</span>` : ''}</span>
+                    
+                    ${subBtns ? `<div class="button-container">${subBtns}</div>` : ''}
+                    
+                    ${freeBtns ? `<span class="stream-label" style="color:#1CE783">Free to Watch</span><div class="button-container">${freeBtns}</div>` : ''}
+                    
+                    <span class="stream-label" style="color:#eee; margin-top:10px;">${syncLabel}</span>
+                    <div class="button-container">${buyBtns}</div>
+                    
+                    ${checkBtn ? `<span class="stream-label" style="color:#fbc02d; margin-top:10px;">Check Availability</span><div class="button-container">${checkBtn}</div>` : ''}
+                </div>`;
+            f.appendChild(c);
+        });
+        cnt.appendChild(f);
+    };
+
+    window.runFilters = () => {
+        const t = document.getElementById('movie-search').value.toLowerCase();
+        const st = document.getElementById('studio-select').value;
+        const gn = document.getElementById('genre-select').value;
+        const so = document.getElementById('sort-select').value;
+        
+        let filtered = movies.filter(m => {
+            const h = (m.title + (m.studio || '') + (m.genre || '') + (m.year || '')).toLowerCase();
+            return h.includes(t) && (!st || m.studio === st) && (!gn || (m.genre && m.genre.includes(gn)));
+        });
+
+        if (so === 'az') filtered.sort((a,b) => a.title.localeCompare(b.title));
+        if (so === 'za') filtered.sort((a,b) => b.title.localeCompare(a.title));
+        if (so === 'new-old') filtered.sort((a,b) => (parseInt(b.year)||0) - (parseInt(a.year)||0));
+        if (so === 'old-new') filtered.sort((a,b) => (parseInt(a.year)||0) - (parseInt(b.year)||0));
+        if (so === 'newest') filtered.sort((a,b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0));
+        
+        renderMovies(filtered);
+    };
+
+    window.resetFilters = () => {
+        document.getElementById('movie-search').value = '';
+        document.getElementById('studio-select').value = '';
+        document.getElementById('genre-select').value = '';
+        document.getElementById('sort-select').value = 'newest';
+        runFilters();
+    };
+})();
+</script>
