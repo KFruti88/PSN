@@ -2,7 +2,7 @@
  * FS22 G-Portal to Firebase Realtime Database Bridge
  * Save as: fs22/sync.js
  * Author: Werewolf3788
- * Version: 3.8 (Absolute Maximum Telemetry + Economy + Chicago Sync)
+ * Version: 4.2 (Full Stats + Missions + Farmland Ownership + Chicago Sync)
  */
 (function() {
     const admin = require('firebase-admin');
@@ -17,7 +17,7 @@
 
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
-    // Initialize Firebase with a named instance to avoid conflicts
+    // Initialize Firebase with a named instance
     if (!admin.apps.length) {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
@@ -40,10 +40,13 @@
         COLLECTIBLES: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=collectibles`,
         FOLIAGE: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=foliageCropsUpdater`,
         ECONOMY: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=economy`,
+        ENV: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=environment`,
+        MISSIONS: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=missions`,
+        FARMS: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=farms`,
+        FIELDS: `${BASE_URL}dedicated-server-savegame.html?code=${CODE}&file=fields`,
         MAP: `${BASE_URL}dedicated-server-stats-map.jpg?code=${CODE}&quality=60&size=512`
     };
 
-    // Fill Type Mapping from G-Portal tipTypeMappings
     const TIP_TYPES = {
         "1": "WHEAT", "2": "BARLEY", "3": "OAT", "4": "CANOLA", "5": "SORGHUM",
         "6": "GRAPE", "7": "OLIVE", "8": "SUNFLOWER", "9": "SOYBEAN", "10": "MAIZE",
@@ -67,15 +70,19 @@
     };
 
     async function runFarmAudit() {
-        console.log("Commencing v3.8 Comprehensive Telemetry Audit for '618 crew'...");
+        console.log("Commencing Telemetry Audit v4.2: Maximum Intel for '618 crew'...");
 
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
             
-            // Parallel Fetch of all XML streams
-            const [statsRaw, careerRaw, vehicleRaw, placeRaw, farmRaw, collectRaw, foliageRaw, economyRaw] = await Promise.all([
+            const [
+                statsRaw, careerRaw, vehicleRaw, placeRaw, farmlandRaw, 
+                collectRaw, foliageRaw, economyRaw, envRaw, missionRaw, 
+                farmsRaw, fieldsRaw
+            ] = await Promise.all([
                 fetch(URLS.STATS), fetch(URLS.CAREER), fetch(URLS.VEHICLES), fetch(URLS.PLACEABLES), 
-                fetch(URLS.FARMLAND), fetch(URLS.COLLECTIBLES), fetch(URLS.FOLIAGE), fetch(URLS.ECONOMY)
+                fetch(URLS.FARMLAND), fetch(URLS.COLLECTIBLES), fetch(URLS.FOLIAGE), fetch(URLS.ECONOMY), 
+                fetch(URLS.ENV), fetch(URLS.MISSIONS), fetch(URLS.FARMS), fetch(URLS.FIELDS)
             ]);
 
             const parse = async (raw) => raw ? xml2js.parseStringPromise(raw).catch(() => ({})) : {};
@@ -84,77 +91,73 @@
             const career = await parse(careerRaw);
             const vehicles = await parse(vehicleRaw);
             const placeables = await parse(placeRaw);
-            const farmland = await parse(farmlandRaw); // Corrected from farmRaw to farmlandRaw
+            const farmland = await parse(farmlandRaw);
             const collectiblesData = await parse(collectRaw);
             const foliageData = await parse(foliageRaw);
             const economyData = await parse(economyRaw);
+            const environmentData = await parse(envRaw);
+            const missionData = await parse(missionRaw);
+            const farmsData = await parse(farmsRaw);
+            const fieldsData = await parse(fieldsRaw);
 
             const serverInfo = stats?.Server || stats?.dedicatedServer;
             const mapSize = parseInt(getAttr(serverInfo, 'mapSize') || 2048);
 
-            // 1. ECONOMY & MARKET PRICES
-            const marketPrices = [];
-            const fillTypes = economyData?.economy?.fillTypes?.[0]?.fillType || [];
-            fillTypes.forEach(ft => {
-                const name = getAttr(ft, 'fillType');
-                const history = ft.history?.[0]?.period || [];
-                const latestPrice = history.length > 0 ? parseInt(history[history.length - 1]?._ || history[history.length - 1] || 0) : 0;
-                if (name && name !== "UNKNOWN") {
-                    marketPrices.push({ name, price: latestPrice });
-                }
-            });
-
-            // 2. ANIMALS & HUSBANDRY
-            const animalPens = [];
-            const pList = placeables?.placeables?.placeable || [];
-            pList.forEach(p => {
-                const type = getAttr(p, 'type');
-                if (type && (type.includes('husbandry') || type.includes('Animal'))) {
-                    const storage = [];
-                    const hNode = getChild(p, 'husbandryAnimals');
-                    const modules = hNode?.modules?.[0]?.module || [];
-                    
-                    modules.forEach(m => {
-                        const fType = getAttr(m, 'fillType');
-                        if (fType) {
-                            storage.push({ 
-                                type: fType, 
-                                amount: Math.round(parseFloat(getAttr(m, 'fillLevel') || 0)) 
-                            });
-                        }
-                    });
-
-                    animalPens.push({
-                        name: getAttr(p, 'modName') || "Animal Pen",
-                        health: Math.round(parseFloat(getAttr(hNode, 'health') || 0)),
-                        population: parseInt(getAttr(hNode, 'numAnimals') || 0),
-                        storage: storage
-                    });
-                }
-            });
-
-            // 3. FIELD INTELLIGENCE
-            const fieldRecords = [];
-            const saveFields = getChild(career, 'careerSavegame')?.fields?.[0]?.field || [];
-            saveFields.forEach(f => {
-                fieldRecords.push({
-                    id: getAttr(f, 'id'),
-                    farmId: getAttr(f, 'farmId') || "0",
-                    growth: getAttr(f, 'growthState') || "1",
-                    fertilizer: getAttr(f, 'fertilizerLevel') || "0",
-                    lime: getAttr(f, 'limeLevel') || "0",
-                    fruit: getAttr(f, 'fruitType') || "Bare"
+            // 1. MISSIONS & REWARDS
+            const activeMissions = [];
+            const mList = missionData?.missions?.mission || [];
+            mList.forEach(m => {
+                activeMissions.push({
+                    type: getAttr(m, 'type'),
+                    reward: parseInt(getAttr(m, 'reward') || 0),
+                    status: getAttr(m, 'status'),
+                    fieldId: getAttr(getChild(m, 'field'), 'id'),
+                    fruit: getAttr(getChild(m, 'field'), 'fruitTypeName')
                 });
             });
 
-            // 4. FLEET NOMENCLATURE & FILTERING
+            // 2. DETAILED FARM STATS
+            const deepFarms = [];
+            const fList = farmsData?.farms?.farm || [];
+            fList.forEach(f => {
+                const s = getChild(f, 'statistics');
+                deepFarms.push({
+                    id: getAttr(f, 'farmId'),
+                    name: getAttr(f, 'name'),
+                    money: parseFloat(getAttr(f, 'money') || 0),
+                    loan: parseFloat(getAttr(f, 'loan') || 0),
+                    playTime: (parseFloat(getChild(s, 'playTime') || 0) / 60).toFixed(1), // Hours
+                    distance: parseFloat(getChild(s, 'traveledDistance') || 0).toFixed(2),
+                    baleCount: parseInt(getChild(s, 'baleCount') || 0)
+                });
+            });
+
+            // 3. FIELD PLANNING
+            const plannedFields = [];
+            const fieldItems = fieldsData?.fields?.field || [];
+            fieldItems.forEach(fi => {
+                plannedFields.push({
+                    id: getAttr(fi, 'id'),
+                    plannedFruit: getAttr(fi, 'plannedFruit')
+                });
+            });
+
+            // 4. ENVIRONMENT & WEATHER
+            const envRoot = environmentData?.environment;
+            const dayTimeDecimal = parseFloat(getChild(envRoot, 'dayTime') || 0);
+            const hours = Math.floor(dayTimeDecimal);
+            const minutes = Math.floor((dayTimeDecimal - hours) * 60);
+            const gameClock = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+            const forecastInstances = envRoot?.weather?.[0]?.forecast?.[0]?.instance || [];
+            const currentCondition = getAttr(forecastInstances[0], 'typeName') || "CLEAR";
+
+            // 5. FLEET DATA
             const vRoot = getChild(vehicles, 'vehicles') || getChild(serverInfo, 'Vehicles');
             const vList = vRoot?.vehicle || vRoot?.Vehicle || [];
             const liveFleet = vList.map(v => {
                 const rawName = getAttr(v, 'name');
                 const rawCat = getAttr(v, 'category');
                 let cleanName = rawName || rawCat || "Equipment";
-                
                 let fillType = getAttr(v, 'fillTypes') || "Empty";
                 if (!isNaN(fillType) && TIP_TYPES[fillType]) { fillType = TIP_TYPES[fillType]; }
 
@@ -167,48 +170,38 @@
                     fillLevel: Math.round(parseFloat(getAttr(v, 'fillLevels') || 0)),
                     fuel: Math.round(parseFloat(getAttr(v, 'fuelLevel') || 0)),
                     damage: Math.round(parseFloat(getAttr(v, 'damageLevel') || 0) * 100),
-                    hours: (parseFloat(getAttr(v, 'operatingTime') || 0) / 3600).toFixed(1),
-                    type: cleanName.toLowerCase().includes('wagon') ? 'world' : 'owned'
+                    type: (rawName || "").toLowerCase().includes('wagon') ? 'world' : 'owned'
                 };
             });
 
-            // 5. PERSONNEL
-            const slots = getChild(serverInfo, 'Slots') || getChild(serverInfo, 'players');
-            const playerEntries = slots?.Player || slots?.player || [];
-            const players = playerEntries.map(p => ({
-                name: getAttr(p, 'name') || p._ || "Worker",
-                isAdmin: getAttr(p, 'isAdmin') === 'true' || getAttr(p, 'isAdmin') === true
-            }));
-
-            // 6. MULTI-FARM LIQUIDITY
-            const careerRoot = getChild(career, 'careerSavegame');
-            const farmList = careerRoot?.farms?.[0]?.farm || [];
-            const farmsData = farmList.filter(f => getAttr(f, 'farmId') !== "0").map(f => ({
-                id: getAttr(f, 'farmId'),
-                name: getAttr(f, 'name') || "Active Farm",
-                money: parseInt(getChild(f, 'money') || 0)
-            }));
-
-            if (farmsData.length === 0) {
-                const statsBlock = getChild(careerRoot, 'statistics');
-                const moneyVal = getChild(statsBlock, 'money') || 0;
-                farmsData.push({ id: "1", name: "618 crew", money: parseInt(moneyVal) });
-            }
+            // 6. ECONOMY
+            const marketPrices = [];
+            const econFillTypes = economyData?.economy?.fillTypes?.[0]?.fillType || [];
+            econFillTypes.forEach(ft => {
+                const name = getAttr(ft, 'fillType');
+                const history = ft.history?.[0]?.period || [];
+                const latestPrice = history.length > 0 ? parseInt(history[history.length - 1]?._ || history[history.length - 1] || 0) : 0;
+                if (name && name !== "UNKNOWN") marketPrices.push({ name, price: latestPrice });
+            });
 
             const payload = {
                 server: {
                     name: getAttr(serverInfo, 'name') || "618 crew",
                     map: getAttr(serverInfo, 'mapName') || "Elmcreek",
-                    online: players.length,
-                    max: parseInt(getAttr(slots, 'capacity') || 6),
-                    players: players,
-                    growthCycle: getAttr(foliageData?.foliageCropsUpdater, 'currentGrowthIndex') || "0",
+                    online: (getChild(serverInfo, 'Slots') || getChild(serverInfo, 'players'))?.Player?.length || 0,
+                    players: (getChild(serverInfo, 'Slots')?.Player || []).map(p => ({
+                        name: getAttr(p, 'name'),
+                        isAdmin: getAttr(p, 'isAdmin') === 'true'
+                    })),
+                    gameTime: gameClock,
+                    weather: currentCondition,
                     mapSize: mapSize
                 },
+                farms: deepFarms,
+                missions: activeMissions,
+                fieldPlanning: plannedFields,
                 economy: marketPrices,
-                animals: animalPens,
                 fleet: { total: liveFleet.length, vehicles: liveFleet },
-                fields: fieldRecords,
                 collectibles: {
                     found: (collectiblesData?.collectibles?.collectible || []).filter(c => getAttr(c, 'collected') === 'true').length,
                     total: (collectiblesData?.collectibles?.collectible || []).length || 100
@@ -221,10 +214,10 @@
             };
 
             await db.ref('fs22_live').set(payload);
-            console.log(`Sync Successful v3.8. Chicago Time: ${payload.lastUpdated}.`);
+            console.log(`Sync Successful v4.2. Farmland, Missions, and deep statistics updated for '618 crew'.`);
             process.exit(0);
         } catch (error) {
-            console.error("Critical Telemetry Failure:", error.message);
+            console.error("Critical Failure:", error.message);
             process.exit(1);
         }
     }
