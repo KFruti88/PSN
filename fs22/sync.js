@@ -84,7 +84,7 @@
             const career = await parse(careerRaw);
             const vehicles = await parse(vehicleRaw);
             const placeables = await parse(placeRaw);
-            const farmland = await parse(farmRaw);
+            const farmland = await parse(farmlandRaw); // Corrected from farmRaw to farmlandRaw
             const collectiblesData = await parse(collectRaw);
             const foliageData = await parse(foliageRaw);
             const economyData = await parse(economyRaw);
@@ -98,14 +98,13 @@
             fillTypes.forEach(ft => {
                 const name = getAttr(ft, 'fillType');
                 const history = ft.history?.[0]?.period || [];
-                // Grabbing the most recent price period from the XML
                 const latestPrice = history.length > 0 ? parseInt(history[history.length - 1]?._ || history[history.length - 1] || 0) : 0;
                 if (name && name !== "UNKNOWN") {
                     marketPrices.push({ name, price: latestPrice });
                 }
             });
 
-            // 2. ANIMALS & HUSBANDRY (Health, Hunger, Production)
+            // 2. ANIMALS & HUSBANDRY
             const animalPens = [];
             const pList = placeables?.placeables?.placeable || [];
             pList.forEach(p => {
@@ -134,7 +133,7 @@
                 }
             });
 
-            // 3. FIELD INTELLIGENCE (Growth, Lime, Fertilizer)
+            // 3. FIELD INTELLIGENCE
             const fieldRecords = [];
             const saveFields = getChild(career, 'careerSavegame')?.fields?.[0]?.field || [];
             saveFields.forEach(f => {
@@ -148,17 +147,14 @@
                 });
             });
 
-            // 4. FLEET NOMENCLATURE & REPAIR STATUS
+            // 4. FLEET NOMENCLATURE & FILTERING
             const vRoot = getChild(vehicles, 'vehicles') || getChild(serverInfo, 'Vehicles');
             const vList = vRoot?.vehicle || vRoot?.Vehicle || [];
             const liveFleet = vList.map(v => {
                 const rawName = getAttr(v, 'name');
                 const rawCat = getAttr(v, 'category');
-                
-                // Nomenclature Fallback Logic
                 let cleanName = rawName || rawCat || "Equipment";
                 
-                // Fill Type Translation
                 let fillType = getAttr(v, 'fillTypes') || "Empty";
                 if (!isNaN(fillType) && TIP_TYPES[fillType]) { fillType = TIP_TYPES[fillType]; }
 
@@ -176,7 +172,7 @@
                 };
             });
 
-            // 5. PERSONNEL & ADMIN HANDLES
+            // 5. PERSONNEL
             const slots = getChild(serverInfo, 'Slots') || getChild(serverInfo, 'players');
             const playerEntries = slots?.Player || slots?.player || [];
             const players = playerEntries.map(p => ({
@@ -193,7 +189,6 @@
                 money: parseInt(getChild(f, 'money') || 0)
             }));
 
-            // If no distinct farms exist yet, fall back to global statistics
             if (farmsData.length === 0) {
                 const statsBlock = getChild(careerRoot, 'statistics');
                 const moneyVal = getChild(statsBlock, 'money') || 0;
@@ -218,7 +213,6 @@
                     found: (collectiblesData?.collectibles?.collectible || []).filter(c => getAttr(c, 'collected') === 'true').length,
                     total: (collectiblesData?.collectibles?.collectible || []).length || 100
                 },
-                // Forced Central Time (Chicago)
                 lastUpdated: new Date().toLocaleString("en-US", { 
                     timeZone: "America/Chicago",
                     hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
@@ -226,7 +220,6 @@
                 media: { mapUrl: URLS.MAP }
             };
 
-            // Commit Payload to Firebase
             await db.ref('fs22_live').set(payload);
             console.log(`Sync Successful v3.8. Chicago Time: ${payload.lastUpdated}.`);
             process.exit(0);
@@ -236,6 +229,5 @@
         }
     }
 
-    // Execute Audit
     runFarmAudit();
 })();
