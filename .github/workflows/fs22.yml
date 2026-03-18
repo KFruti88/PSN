@@ -9,6 +9,12 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+# Grant permissions required for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -29,7 +35,7 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
-  # Included to address the 'deploy' warning in your logs
+  # Deploys the updated telemetry data to your GitHub Pages site
   deploy:
     needs: sync
     if: github.ref == 'refs/heads/main'
