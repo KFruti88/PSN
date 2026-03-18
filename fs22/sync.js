@@ -2,7 +2,7 @@
  * FS22 G-Portal to Firebase Realtime Database Bridge
  * Save as: fs22/sync.js
  * Author: Werewolf3788
- * Version: 3.1 (Fixed Attribute Access - Chicago Sync)
+ * Version: 3.2 (New Server Update - Chicago Sync)
  */
 (function() {
     const admin = require('firebase-admin');
@@ -25,8 +25,9 @@
 
     const db = admin.app('fs22SyncInstance').database();
 
+    // UPDATED SERVER CONFIGURATION (New Server IP: 154.12.236.77:8650)
     const CODE = "CVzQ6vUR4l7iRtH4";
-    const BASE_URL = "http://207.244.227.124:8130/feed/";
+    const BASE_URL = "http://154.12.236.77:8650/feed/";
 
     const URLS = {
         STATS: `${BASE_URL}dedicated-server-stats.xml?code=${CODE}`,
@@ -43,7 +44,6 @@
         return Array.isArray(val) ? val[0] : val;
     };
 
-    // Robust attribute fetcher to prevent "undefined" crashes
     const getAttr = (obj, attr) => {
         if (!obj) return null;
         if (obj.$ && obj.$[attr] !== undefined) return obj.$[attr];
@@ -52,7 +52,7 @@
     };
 
     async function runFarmAudit() {
-        console.log("Commencing Full System Telemetry Audit for '618 crew'...");
+        console.log("Commencing telemetry audit for '618 crew' on new server...");
 
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
@@ -74,13 +74,11 @@
             // 1. ANIMALS & HUSBANDRY
             const animalPens = [];
             const pList = placeables?.placeables?.placeable || [];
-            
             pList.forEach(p => {
                 const type = getAttr(p, 'type');
                 if (type && (type.includes('husbandry') || type.includes('Animal'))) {
                     const storage = [];
                     const hNode = getChild(p, 'husbandryAnimals');
-                    
                     const modules = hNode?.modules?.[0]?.module || [];
                     modules.forEach(m => {
                         const fType = getAttr(m, 'fillType');
@@ -91,7 +89,6 @@
                             });
                         }
                     });
-
                     animalPens.push({
                         name: getAttr(p, 'modName') || "Animal Pen",
                         type: type.split('.').pop(),
@@ -141,7 +138,7 @@
                 total: 100
             };
 
-            // 5. PERSONNEL (Safe Attribute Mapping)
+            // 5. PERSONNEL
             const slots = getChild(serverInfo, 'Slots') || getChild(serverInfo, 'players');
             const playerEntries = slots?.Player || slots?.player || [];
             const players = playerEntries.map(p => ({
@@ -181,10 +178,10 @@
             };
 
             await db.ref('fs22_live').set(payload);
-            console.log(`Sync Successful. Chicago Time: ${payload.lastUpdated}.`);
+            console.log(`Sync Successful for new server. Time: ${payload.lastUpdated} (Central).`);
             process.exit(0);
         } catch (error) {
-            console.error("Telemetry pipeline failed:", error.message);
+            console.error("Sync pipeline failed:", error.message);
             process.exit(1);
         }
     }
