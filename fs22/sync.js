@@ -34,13 +34,11 @@
         MAP: `${BASE_URL}dedicated-server-stats-map.jpg?code=${CODE}&quality=60&size=512`
     };
 
-    // Helper: Safely get a child element (handles arrays vs objects)
     const getChild = (obj, key) => {
         const val = obj?.[key];
         return Array.isArray(val) ? val[0] : val;
     };
 
-    // Helper: Safely get an attribute from an element
     const getAttr = (obj, attr) => obj?.$?.[attr] || obj?.[attr] || null;
 
     async function runFarmAudit() {
@@ -58,22 +56,26 @@
             const vehicles = await parse(vehicleRaw);
             const economy = await parse(economyRaw);
 
-            // 1. Root Server Info
             const serverInfo = stats?.Server || stats?.dedicatedServer;
             const serverName = getAttr(serverInfo, 'name') || "618 crew";
             const mapName = getAttr(serverInfo, 'mapName') || "Elmcreek";
+            const mapSize = parseInt(getAttr(serverInfo, 'mapSize') || 2048);
 
-            // 2. Slot/Player Info (Handles <Slots> and <players>)
             const slots = getChild(serverInfo, 'Slots') || getChild(serverInfo, 'players');
             const onlineCount = parseInt(getAttr(slots, 'numUsed') || getAttr(slots, 'matched') || 0);
             const maxSlots = parseInt(getAttr(slots, 'capacity') || 0);
 
-            // 3. Vehicle/Fleet Info
+            // Extract vehicle positions for the map overlay
             const fleetInfo = getChild(serverInfo, 'Vehicles') || getChild(vehicles, 'vehicles');
-            const vehicleList = fleetInfo?.Vehicle || fleetInfo?.vehicle || [];
-            const attachmentList = fleetInfo?.attachment || [];
+            const rawVehicles = fleetInfo?.Vehicle || fleetInfo?.vehicle || [];
+            
+            const processedVehicles = rawVehicles.map(v => ({
+                name: getAttr(v, 'name'),
+                category: getAttr(v, 'category'),
+                x: parseFloat(getAttr(v, 'x') || 0),
+                z: parseFloat(getAttr(v, 'z') || 0)
+            }));
 
-            // 4. Market/Economy Info
             const marketPrices = [];
             const economyRoot = getChild(economy, 'economy');
             if (economyRoot?.item) {
@@ -85,24 +87,15 @@
                 });
             }
 
-            // 5. Career/Savegame Info (Handing early/initializing XML structure)
             const careerRoot = getChild(career, 'careerSavegame');
-            
-            // Check for farm name in settings (full save) or default to 618 crew
             const farmName = getChild(careerRoot, 'settings')?.savegameName?.[0] || "618 crew";
-            
-            // Check for money in 'farm' tag (full save) OR 'statistics' tag (early/minimal save)
             const moneyVal = getChild(careerRoot, 'farm')?.money?.[0] || getChild(careerRoot, 'statistics')?.money?.[0] || 0;
-            const money = parseInt(moneyVal);
             
-            // Check for playtime in statistics
-            const playTimeVal = getChild(careerRoot, 'statistics')?.playTime?.[0] || 0;
-            const playTime = Math.round(parseFloat(playTimeVal) / 60);
-
             const payload = {
                 server: {
                     name: serverName,
                     map: mapName,
+                    mapSize: mapSize,
                     online: onlineCount,
                     max: maxSlots,
                     players: slots?.Player ? 
@@ -111,12 +104,12 @@
                 },
                 career: {
                     name: farmName,
-                    money: money,
-                    playTime: playTime
+                    money: parseInt(moneyVal),
+                    playTime: Math.round(parseFloat(getChild(careerRoot, 'statistics')?.playTime?.[0] || 0) / 60)
                 },
                 fleet: { 
-                    total: vehicleList.length, 
-                    attachments: attachmentList.length 
+                    total: processedVehicles.length,
+                    vehicles: processedVehicles 
                 },
                 market: marketPrices,
                 media: { mapUrl: URLS.MAP },
@@ -124,7 +117,7 @@
             };
 
             await db.ref('fs22_live').set(payload);
-            console.log(`Sync successful: '${serverName}' is reporting ${onlineCount}/${maxSlots} slots.`);
+            console.log(`Sync successful: '${serverName}' updated with vehicle positions.`);
             process.exit(0);
         } catch (error) {
             console.error("Sync failed:", error.message);
