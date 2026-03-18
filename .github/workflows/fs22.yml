@@ -1,0 +1,26 @@
+name: FS22 Data Sync
+on:
+  schedule:
+    - cron: '*/10 * * * *' # Reckon every 10 minutes is a good pace
+  workflow_dispatch:      # Lets you run it manually to test
+
+jobs:
+  sync:
+    runs-with: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install firebase-admin axios xml2js
+
+      - name: Run the Brain
+        run: node fs22/sync.js
+        env:
+          # This pulls the secret we just saved and gives it to the script
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
