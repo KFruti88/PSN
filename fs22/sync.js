@@ -46,7 +46,7 @@
     const getAttr = (obj, attr) => obj?.$?.[attr] || obj?.[attr] || null;
 
     async function runFarmAudit() {
-        console.log("Commencing telemetry audit for '618 crew' on new server (3m API Interval)...");
+        console.log("Commencing telemetry audit for '618 crew' (Central Time Sync)...");
 
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
@@ -79,14 +79,18 @@
                 name: getAttr(v, 'name'),
                 category: getAttr(v, 'category'),
                 x: parseFloat(getAttr(v, 'x') || 0),
-                z: parseFloat(getAttr(v, 'z') || 0)
+                z: parseFloat(getAttr(v, 'z') || 0),
+                fillType: getAttr(v, 'fillTypes') || "Empty",
+                fillLevel: Math.round(parseFloat(getAttr(v, 'fillLevels') || 0))
             }));
 
             // 4. Financials
             const careerRoot = getChild(career, 'careerSavegame');
             const farmName = getChild(careerRoot, 'settings')?.savegameName?.[0] || "618 crew";
+            
             const moneyVal = getChild(careerRoot, 'farm')?.money?.[0] || 
                              getChild(careerRoot, 'statistics')?.money?.[0] || 0;
+            
             const playTimeVal = getChild(careerRoot, 'statistics')?.playTime?.[0] || 0;
 
             const payload = {
@@ -97,8 +101,11 @@
                     online: onlineCount,
                     max: maxSlots,
                     players: slots?.Player ? 
-                             slots.Player.filter(p => p.$?.name).map(p => p.$.name) : 
-                             (slots?.player ? slots.player.map(p => p.$.name) : [])
+                             slots.Player.filter(p => p.$?.name).map(p => ({
+                                name: p.$.name,
+                                isAdmin: p.$.isAdmin === 'true' || p.$.isAdmin === true
+                             })) : 
+                             []
                 },
                 career: {
                     name: farmName,
@@ -109,12 +116,19 @@
                     total: liveFleet.length,
                     vehicles: liveFleet
                 },
-                lastUpdated: new Date().toLocaleString("en-US", { timeZone: "America/New_York" }),
+                // UPDATED: Forced Central Time (Chicago)
+                lastUpdated: new Date().toLocaleString("en-US", { 
+                    timeZone: "America/Chicago",
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                }),
                 media: { mapUrl: URLS.MAP }
             };
 
             await db.ref('fs22_live').set(payload);
-            console.log(`Successfully synced ${liveFleet.length} vehicles for ${serverName}.`);
+            console.log(`Successfully synced ${liveFleet.length} vehicles. Local Time: ${payload.lastUpdated}`);
             process.exit(0);
         } catch (error) {
             console.error("Sync pipeline failed:", error.message);
