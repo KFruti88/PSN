@@ -1,10 +1,21 @@
+name: Deploy to GitHub Pages
+
+# This is the section that is currently missing:
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: # This adds a "Run workflow" button in the Actions tab for manual testing
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   deploy:
-    # Add these three lines right here:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
