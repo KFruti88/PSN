@@ -2,19 +2,26 @@
  * FS22 G-Portal to Firebase Realtime Database Bridge
  * Save as: fs22/sync.js
  * Author: Werewolf3788
- * Version: 4.7 (Logic Fix + Full Spectrum Intel + Attachments)
+ * Version: 4.9 (Verification Logic + Slurry & Pallet Fix)
  */
 (function() {
     const admin = require('firebase-admin');
     const axios = require('axios');
     const xml2js = require('xml2js');
 
+    // VERIFICATION STEP: Ensure the secret is present
     if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-        console.error("Critical: FIREBASE_SERVICE_ACCOUNT secret is missing.");
+        console.error("❌ CONNECTION ERROR: FIREBASE_SERVICE_ACCOUNT secret is missing in GitHub.");
         process.exit(1);
     }
 
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    let serviceAccount;
+    try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } catch (e) {
+        console.error("❌ FORMAT ERROR: FIREBASE_SERVICE_ACCOUNT is not valid JSON.");
+        process.exit(1);
+    }
 
     if (!admin.apps.length) {
         admin.initializeApp({
@@ -49,7 +56,7 @@
     };
 
     async function runFarmAudit() {
-        console.log("Commencing Full-Spectrum Command Audit v4.7...");
+        console.log("🛰️ Initiating Uplink... Version 4.9");
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
             const [statsR, vehicleR, placeR, farmLR, missR, farmsR, fieldsR, careerR, itemsR, envR] = await Promise.all([
@@ -62,25 +69,19 @@
             const stats = await parse(statsR);
             const vData = await parse(vehicleR);
             const pData = await parse(placeR);
-            const farmland = await parse(farmLR);
+            const flData = await parse(farmLR);
             const fData = await parse(fieldsR);
             const farms = await parse(farmsR);
             const career = await parse(careerR);
             const items = await parse(itemsR);
             const environment = await parse(envR);
 
-            // 1. ATTACHMENT MAP
             const attachmentMap = {};
-            const vList = vData?.vehicles?.vehicle || [];
-            const attachments = vData?.vehicles?.attachments || [];
-            attachments.forEach(a => {
-                const root = getAttr(a, 'rootVehicleId');
-                const sub = getAttr(a, 'attachmentId');
-                if (root && sub) attachmentMap[sub] = root;
+            vData?.vehicles?.attachments?.forEach(a => {
+                attachmentMap[getAttr(a, 'attachmentId')] = getAttr(a, 'rootVehicleId');
             });
 
-            // 2. FLEET & CARGO
-            const fleet = vList.map(v => {
+            const fleet = (vData?.vehicles?.vehicle || []).map(v => {
                 const id = getAttr(v, 'id');
                 const fillUnits = getChild(v, 'fillUnit')?.unit || [];
                 return {
@@ -97,7 +98,6 @@
                 };
             });
 
-            // 3. ANIMAL & PRODUCTION INTEL
             const productions = [];
             const animalSummary = [];
             pData?.placeables?.placeable?.forEach(p => {
@@ -111,14 +111,14 @@
                     productions.push({
                         name: getAttr(p, 'mapBoundId') || "Factory",
                         farmId: getAttr(p, 'farmId'),
-                        storage: pp?.storage?.[0]?.node?.map(n => ({ type: n.$.fillType, amount: Math.round(parseFloat(n.$.fillLevel)) }))
+                        storage: pp?.storage?.[0]?.node?.map(n => ({ type: n.$.fillType, amount: Math.round(parseFloat(n.$.fillLevel)) })),
+                        active: getAttr(pp, 'isEnabled') === 'true'
                     });
                 }
             });
 
-            // 4. FIELD & PROPERTY INTEL
             const landMap = {};
-            (farmland?.farmlands?.farmland || []).forEach(l => { landMap[getAttr(l, 'id')] = getAttr(l, 'farmId'); });
+            (flData?.farmlands?.farmland || []).forEach(l => { landMap[getAttr(l, 'id')] = getAttr(l, 'farmId'); });
 
             const fieldIntel = (fData?.fields?.field || []).map(f => {
                 const id = getAttr(f, 'id');
@@ -127,13 +127,12 @@
                     id: id,
                     farmId: landMap[id] || "0",
                     fruit: getAttr(f, 'plannedFruit') || "Bare",
-                    fert: getAttr(cf, 'fertilizerLevel') || "0",
+                    fert: Math.round(parseFloat(getAttr(cf, 'fertilizerLevel') || 0)),
                     lime: getAttr(cf, 'limeLevel') || "0",
                     growth: parseInt(getAttr(cf, 'growthState')) || 1
                 };
             });
 
-            // 5. SERVER INFO & LOGIC
             const envRoot = environment?.environment;
             const rawDayTime = parseFloat(getChild(envRoot, 'dayTime') || 0);
             const hours = Math.floor(rawDayTime) % 24;
@@ -160,14 +159,16 @@
                 animals: animalSummary,
                 fields: fieldIntel,
                 pallets: (items?.items?.item || []).filter(i => getAttr(i, 'className') === 'Pallet').length,
-                lastUpdated: new Date().toLocaleString("en-US", { timeZone: "America/Chicago", hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                lastUpdated: new Date().toLocaleString("en-US", { timeZone: "America/Chicago", hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
             };
 
+            // FINAL PUSH VERIFICATION
             await db.ref('fs22_live').set(payload);
-            console.log("Sync v4.7 Success.");
+            console.log("✅ DATA PUSHED SUCCESSFULLY to Firebase Realtime Database.");
+            console.log("📍 Timestamp (Chicago): " + payload.lastUpdated);
             process.exit(0);
         } catch (e) {
-            console.error("Critical Failure:", e.message);
+            console.error("❌ CRITICAL SYNC FAILURE:", e.message);
             process.exit(1);
         }
     }
