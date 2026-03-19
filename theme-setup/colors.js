@@ -2,7 +2,7 @@
 const game = gameName.toLowerCase();
 let mode = 'default-mode';
 
-if (game.includes('doki doki') || game.includes('barbie') || game.includes('dreamhouse') || game.includes('princess')) {
+if (game.includes('Doki Doki Literature Club Plus!') || game.includes('barbie') || game.includes('dreamhouse') || game.includes('princess')) {
     mode = 'pink-mode'; 
 } else if (game.includes('dragon ball') || game.includes('seven deadly sins') || game.includes('jump force') || game.includes('bleach') || game.includes('tokyo ghoul') || game.includes('demon slayer') || game.includes('one punch man') || game.includes('naruto') || game.includes('anime')) {
     mode = 'anime-mode'; 
@@ -10,7 +10,7 @@ if (game.includes('doki doki') || game.includes('barbie') || game.includes('drea
     mode = 'action-mode';
 } else if (game.includes('dead by daylight') || game.includes('resident evil') || game.includes('evil dead') || game.includes('texas chain saw') || game.includes('vampyr') || game.includes('until dawn') || game.includes('akai') || game.includes('alan wake') || game.includes('the medium') || game.includes('beast inside') || game.includes('little nightmares') || game.includes('zombi')) {
     mode = 'horror-mode';
-} else if (game.includes('batman') || game.includes('marvel') || game.includes('spider-man') || game.includes('avengers') || game.includes('guardians') || game.includes('gotham knights') || game.includes('suicide squad') || game.includes('injustice')) {
+} else if (game.includes('batman') || game.includes('Marvel Rivals') || game.includes('spider-man') || game.includes('avengers') || game.includes('guardians') || game.includes('gotham knights') || game.includes('suicide squad') || game.includes('injustice')) {
     mode = 'superhero-mode';
 } else if (game.includes('tekken') || game.includes('mortal kombat') || game.includes('street fighter') || game.includes('multiversus') || game.includes('vf5') || game.includes('smite') || game.includes('ufc') || game.includes('tsushima')) {
     mode = 'fighting-mode';
