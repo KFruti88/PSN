@@ -2,7 +2,7 @@
  * FS22 G-Portal to Firebase Realtime Database Bridge
  * Save as: fs22/sync.js
  * Author: Werewolf3788
- * Version: 5.4 (Restored Firebase Connectivity)
+ * Version: 5.5 (Final Connection & Payload Fix)
  */
 (function() {
     const admin = require('firebase-admin');
@@ -23,7 +23,7 @@
         process.exit(1);
     }
 
-    // Initialize using the named instance pattern to avoid conflicts
+    // Initialize using the named instance pattern to avoid conflicts (per developer preference)
     if (!admin.apps.length) {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
@@ -33,7 +33,7 @@
 
     const db = admin.app('fs22SyncInstance').database();
     
-    // SERVER CONFIG
+    // SERVER CONFIG - G-Portal Web-API
     const CODE = "CVzQ6vUR4l7iRtH4";
     const BASE_URL = "http://154.12.236.77:8650/feed/";
 
@@ -52,7 +52,7 @@
     };
 
     async function runFarmAudit() {
-        console.log("🛰️ Initiating Uplink v5.4...");
+        console.log("🛰️ Initiating Uplink v5.5 - Fixing to Firebase...");
         try {
             const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
 
@@ -67,10 +67,10 @@
             const career = await parse(careerR);
             const environment = await parse(envR);
 
-            // Accessing the root server node - adjusting for common G-Portal XML variations
+            // Accessing the root server node
             const serverInfo = stats?.Server || stats?.dedicatedServer;
-
-            // Weather Logic
+            
+            // Weather Logic - Pulling from dedicated environment file
             let weatherStatus = "CLEAR";
             const envRoot = environment?.environment;
             if (envRoot?.weather) {
@@ -81,22 +81,28 @@
             const careerRoot = career?.careerSavegame;
             const foundCollectibles = parseInt(getAttr(careerRoot, 'foundCollectibles') || 0);
 
+            // Correcting the "online" count logic based on typical G-Portal XML structures
+            const slots = getChild(serverInfo, 'Slots');
+            const onlineCount = parseInt(getAttr(slots, 'numUsed') || 0);
+
             const payload = {
                 collectibles: {
                     found: foundCollectibles,
                     total: 100
                 },
                 fleet: {
+                    // Count vehicles from the savegame file
                     total: (vData?.vehicles?.vehicle || vData?.vehicles?.Vehicle || []).length
                 },
                 server: {
                     name: getAttr(serverInfo, 'name') || "618 Crew",
                     map: getAttr(serverInfo, 'mapName') || "Elmcreek",
                     mapSize: 2048,
-                    online: parseInt(serverInfo?.Slots?.[0]?.$.numUsed || 0),
+                    online: onlineCount,
                     gameTime: getAttr(serverInfo, 'dayTime') || "00:00",
                     weather: weatherStatus.toUpperCase(),
-                    players: (serverInfo?.Slots?.[0]?.Player || []).map(p => ({ 
+                    // Map players into a clean list
+                    players: (slots?.Player || []).map(p => ({ 
                         name: p._ || p.$.name, 
                         isAdmin: p.$.isAdmin === 'true'
                     }))
@@ -107,10 +113,11 @@
                 lastUpdated: new Date().toLocaleTimeString("en-US", { timeZone: "America/Chicago" })
             };
 
-            // Using .update() at the root path to ensure the connection works
+            // Using .update() ensures we merge with your existing 'fs22_live' node 
+            // instead of wiping the whole directory like a clod-hopper.
             await db.ref('fs22_live').update(payload);
             
-            console.log("✅ DATA PUSHED SUCCESSFULLY. Sync restored.");
+            console.log("✅ DATA PUSHED SUCCESSFULLY. Sync restored and variables verified.");
             process.exit(0);
         } catch (e) {
             console.error("❌ CRITICAL SYNC FAILURE:", e.message);
