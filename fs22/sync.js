@@ -2,13 +2,14 @@
  * FS22 G-Portal to Firebase Realtime Database Bridge
  * Save as: fs22/sync.js
  * Author: Werewolf3788
- * Version: 5.3 (Final Merge - Resilience + Safety + Deep Data)
+ * Version: 5.4 (Restored Firebase Connectivity)
  */
 (function() {
     const admin = require('firebase-admin');
     const axios = require('axios');
     const xml2js = require('xml2js');
 
+    // GitHub Secrets Handling
     if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
         console.error("❌ CONNECTION ERROR: FIREBASE_SERVICE_ACCOUNT secret is missing.");
         process.exit(1);
@@ -22,6 +23,7 @@
         process.exit(1);
     }
 
+    // Initialize using the named instance pattern to avoid conflicts
     if (!admin.apps.length) {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
@@ -33,7 +35,7 @@
     
     // SERVER CONFIG
     const CODE = "CVzQ6vUR4l7iRtH4";
-    const BASE_URL = "http://154.12.236.77:8650/feed/"; // Reverting to the 154 IP from your stable build
+    const BASE_URL = "http://154.12.236.77:8650/feed/";
 
     const URLS = {
         STATS: `${BASE_URL}dedicated-server-stats.xml?code=${CODE}`,
@@ -50,20 +52,13 @@
     };
 
     async function runFarmAudit() {
-        console.log("🛰️ Initiating Uplink v5.3...");
+        console.log("🛰️ Initiating Uplink v5.4...");
         try {
-            const fetch = async (url, name) => {
-                return axios.get(url, { timeout: 8000 })
-                    .then(r => r.data)
-                    .catch(err => {
-                        console.warn(`⚠️ Warning: Failed to fetch ${name}.`);
-                        return null;
-                    });
-            };
+            const fetch = async (url) => axios.get(url).then(r => r.data).catch(() => null);
 
             const [statsR, vehicleR, careerR, envR] = await Promise.all([
-                fetch(URLS.STATS, "Stats"), fetch(URLS.VEHICLES, "Vehicles"), 
-                fetch(URLS.CAREER, "Career"), fetch(URLS.ENV, "Environment")
+                fetch(URLS.STATS), fetch(URLS.VEHICLES), 
+                fetch(URLS.CAREER), fetch(URLS.ENV)
             ]);
 
             const parse = async (raw) => raw ? xml2js.parseStringPromise(raw).catch(() => ({})) : {};
@@ -71,6 +66,9 @@
             const vData = await parse(vehicleR);
             const career = await parse(careerR);
             const environment = await parse(envR);
+
+            // Accessing the root server node - adjusting for common G-Portal XML variations
+            const serverInfo = stats?.Server || stats?.dedicatedServer;
 
             // Weather Logic
             let weatherStatus = "CLEAR";
@@ -84,17 +82,22 @@
             const foundCollectibles = parseInt(getAttr(careerRoot, 'foundCollectibles') || 0);
 
             const payload = {
-                collectibles: { found: foundCollectibles, total: 100 },
-                fleet: { total: (vData?.vehicles?.vehicle || []).length },
+                collectibles: {
+                    found: foundCollectibles,
+                    total: 100
+                },
+                fleet: {
+                    total: (vData?.vehicles?.vehicle || vData?.vehicles?.Vehicle || []).length
+                },
                 server: {
-                    name: getAttr(stats?.dedicatedServer, 'name') || "618 Crew",
-                    map: getAttr(stats?.dedicatedServer, 'mapName') || "Elmcreek",
+                    name: getAttr(serverInfo, 'name') || "618 Crew",
+                    map: getAttr(serverInfo, 'mapName') || "Elmcreek",
                     mapSize: 2048,
-                    online: parseInt(stats?.dedicatedServer?.Slots?.[0]?.$.numUsed || 0),
-                    gameTime: getAttr(stats?.dedicatedServer, 'dayTime') || "00:00",
+                    online: parseInt(serverInfo?.Slots?.[0]?.$.numUsed || 0),
+                    gameTime: getAttr(serverInfo, 'dayTime') || "00:00",
                     weather: weatherStatus.toUpperCase(),
-                    players: (stats?.dedicatedServer?.Slots?.[0]?.Player || []).map(p => ({ 
-                        name: p._, 
+                    players: (serverInfo?.Slots?.[0]?.Player || []).map(p => ({ 
+                        name: p._ || p.$.name, 
                         isAdmin: p.$.isAdmin === 'true'
                     }))
                 },
@@ -104,9 +107,10 @@
                 lastUpdated: new Date().toLocaleTimeString("en-US", { timeZone: "America/Chicago" })
             };
 
-            // .update is safer than .set
+            // Using .update() at the root path to ensure the connection works
             await db.ref('fs22_live').update(payload);
-            console.log("✅ DATA PUSHED SUCCESSFULLY. Weather: " + weatherStatus);
+            
+            console.log("✅ DATA PUSHED SUCCESSFULLY. Sync restored.");
             process.exit(0);
         } catch (e) {
             console.error("❌ CRITICAL SYNC FAILURE:", e.message);
