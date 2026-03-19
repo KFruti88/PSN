@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Starting Soon Overlay</title>
+    <style>
+        /* Reset and Base Styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: transparent !important;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        #wp-custom-wrapper {
+            width: 100%;
+            height: 100vh;
+            max-width: 1280px;
+            max-height: 720px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: transparent;
+            --primary-glow: #FF4500; /* Jet Orange Default */
+            --accent-glow: #ffffff;
+            --live-glow: #9146ff; /* Purple/Red base */
+            --card-bg: rgba(0, 0, 0, 0.7);
+            position: relative;
+            transition: background 2s ease;
+            gap: 20px;
+        }
+
+        /* Day/Night Overlay Tints */
+        #wp-custom-wrapper.day-time { background: rgba(135, 206, 235, 0.05); }
+        #wp-custom-wrapper.night-time { background: rgba(0, 0, 20, 0.2); }
+
+        /* Particle Canvas */
+        #weather-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Grass Layer */
+        #wp-custom-wrapper .grass-container {
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.6;
+        }
+
+        .grass-blade {
+            width: 4px;
+            height: 40px;
+            background: linear-gradient(to top, #1a3a0a, #4CAF50);
+            border-radius: 50% 50% 0 0;
+            transform-origin: bottom;
+            animation: sway 3s infinite ease-in-out;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-5deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* Holiday Element */
+        .holiday-pop {
+            position: absolute;
+            font-size: 3rem;
+            pointer-events: none;
+            z-index: 2;
+            animation: float-around 10s linear infinite;
+            filter: drop-shadow(0 0 10px white);
+        }
+
+        @keyframes float-around {
+            0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translate(100px, -100px) rotate(360deg); opacity: 0; }
+        }
+
+        #wp-custom-wrapper .overlay-container {
+            width: 95%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Starting Soon Card */
+        #wp-custom-wrapper .ss-card {
+            background: var(--card-bg);
+            border: 3px solid var(--primary-glow);
+            border-radius: 24px;
+            padding: 2.5rem 3rem;
+            box-shadow: 0 0 40px var(--primary-glow), inset 0 0 20px var(--primary-glow);
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+            animation: pulse-glow 3s infinite alternate;
+            transition: background 2s ease, border-color 0.5s ease;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        /* Crew Container */
+        #wp-custom-wrapper .crew-section {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            z-index: 11;
+            width: 95%;
+        }
+
+        #wp-custom-wrapper .player-card {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #444;
+            border-radius: 15px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.5s ease;
+            min-width: 200px;
+            max-width: 250px;
+        }
+
+        #wp-custom-wrapper .player-card.is-live {
+            border-color: #9146ff;
+            box-shadow: 0 0 15px #9146ff, 0 0 25px #ff0000;
+            animation: live-pulse 2s infinite alternate;
+        }
+
+        #wp-custom-wrapper .player-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            background: #222;
+            object-fit: cover;
+        }
+
+        #wp-custom-wrapper .player-card.is-live .player-img {
+            border-color: #fff;
+        }
+
+        #wp-custom-wrapper .player-info {
+            text-align: left;
+            overflow: hidden;
+        }
+
+        #wp-custom-wrapper .player-name {
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #wp-custom-wrapper .player-status {
+            font-size: 0.6rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #wp-custom-wrapper .player-game {
+            font-size: 0.7rem;
+            color: var(--accent-glow);
+            font-weight: 600;
+            margin-top: 2px;
+            display: none;
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #wp-custom-wrapper .player-card.is-live .player-status {
+            color: #ff4d4d;
+            font-weight: bold;
+        }
+
+        #wp-custom-wrapper .player-card.is-live .player-game {
+            display: block;
+        }
+
+        @keyframes live-pulse {
+            from { box-shadow: 0 0 10px #9146ff, 0 0 15px #ff0000; transform: scale(1); }
+            to { box-shadow: 0 0 20px #9146ff, 0 0 30px #ff0000; transform: scale(1.05); }
+        }
+
+        #wp-custom-wrapper .content-left {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #wp-custom-wrapper .status-text {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            margin: 0;
+            letter-spacing: 6px;
+            text-shadow: 0 0 15px var(--primary-glow), 0 0 30px var(--primary-glow);
+        }
+
+        #wp-custom-wrapper .countdown {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-glow);
+            margin: 0.5rem 0;
+            font-family: 'Courier New', Courier, monospace;
+            text-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        #wp-custom-wrapper .uptime-label {
+            color: #fff;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            margin-top: -5px;
+        }
+
+        /* Updated Game Info Box to match GitHub theme-setup style */
+        #wp-custom-wrapper .game-info {
+            margin-top: 1rem;
+            padding: 0.8rem 2rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            display: inline-block;
+            border: 2px solid var(--primary-glow);
+            box-shadow: 0 0 15px var(--primary-glow);
+            transition: all 0.5s ease;
+        }
+
+        #wp-custom-wrapper .game-name {
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-shadow: 0 0 8px #000;
+        }
+
+        #wp-custom-wrapper .website-url {
+            margin-top: 10px;
+            color: var(--primary-glow);
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: lowercase;
+            text-shadow: 0 0 10px var(--primary-glow);
+            opacity: 0.9;
+            transition: color 0.5s ease;
+        }
+
+        #wp-custom-wrapper .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 15px;
+            border: 1px solid var(--primary-glow);
+            box-shadow: 0 0 15px var(--primary-glow);
+            transition: border-color 0.5s ease;
+        }
+
+        #wp-custom-wrapper .qr-code {
+            width: 120px;
+            height: 120px;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        #wp-custom-wrapper .qr-label {
+            color: var(--primary-glow);
+            font-size: 0.7rem;
+            font-weight: 800;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.5s ease;
+        }
+
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 25px var(--primary-glow), inset 0 0 15px var(--primary-glow); transform: scale(1); }
+            to { box-shadow: 0 0 50px var(--primary-glow), inset 0 0 30px var(--primary-glow); transform: scale(1.03); }
+        }
+
+        @media (max-width: 768px) {
+            #wp-custom-wrapper .ss-card { 
+                width: 85vw; 
+                padding: 1.5rem; 
+                flex-direction: column;
+                justify-content: center; 
+                gap: 1rem;
+            }
+            #wp-custom-wrapper .crew-section {
+                flex-direction: column;
+                width: 85vw;
+                align-items: center;
+            }
+            #wp-custom-wrapper .player-card {
+                width: 100%;
+                max-width: 100%;
+                aspect-ratio: 1 / 1;
+                flex-direction: column;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="wp-custom-wrapper">
+    <canvas id="weather-canvas"></canvas>
+    <div class="grass-container" id="grassField"></div>
+    
+    <div class="overlay-container">
+        <div class="ss-card" id="mainCard">
+            <div class="content-left">
+                <h1 class="status-text">Starting Soon</h1>
+                <div id="timer" class="countdown">00:00:00</div>
+                <div class="uptime-label">Live Uptime</div>
+                <div class="game-info">
+                    <div class="game-name" id="gameTitle">Loading...</div>
+                </div>
+                <div class="website-url">werewolf.ourflora.com</div>
+            </div>
+            
+            <div class="qr-container">
+                <img class="qr-code" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.amazon.com/s?k=gaming&tag=psngaming-20" alt="PSN Affiliate QR">
+                <div class="qr-label">Scan for Deals</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Crew Section -->
+    <div class="crew-section">
+        <div class="player-card" id="card-terrdog420">
+            <img class="player-img" src="https://static-cdn.jtvnw.net/jtv_user_pictures/9dad426e-04cb-4fc0-a917-25982b3800ce-profile_image-70x70.png" alt="terrdog420">
+            <div class="player-info">
+                <div class="player-name">terrdog420</div>
+                <div class="player-status" id="status-terrdog420">OFFLINE</div>
+                <div class="player-game" id="game-terrdog420"></div>
+            </div>
+        </div>
+        <div class="player-card" id="card-mjolnirgaming">
+            <img class="player-img" src="https://static-cdn.jtvnw.net/jtv_user_pictures/6b984b2f-9b16-43c6-a699-4fd019576faf-profile_image-70x70.png" alt="mjolnirgaming">
+            <div class="player-info">
+                <div class="player-name">MjolnirGaming</div>
+                <div class="player-status" id="status-mjolnirgaming">OFFLINE</div>
+                <div class="player-game" id="game-mjolnirgaming"></div>
+            </div>
+        </div>
+        <div class="player-card" id="card-phoenix_darkfire">
+            <img class="player-img" src="https://static-cdn.jtvnw.net/jtv_user_pictures/705599df-3e5f-4d6f-9c95-3ff34317d268-profile_image-70x70.png" alt="phoenix_darkfire">
+            <div class="player-info">
+                <div class="player-name">phoenix_darkfire</div>
+                <div class="player-status" id="status-phoenix_darkfire">OFFLINE</div>
+                <div class="player-game" id="game-phoenix_darkfire"></div>
+            </div>
+        </div>
+        <div class="player-card" id="card-Raymystyro">
+            <img class="player-img" src="https://static-cdn.jtvnw.net/jtv_user_pictures/032a0367-589f-4763-94de-4fc679a0b2df-profile_image-70x70.png" alt="Raymystyro">
+            <div class="player-info">
+                <div class="player-name">Raymystyro</div>
+                <div class="player-status" id="status-Raymystyro">OFFLINE</div>
+                <div class="player-game" id="game-Raymystyro"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const username = 'werewolf3788';
+    const crew = ['terrdog420', 'mjolnirgaming', 'phoenix_darkfire', 'Raymystyro'];
+    const floraCoords = '38.6684,-88.4848';
+    const wrapper = document.getElementById('wp-custom-wrapper');
+    const canvas = document.getElementById('weather-canvas');
+    const ctx = canvas.getContext('2d');
+    const timerElement = document.getElementById('timer');
+    const grassContainer = document.getElementById('grassField');
+    
+    let particles = [];
+    let currentWeather = 'clear';
+    let isNight = false;
+
+    // Theme Mapping based on GitHub theme-setup (Farming, Speed, Fishing, Horror)
+    const themeMap = {
+        'farming': { primary: '#4CAF50', accent: '#FFEB3B' },
+        'speed': { primary: '#00E5FF', accent: '#FF4081' },
+        'fishing': { primary: '#0288D1', accent: '#B3E5FC' },
+        'horror': { primary: '#D32F2F', accent: '#000000' },
+        'default': { primary: '#FF4500', accent: '#ffffff' }
+    };
+
+    // Build Grass Field
+    for(let i=0; i<35; i++) {
+        const blade = document.createElement('div');
+        blade.className = 'grass-blade';
+        blade.style.height = (Math.random() * 30 + 30) + 'px';
+        blade.style.animationDelay = (Math.random() * 2) + 's';
+        grassContainer.appendChild(blade);
+    }
+
+    function applyDynamicTheme(title) {
+        let theme = themeMap.default;
+        const lowerTitle = title.toLowerCase();
+
+        if (lowerTitle.includes('farming')) theme = themeMap.farming;
+        else if (lowerTitle.includes('speed') || lowerTitle.includes('need for')) theme = themeMap.speed;
+        else if (lowerTitle.includes('fishing')) theme = themeMap.fishing;
+        else if (lowerTitle.includes('horror') || lowerTitle.includes('resident') || lowerTitle.includes('dead')) theme = themeMap.horror;
+
+        wrapper.style.setProperty('--primary-glow', theme.primary);
+        wrapper.style.setProperty('--accent-glow', theme.accent);
+    }
+
+    async function updateUptime() {
+        try {
+            const res = await fetch(`https://decapi.me/twitch/uptime/${username}`);
+            const uptime = await res.text();
+            timerElement.innerText = uptime.includes('offline') ? "00:00:00" : uptime;
+        } catch (e) {
+            timerElement.innerText = "Live Soon";
+        }
+    }
+
+    async function updateAvatars() {
+        crew.forEach(async (member) => {
+            try {
+                const res = await fetch(`https://decapi.me/twitch/avatar/${member}`);
+                const avatarUrl = await res.text();
+                if (avatarUrl && avatarUrl.startsWith('http')) {
+                    const img = document.querySelector(`#card-${member} .player-img`);
+                    if (img) img.src = avatarUrl;
+                }
+            } catch (e) {}
+        });
+    }
+
+    async function checkCrewStatus() {
+        crew.forEach(async (member) => {
+            try {
+                const uptimeRes = await fetch(`https://decapi.me/twitch/uptime/${member}`);
+                const uptimeStatus = await uptimeRes.text();
+                const card = document.getElementById(`card-${member}`);
+                const statusText = document.getElementById(`status-${member}`);
+                const gameText = document.getElementById(`game-${member}`);
+                
+                if (!uptimeStatus.includes('offline')) {
+                    card.classList.add('is-live');
+                    statusText.innerText = "LIVE NOW";
+                    const gameRes = await fetch(`https://decapi.me/twitch/game/${member}`);
+                    const gameTitle = await gameRes.text();
+                    gameText.innerText = gameTitle;
+                } else {
+                    card.classList.remove('is-live');
+                    statusText.innerText = "OFFLINE";
+                    gameText.innerText = "";
+                }
+            } catch (e) {}
+        });
+    }
+
+    const particleTypes = {
+        snow: { char: '❄', color: '#FFF', speed: 1.5, count: 55 },
+        rain: { char: '┃', color: '#AACCFF', speed: 11, count: 85 },
+        fall: { char: '🍂', color: '#D2691E', speed: 2, count: 35 },
+        spring: { char: '🌸', color: '#FFB7C5', speed: 1.2, count: 30 },
+        easter: { char: '🥚', color: '#FFD700', speed: 1.2, count: 25 },
+        stars: { char: '✧', color: '#FFFFAA', speed: 0.2, count: 45 },
+        clear: { char: '', count: 0 }
+    };
+
+    const holidays = [
+        { date: '03-17', emoji: '☘️' }, 
+        { date: '04-05', emoji: '🐰' }, 
+        { date: '10-31', emoji: '🎃' },
+        { date: '12-25', emoji: '🎄' }, 
+        { date: '07-04', emoji: '🇺🇸' },
+        { date: '02-14', emoji: '💝' }, 
+        { date: '01-01', emoji: '🎉' }
+    ];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+        constructor(type) { this.type = type; this.reset(); }
+        reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = this.type === 'stars' ? Math.random() * canvas.height : -30;
+            this.size = Math.random() * 18 + 10;
+            if(this.type === 'easter') {
+                const easterChars = ['🥚', '🐰', '🐣'];
+                this.char = easterChars[Math.floor(Math.random()*easterChars.length)];
+            } else {
+                this.char = particleTypes[this.type].char;
+            }
+            this.speed = (Math.random() * 2 + 1) * particleTypes[this.type].speed;
+            this.wind = Math.random() * 2 - 1;
+            this.opacity = Math.random() * 0.6 + 0.3;
+        }
+        update() {
+            if (this.type === 'stars') {
+                this.opacity = 0.3 + Math.abs(Math.sin(Date.now() * 0.001)) * 0.5;
+            } else {
+                this.y += this.speed;
+                this.x += this.wind;
+                if (this.y > canvas.height) this.reset();
+            }
+        }
+        draw() {
+            ctx.fillStyle = particleTypes[this.type].color;
+            ctx.font = `${this.size}px serif`;
+            ctx.globalAlpha = this.opacity;
+            ctx.fillText(this.char, this.x, this.y);
+        }
+    }
+
+    function initParticles(type) {
+        particles = [];
+        for (let i = 0; i < particleTypes[type].count; i++) particles.push(new Particle(type));
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animate);
+    }
+
+    async function updateWeather() {
+        try {
+            const res = await fetch(`https://api.weather.gov/points/${floraCoords}`);
+            const data = await res.json();
+            const forecastRes = await fetch(data.properties.forecastHourly);
+            const forecastData = await forecastRes.json();
+            const current = forecastData.properties.periods[0];
+            const desc = current.shortForecast.toLowerCase();
+            isNight = !current.isDaytime;
+
+            if (isNight) {
+                wrapper.classList.add('night-time'); wrapper.classList.remove('day-time');
+                wrapper.style.setProperty('--card-bg', 'rgba(0, 0, 5, 0.85)');
+            } else {
+                wrapper.classList.add('day-time'); wrapper.classList.remove('night-time');
+                wrapper.style.setProperty('--card-bg', 'rgba(0, 0, 0, 0.7)');
+            }
+
+            const today = new Date().toISOString().slice(5, 10);
+            let effect = 'clear';
+            
+            if (desc.includes('snow') || desc.includes('flurries')) effect = 'snow';
+            else if (desc.includes('rain') || desc.includes('drizzle')) effect = 'rain';
+            else if (today === '04-05' || today === '04-04') effect = 'easter';
+            else if (isNight) effect = 'stars';
+            else {
+                const month = new Date().getMonth();
+                if (month >= 8 && month <= 10) effect = 'fall';
+                else if (month >= 2 && month <= 4) effect = 'spring';
+            }
+            if (effect !== currentWeather) { currentWeather = effect; initParticles(effect); }
+        } catch (e) { initParticles('spring'); }
+    }
+
+    function spawnHoliday() {
+        const today = new Date().toISOString().slice(5, 10);
+        const activeHoliday = holidays.find(h => h.date === today);
+        if (!activeHoliday) return;
+        const el = document.createElement('div');
+        el.className = 'holiday-pop';
+        el.innerText = activeHoliday.emoji;
+        el.style.left = Math.random() * 80 + 10 + '%';
+        el.style.top = Math.random() * 80 + 10 + '%';
+        wrapper.appendChild(el);
+        setTimeout(() => el.remove(), 10000);
+    }
+
+    async function updateTwitch() {
+        try {
+            const res = await fetch(`https://decapi.me/twitch/game/${username}`);
+            const game = await res.text();
+            document.getElementById('gameTitle').innerText = game || "Just Chatting";
+            applyDynamicTheme(game);
+        } catch (e) {}
+    }
+
+    // Kickoff
+    updateWeather();
+    updateTwitch();
+    updateUptime();
+    updateAvatars();
+    checkCrewStatus();
+    animate();
+    setInterval(updateWeather, 600000);
+    setInterval(updateTwitch, 30000);
+    setInterval(updateUptime, 5000);
+    setInterval(checkCrewStatus, 60000);
+    setInterval(updateAvatars, 3600000);
+    setInterval(spawnHoliday, 15000);
+})();
+</script>
+
+</body>
+</html>
