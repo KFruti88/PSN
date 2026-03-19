@@ -1,0 +1,33 @@
+/* Nested under #wp-custom-wrapper to override Divi defaults */
+#wp-custom-wrapper {
+    --color-werewolf3788: #FF5F1F;
+    --color-raymystyro: #C41E3A;
+    --color-terrdog420: #800080;
+    --color-mjolnirgaming: #000000;
+    --color-phoenix-darkfire: #000080;
+}
+
+#wp-custom-wrapper .user-profile {
+    width: 90%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: transparent;
+}
+
+/* Dynamic Glow Effects */
+#wp-custom-wrapper .glow-werewolf3788 { box-shadow: 0 0 15px var(--color-werewolf3788); border: 1px solid var(--color-werewolf3788); }
+#wp-custom-wrapper .glow-raymystyro { box-shadow: 0 0 15px var(--color-raymystyro); border: 1px solid var(--color-raymystyro); }
+#wp-custom-wrapper .glow-terrdog420 { box-shadow: 0 0 15px var(--color-terrdog420); border: 1px solid var(--color-terrdog420); }
+#wp-custom-wrapper .glow-mjolnirgaming { box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); border: 1px solid var(--color-mjolnirgaming); }
+#wp-custom-wrapper .glow-phoenix-darkfire { box-shadow: 0 0 15px var(--color-phoenix-darkfire); border: 1px solid var(--color-phoenix-darkfire); }
+
+/* Mobile Responsiveness: 1:1 Aspect Ratio & Stacked */
+@media screen and (max-width: 768px) {
+    #wp-custom-wrapper .user-card {
+        aspect-ratio: 1 / 1;
+        width: 90%;
+        margin-bottom: 20px;
+    }
+}
