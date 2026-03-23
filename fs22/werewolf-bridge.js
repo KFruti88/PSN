@@ -1,67 +1,95 @@
 const ftp = require("basic-ftp");
 const xml2js = require("xml2js");
 const admin = require("firebase-admin");
+const fs = require('fs');
 
-// 1. FIREBASE SETUP
-// Download your serviceAccountKey.json from Firebase Console -> Project Settings -> Service Accounts
+// 1. FIREBASE INITIALIZATION (Named Instance: 'WerewolfSync')
 const serviceAccount = require("./serviceAccountKey.json");
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com"
-});
+if (!admin.apps.length) {
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com"
+    }, 'WerewolfSync');
+}
+const db = admin.app('WerewolfSync').database();
 
-const db = admin.database();
-
-// 2. FTP CONFIG (From your uplink credentials)
+// 2. G-PORTAL FTP CONFIG
 const ftpConfig = {
-  host: "154.12.236.77",
-  user: "gpftp12756933517461430",
-  password: "1OtBmFfP",
-  port: 50591,
-  secure: false
+    host: "154.12.236.77",
+    user: "gpftp12756933517461430",
+    password: "1OtBmFfP",
+    port: 50591,
+    secure: false
 };
 
-async function syncFarmData() {
-  const client = new ftp.Client();
-  // client.ftp.verbose = true; // Uncomment for debugging
+async function startUplink() {
+    const client = new ftp.Client();
+    try {
+        await client.access(ftpConfig);
+        console.log("🛰️ 618 CREW UPLINK ESTABLISHED");
 
-  try {
-    await client.access(ftpConfig);
-    console.log("🛰️ UPLINK ESTABLISHED TO G-PORTAL FTP");
+        // Files to capture for full intelligence
+        const manifest = [
+            { remote: "/savegame1/careerSavegame.xml", local: "career.xml" },
+            { remote: "/savegame1/vehicles.xml", local: "vehicles.xml" },
+            { remote: "/savegame1/farms.xml", local: "farms.xml" }
+        ];
 
-    // List of files to grab (Career stats, vehicles, and precision farming)
-    const filesToSync = [
-        { remote: "/savegame1/careerSavegame.xml", local: "temp_career.xml", dbPath: "fs22_live/server" },
-        { remote: "/savegame1/vehicles.xml", local: "temp_vehicles.xml", dbPath: "fs22_live/fleet" },
-        { remote: "/savegame1/farms.xml", local: "temp_farms.xml", dbPath: "fs22_live/farms" }
-    ];
+        for (const file of manifest) {
+            await client.downloadTo(file.local, file.remote);
+        }
 
-    for (const file of filesToSync) {
-      // Download
-      await client.downloadTo(file.local, file.remote);
-      
-      // Read and Parse
-      const fs = require('fs');
-      const xmlData = fs.readFileSync(file.local, 'utf-8');
-      const parser = new xml2js.Parser({ explicitArray: false, mergeAttrs: true });
-      
-      const result = await parser.parseStringPromise(xmlData);
-      
-      // Clean up the data for Firebase (Removing large unnecessary nodes)
-      // This is where you filter the specific data you want
-      await db.ref(file.dbPath).set(result);
-      console.log(`✅ SYNCED: ${file.remote} -> Firebase ${file.dbPath}`);
+        // --- PARSING ENGINE ---
+        const parser = new xml2js.Parser({ explicitArray: false, mergeAttrs: true });
+        
+        // Parse Vehicles (Fleet & Locations)
+        const vehData = fs.readFileSync('vehicles.xml', 'utf-8');
+        const vehResult = await parser.parseStringPromise(vehData);
+        const allVehicles = Array.isArray(vehResult.vehicles.vehicle) ? vehResult.vehicles.vehicle : [vehResult.vehicles.vehicle];
+
+        // Filter and Map Fleet
+        const fleet = allVehicles.map(v => ({
+            id: v.id,
+            name: v.filename.split('/').pop().replace('.xml', ''),
+            farmId: v.farmId,
+            damage: Math.round((v.wearable?.damage || 0) * 100),
+            fuel: v.fillUnit?.unit ? (Array.isArray(v.fillUnit.unit) ? Math.round(v.fillUnit.unit[1]?.fillLevel || 0) : Math.round(v.fillUnit.unit.fillLevel || 0)) : 100,
+            x: parseFloat(v.component[0]?.position.split(' ')[0] || 0),
+            z: parseFloat(v.component[0]?.position.split(' ')[2] || 0),
+            isTrain: v.filename.includes('train')
+        }));
+
+        // Parse Farms (Money & Field Ownership)
+        const farmData = fs.readFileSync('farms.xml', 'utf-8');
+        const farmResult = await parser.parseStringPromise(farmData);
+        const farms = Array.isArray(farmResult.farms.farm) ? farmResult.farms.farm : [farmResult.farms.farm];
+
+        const financialIntel = farms.map(f => ({
+            farmId: f.farmId,
+            name: f.name,
+            money: Math.floor(parseFloat(f.money)),
+            loan: Math.floor(parseFloat(f.loan))
+        }));
+
+        // --- PUSH TO FIREBASE ---
+        await db.ref('fs22_live').update({
+            lastUpdate: new Date().toISOString(),
+            fleet: fleet,
+            farms: financialIntel,
+            server: { name: "618 Crew", map: "Elmcreek", mapSize: 2048 }
+        });
+
+        console.log(`✅ SYNC COMPLETE: ${fleet.length} Units | ${farms.length} Farms`);
+
+    } catch (err) {
+        console.error("❌ UPLINK INTERRUPTED:", err);
+    } finally {
+        client.close();
     }
-
-  } catch (err) {
-    console.log("❌ UPLINK ERROR:", err);
-  } finally {
-    client.close();
-  }
 }
 
-// Run the sync every 60 seconds
-console.log("🔥 WEREWOLF BRIDGE ACTIVE");
-setInterval(syncFarmData, 60000); 
-syncFarmData(); // Initial run
+// Execute every 60 seconds (Matches G-Portal Auto-save cycle)
+console.log("🔥 618 SYNC SERVICE STARTING...");
+setInterval(startUplink, 60000);
+startUplink();
