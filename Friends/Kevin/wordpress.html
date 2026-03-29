@@ -2,198 +2,376 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Werewolf Hub | Multi-Project Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Werewolf3788 - Lead Dev Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+    <script src="https://embed.twitch.tv/embed/v1.js"></script>
+
     <style>
-        /* Base Styles */
-        html {
-            /* Ensures the background covers the full browser window */
-            background-color: #050505; 
-            height: 100%;
+        :root {
+            /* Personalized Divi Mobile Settings */
+            --divi-section-height: 50px;
+            --divi-row-height: 30px;
+            --divi-body-size: 14px;
+            --divi-header-size: 30px;
+
+            --hunter-color: #ff8800;
+            --hunter-glow: rgba(255, 136, 0, 0.6);
+            --jd-yellow: #ffde00;
+            --accent: #9146ff;
+            --accent-glow: rgba(145, 70, 255, 0.5);
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* Gradient background with deep blacks and subtle glows */
-            background-color: #000;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(100, 100, 100, 0.1), transparent 50%),
-                radial-gradient(circle at 50% 100%, rgba(40, 40, 60, 0.2), transparent 50%),
-                linear-gradient(135deg, #050505, #1a1a1a, #050505);
-            background-attachment: fixed;
-            color: #e0e0e0;
-            margin: 0;
-            padding: 40px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* Forces the body to be at least the height of the screen */
-            min-height: 100vh; 
-            box-sizing: border-box;
+        #wp-custom-wrapper {
+            width: 95% !important;
+            max-width: 2400px !important;
+            margin: 0 auto !important;
+            padding: var(--divi-section-height) 0;
+            color: #ffffff !important;
+            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+            background: transparent !important;
         }
 
-        /* 90% Width Constraint */
-        .container {
-            width: 90%;
-            max-width: 1400px;
+        #dynamic-theme-container {
+            border-radius: 40px;
+            padding: var(--divi-section-height);
+            transition: all 1s ease;
+            background: linear-gradient(180deg, #050505 0%, #000 100%);
         }
 
-        header {
-            text-align: center;
-            padding-bottom: 40px;
-        }
-
-        h1 {
-            color: #ff4500;
-            font-size: 2.5rem;
+        #main-hub-title {
+            color: #ffffff !important;
+            text-shadow: 0 0 20px rgba(255,255,255,0.8), 0 0 50px var(--accent-glow) !important;
+            font-size: var(--divi-header-size);
+            font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-top: 0;
+            font-style: italic;
+            text-align: center;
+            margin-bottom: var(--divi-row-height);
         }
 
-        /* Dashboard Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-top: 20px;
+        /* GRID SYSTEM */
+        .row-1 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .row-2 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        
+        @media (max-width: 1024px) { 
+            .row-1, .row-2 { grid-template-columns: 1fr; }
         }
 
-        /* Project Cards */
-        .card {
-            background: #1a1a1a; /* Darker card for better contrast */
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 25px;
-            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        .gloss-card {
+            background: rgba(10, 10, 10, 0.85) !important;
+            backdrop-filter: blur(25px);
+            border-radius: 35px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            min-height: 480px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid var(--accent) !important;
+            box-shadow: 0 0 30px var(--accent-glow) !important;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: #ff4500;
-            box-shadow: 0 8px 25px rgba(255, 69, 0, 0.2);
+        .img-card { 
+            background-size: cover !important; 
+            background-position: center !important; 
+            background-repeat: no-repeat !important;
+        }
+        .img-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.9) 100%) !important;
+            z-index: 0;
         }
 
-        .card h2 {
-            margin-top: 0;
-            color: #fff;
-            font-size: 1.5rem;
+        .card-content-wrap { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
+
+        /* HUNTER VISUAL OVERLAY STYLES */
+        .visual-rank-stack { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+        .v-rank-item {
+            display: flex; flex-direction: column; align-items: center;
+            background: rgba(0, 0, 0, 0.6); padding: 10px 2px; border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .v-emoji { font-size: 1.2rem; }
+        .v-count { font-weight: 900; font-family: monospace; font-size: 1rem; color: var(--jd-yellow); }
+
+        .v-progress-label {
+            font-size: 10px; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 4px; display: block;
+            color: var(--jd-yellow);
+        }
+        .v-bar-bg { background: rgba(0, 0, 0, 0.5); height: 10px; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); width: 100%; margin-bottom: 12px; }
+        .v-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--hunter-color), #ffffff); transition: width 1.5s ease; }
+
+        .divider-glow { height: 1px; background: linear-gradient(90deg, transparent, var(--hunter-color), transparent); opacity: 0.3; margin: 15px 0; }
+
+        /* TWITCH PLAYER */
+        #twitch-area { border-radius: 40px; overflow: hidden; border: 4px solid var(--accent); box-shadow: 0 0 40px var(--accent-glow); background: #000; }
+
+        /* FS UI */
+        .fs-panel { border-radius: 20px; padding: 15px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); background-size: cover; position: relative; overflow: hidden; }
+        .fs-panel::before { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.75); z-index: 0; }
+
+        /* ANGLER STATS */
+        .trophy-slot {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.7); padding: 10px 15px; margin-bottom: 6px;
+            border-radius: 12px; border-right: 4px solid #0ea5e9;
         }
 
-        .card p {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: #bbb;
-        }
+        .v-great-one-pulse { animation: v-pulse 2s infinite ease-in-out; border-color: #ef4444 !important; }
+        @keyframes v-pulse { 0%, 100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.2); } 50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.7); } }
 
-        .card-tags {
-            margin: 10px 0 20px 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .tag {
-            background: #333;
-            color: #ff4500;
-            padding: 4px 10px;
-            font-size: 0.75rem;
-            border-radius: 4px;
-            border: 1px solid #444;
-        }
-
-        .btn {
-            display: inline-block;
-            background: #ff4500;
-            color: white;
-            text-decoration: none;
-            padding: 12px 20px;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        .btn:hover {
-            background: #e03e00;
-        }
-
-        /* Affiliate/Footer Section */
-        footer {
-            margin-top: 60px;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #666;
-            width: 100%;
-        }
-
-        .affiliate-link {
-            color: #ff4500;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        /* Responsive Adjustments */
-        @media (max-width: 600px) {
-            .container { width: 95%; }
-            h1 { font-size: 1.8rem; }
+        @media (max-width: 768px) {
+            #dynamic-theme-container { padding: 20px; }
+            .gloss-card { min-height: 400px; padding: 20px; }
+            body { font-size: var(--divi-body-size); }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Werewolf Project Hub</h1>
-            <p>Centralizing Gaming, Media, and Design Projects</p>
-        </header>
+<div id="wp-custom-wrapper">
+    <div id="dynamic-theme-container">
+        <h1 id="main-hub-title">Werewolf3788</h1>
 
-        <main class="dashboard-grid">
-            
-            <div class="card">
-                <div>
-                    <h2>Farming Simulator</h2>
-                    <div class="card-tags">
-                        <span class="tag">FS22</span><span class="tag">FS25 Coming Soon</span><span class="tag">G-Portal</span>
+        <!-- ROW 1: MISSION & PROFILE -->
+        <div class="row-1">
+            <div class="gloss-card">
+                <div class="card-content-wrap">
+                    <h2 class="text-[10px] font-black uppercase tracking-[0.4em] mb-6 opacity-40 jd-yellow-text">Mission Briefing</h2>
+                    <p class="text-2xl italic font-medium">"Not here for a long time but for a howling good time!"</p>
+                    <div class="mt-auto grid grid-cols-2 pt-8 border-t border-white/10">
+                        <div class="text-center"><span class="block text-4xl font-black">89</span><span class="text-[9px] uppercase opacity-30 jd-yellow-text">Followers</span></div>
+                        <div class="text-center"><span id="live-text" class="block text-4xl font-black">LIVE</span><span class="text-[9px] uppercase opacity-30 jd-yellow-text">Broadcast</span></div>
                     </div>
-                    <p>Management for our FS22 G-Portal dedicated server. Hub for the team's farming operations.</p>
                 </div>
-                <a href="https://github.com/KFruti88/Farming-Simulator" class="btn">View Farm Stats</a>
             </div>
 
-            <div class="card">
-                <div>
-                    <h2>Movie Collection</h2>
-                    <div class="card-tags">
-                        <span class="tag">1000+ Titles</span><span class="tag">Library</span>
+            <div class="gloss-card">
+                <div class="card-content-wrap">
+                    <div class="flex items-center gap-6 mb-8">
+                        <img src="https://static-cdn.jtvnw.net/jtv_user_pictures/1a4efdb4-023e-4802-b07c-82c09a45c4c8-profile_image-70x70.png" class="w-24 h-24 rounded-3xl border-4 border-white/10 shadow-2xl">
+                        <div><span class="text-3xl font-black uppercase italic block">Lead Dev</span><span id="game-status" class="text-[10px] opacity-50 uppercase tracking-[0.3em] mt-2 block font-black jd-yellow-text">Syncing...</span></div>
                     </div>
-                    <p>A full digital catalog of my Movies Anywhere collection. Browse the complete list of available films.</p>
+                    <div class="mt-auto grid grid-cols-2 gap-3">
+                        <a href="https://discord.gg/JSs3uD5fK8" target="_blank" class="bg-white/5 p-4 rounded-2xl text-center text-[10px] font-black border border-white/10 uppercase">Discord</a>
+                        <a href="https://linktr.ee/werewolf3788" target="_blank" class="bg-white/5 p-4 rounded-2xl text-center text-[10px] font-black border border-white/10 uppercase">Linktree</a>
+                        <a href="https://amzn.to/4lg0Re4" target="_blank" class="col-span-2 bg-orange-500/10 border-2 border-orange-500 text-orange-500 text-center py-4 rounded-2xl font-black uppercase">Shop Hardware</a>
+                    </div>
                 </div>
-                <a href="https://github.com/KFruti88/Movies-Anywhere" class="btn">Browse Movies</a>
+            </div>
+        </div>
+
+        <!-- ROW 2: TRACKERS (3-Box Layout) -->
+        <div class="row-2">
+            <!-- COTW VISUAL WIDGET -->
+            <div class="gloss-card img-card" style="background-image: url('https://static-cdn.jtvnw.net/ttv-boxart/494683_IGDB-285x380.jpg') !important; border-color: var(--hunter-color) !important;">
+                <div class="card-content-wrap">
+                    <h3 class="text-[10px] font-black uppercase mb-4 opacity-70 jd-yellow-text">COTW Visual Sync</h3>
+                    
+                    <div class="visual-rank-stack">
+                        <div class="v-rank-item" id="v-rank-greatone"><span class="v-emoji">👑</span><span class="v-count" id="count-greatone">0</span></div>
+                        <div class="v-rank-item" id="v-rank-diamond"><span class="v-emoji">💎</span><span class="v-count" id="count-diamond">0</span></div>
+                        <div class="v-rank-item" id="v-rank-gold"><span class="v-emoji">🥇</span><span class="v-count" id="count-gold">0</span></div>
+                        <div class="v-rank-item" id="v-rank-silver"><span class="v-emoji">🥈</span><span class="v-count" id="count-silver">0</span></div>
+                        <div class="v-rank-item" id="v-rank-bronze"><span class="v-emoji">🥉</span><span class="v-count" id="count-bronze">0</span></div>
+                    </div>
+
+                    <a href="https://werewolf.ourflora.com/trophy-tracking/" class="block hover:scale-[1.02] transition-transform">
+                        <span class="v-progress-label text-center" id="v-percent-text">MASTER PLATINUM: 0%</span>
+                        <div class="v-bar-bg"><div id="v-overall-bar" class="v-bar-fill"></div></div>
+                    </a>
+
+                    <div class="divider-glow"></div>
+                    <div id="map-bars-container" class="overflow-y-auto pr-1 max-h-[160px]"></div>
+                </div>
             </div>
 
-            <div class="card">
-                <div>
-                    <h2>Overlay Design</h2>
-                    <div class="card-tags">
-                        <span class="tag">Portfolio</span><span class="tag">Twitch/OBS</span>
-                    </div>
-                    <p>Showcasing my custom skeleton game layouts and stream overlays. Available for professional use.</p>
+            <!-- ANGLER -->
+            <div class="gloss-card img-card" style="background-image: url('https://np.sentl.com/images/games/a93a18cb/s/9ded28264.png') !important; border-color: #0ea5e9 !important;">
+                <div class="card-content-wrap">
+                    <h3 class="text-[10px] font-black uppercase mb-4 opacity-70 jd-yellow-text">The Angler Sync</h3>
+                    <div id="angler-trophies" class="space-y-1"></div>
                 </div>
-                <a href="https://github.com/KFruti88/Skeleton-Game-Layouts" class="btn">View Designs</a>
             </div>
 
-        </main>
+            <!-- FARMING MASTERY -->
+            <div class="gloss-card" style="border-color: #367c2b !important;">
+                <div class="card-content-wrap">
+                    <h3 class="text-[10px] font-black uppercase mb-4 opacity-70 jd-yellow-text">Farming Mastery</h3>
+                    
+                    <!-- FS25 SECTION -->
+                    <div class="fs-panel" style="background-image: url('https://np.sentl.com/images/games/8f884410/s/e68c44827.png')">
+                        <div class="card-content-wrap">
+                            <span id="fs25-pct-label" class="text-[9px] font-black uppercase jd-yellow-text">FS25 PS5: 0%</span>
+                            <div class="v-bar-bg mt-1 mb-0 h-1.5">
+                                <div id="fs25-fill" class="v-bar-fill" style="width: 0%; background: #367c2b;"></div>
+                            </div>
+                        </div>
+                    </div>
 
-        <footer>
-            <p>Need new gear? Check out <a href="https://www.amazon.com/gp/goldbox?tag=werewolf3788-20" class="affiliate-link">Today's Amazon Deals</a></p>
-            <p>© 2026 Werewolf Projects | Affiliate ID: Werewolf3788-20</p>
-        </footer>
+                    <!-- FS22 SECTION -->
+                    <div class="fs-panel" style="background-image: url('https://np.sentl.com/images/games/41d55d34/l/8c7822969.png')">
+                        <div class="card-content-wrap">
+                            <!-- PS5 -->
+                            <div class="mb-3">
+                                <span id="fs22-ps5-pct" class="text-[9px] font-black jd-yellow-text uppercase">FS22 PS5: 0%</span>
+                                <div class="v-bar-bg mt-1 mb-0 h-1.5">
+                                    <div id="fs22-ps5-fill" class="v-bar-fill" style="width: 0%; background: #22c55e;"></div>
+                                </div>
+                            </div>
+                            <!-- PS4 -->
+                            <div>
+                                <span id="fs22-ps4-pct" class="text-[9px] font-black jd-yellow-text uppercase">FS22 PS4: 0%</span>
+                                <div class="v-bar-bg mt-1 mb-0 h-1.5">
+                                    <div id="fs22-ps4-fill" class="v-bar-fill" style="width: 0%; background: #166534;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section id="twitch-area">
+            <div id="twitch-embed" class="w-full aspect-video"></div>
+        </section>
     </div>
+</div>
 
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+import { getFirestore, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+(function() {
+    const config = {
+        apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+        authDomain: "angler-squad-tracker.firebaseapp.com",
+        projectId: "angler-squad-tracker",
+        storageBucket: "angler-squad-tracker.firebasestorage.app",
+        messagingSenderId: "325679067980",
+        appId: "1:325679067980:web:57edbad70fe12b988355e9"
+    };
+
+    const app = initializeApp(config, 'WW_CORE_HUB');
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const HUNTER_ID = 'Werewolf3788';
+
+    // Twitch Player
+    new Twitch.Embed("twitch-embed", { width: "100%", height: "100%", channel: "werewolf3788", parent: [window.location.hostname], theme: "dark", layout: "video" });
+
+    async function syncTheme() {
+        try {
+            const res = await fetch(`https://decapi.me/twitch/game/werewolf3788?v=${Date.now()}`);
+            const gameName = await res.text();
+            const game = gameName.toLowerCase();
+            const container = document.getElementById('dynamic-theme-container');
+            
+            let accent = '#9146ff';
+            if (game.includes('farming')) accent = '#8bc34a';
+            else if (game.includes('angler')) accent = '#00ffff';
+            else if (game.includes('hunter')) accent = '#ff8800';
+
+            container.style.setProperty('--accent', accent);
+            container.style.setProperty('--accent-glow', accent + '66');
+            document.getElementById('game-status').innerText = gameName;
+            document.getElementById('live-text').style.color = accent;
+        } catch (e) {}
+    }
+
+    function renderTrophyList(id, data, tiers) {
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.innerHTML = tiers.map(t => `
+            <div class="trophy-slot"><span class="${t.c} text-[9px] font-black uppercase">${t.label}</span><span class="text-lg font-black text-white">${data[t.id] || 0}</span></div>
+        `).join('');
+    }
+
+    async function startListeners() {
+        // COTW Ranks
+        onSnapshot(doc(db, 'artifacts', 'cotw-trophy-display', 'public', 'data', 'userTrophies', HUNTER_ID), (snap) => {
+            if(snap.exists()) {
+                const data = snap.data();
+                ['bronze', 'silver', 'gold', 'diamond', 'greatone'].forEach(tier => {
+                    const count = data[tier] || 0;
+                    const countEl = document.getElementById(`count-${tier}`);
+                    if(countEl) countEl.innerText = count;
+                    if (tier === 'greatone' && count > 0) document.getElementById(`v-rank-greatone`).classList.add('v-great-one-pulse');
+                });
+            }
+        });
+
+        // COTW Progress (Map Bars)
+        onSnapshot(doc(db, 'artifacts', 'cotw-master', 'public', 'data', 'userTrophies', HUNTER_ID), (snap) => {
+            if(snap.exists()) {
+                const trophies = snap.data().trophies || [];
+                const met = trophies.filter(t => t.current >= t.goal).length;
+                const masterPct = Math.round((met / trophies.length) * 100);
+                document.getElementById('v-percent-text').innerText = `MASTER PLATINUM: ${masterPct}%`;
+                document.getElementById('v-overall-bar').style.width = masterPct + '%';
+
+                const cats = [...new Set(trophies.map(t => t.cat))];
+                document.getElementById('map-bars-container').innerHTML = cats.map(cat => {
+                    const items = trophies.filter(t => t.cat === cat);
+                    const metCat = items.filter(t => t.current >= t.goal).length;
+                    const pct = Math.round((metCat / items.length) * 100);
+                    return `<div class="mb-3"><span class="v-progress-label">${cat}: ${pct}%</span><div class="v-bar-bg mb-0 h-1.5"><div class="v-bar-fill" style="width:${pct}%"></div></div></div>`;
+                }).join('');
+            }
+        });
+
+        // Angler
+        onSnapshot(doc(db, 'artifacts', 'theangler-trophy-display', 'public', 'data', 'userTrophies', HUNTER_ID), (snap) => {
+            if(snap.exists()) renderTrophyList('angler-trophies', snap.data(), [{id:'legendary', label:'LGD', c:'text-purple-400'}, {id:'diamond', label:'DIA', c:'text-cyan-400'}, {id:'gold', label:'GLD', c:'text-yellow-400'}, {id:'silver', label:'SLV', c:'text-slate-400'}, {id:'bronze', label:'BRZ', c:'text-orange-700'}]);
+        });
+
+        // Farming FS22
+        onSnapshot(doc(db, 'artifacts', 'fs22-master', 'public', 'data', 'userTrophies', HUNTER_ID), (snap) => {
+            if (snap.exists()) {
+                const d = snap.data(); 
+                ['PS5', 'PS4'].forEach(p => {
+                    const trophies = Object.values(d[p] || {});
+                    const earnedRaw = trophies.filter(t => t.isEarned).length;
+                    // Logic: 45 earned trophies triggers the 46th (Platinum)
+                    const earnedFinal = earnedRaw >= 45 ? 46 : earnedRaw;
+                    const pct = Math.min(100, Math.floor((earnedFinal / 46) * 100));
+                    
+                    const labelId = `fs22-${p.toLowerCase()}-pct`;
+                    const barId = `fs22-${p.toLowerCase()}-fill`;
+                    if(document.getElementById(labelId)) document.getElementById(labelId).innerText = `FS22 ${p}: ${pct}%`;
+                    if(document.getElementById(barId)) document.getElementById(barId).style.width = pct + '%';
+                });
+            }
+        });
+
+        // Farming FS25
+        onSnapshot(doc(db, 'artifacts', 'fs25-master', 'public', 'data', 'userTrophies', HUNTER_ID), (snap) => {
+            if (snap.exists()) {
+                const d = snap.data();
+                const trophies = Object.values(d['PS5'] || {});
+                const earnedRaw = trophies.filter(t => t.isEarned).length;
+                // Logic: 45 earned trophies triggers the 46th (Platinum)
+                const earnedFinal = earnedRaw >= 45 ? 46 : earnedRaw;
+                const pct = Math.min(100, Math.floor((earnedFinal / 46) * 100));
+                
+                if(document.getElementById('fs25-pct-label')) document.getElementById('fs25-pct-label').innerText = `FS25 PS5: ${pct}%`;
+                if(document.getElementById('fs25-fill')) document.getElementById('fs25-fill').style.width = pct + '%';
+            }
+        });
+    }
+
+    signInAnonymously(auth).then(() => {
+        syncTheme();
+        setInterval(syncTheme, 60000);
+        startListeners();
+    });
+})();
+</script>
 </body>
 </html>
