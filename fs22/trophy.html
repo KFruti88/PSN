@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        #wp-custom-wrapper {
+            --jd-green: #367c2b;
+            --jd-yellow: #ffde00;
+            
+            background: transparent !important;
+            width: 90% !important;
+            margin: 0 auto !important;
+            color: #f1f5f9 !important;
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            min-height: 100vh;
+            padding-bottom: 5rem;
+        }
+
+        #wp-custom-wrapper .fs22-main-shell {
+            border-radius: 3.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: url('https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSsAtz--LSRgueGUzqjPk3A4Ry4PY5uhKyIxBH24w451dGUaFMr');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8);
+        }
+
+        #wp-custom-wrapper .fs22-main-shell::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.98) 100%);
+            z-index: 1;
+        }
+
+        #wp-custom-wrapper .fs-heavy-glass {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        #wp-custom-wrapper .fs-card-glass {
+            background: rgba(15, 18, 20, 0.95);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--fs22-op-color);
+            border-radius: 2.2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 15px -5px var(--fs22-op-color);
+        }
+
+        #wp-custom-wrapper .fs22-earned-glow {
+            box-shadow: 0 0 35px -5px var(--fs22-op-color) !important;
+            background: color-mix(in srgb, var(--fs22-op-color) 12%, rgba(10, 12, 14, 0.98)) !important;
+        }
+
+        #wp-custom-wrapper .fs22-btn {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 50 !important; /* Bumped up for Divi */
+            transition: all 0.2s ease;
+        }
+
+        #wp-custom-wrapper .rarity-tag {
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: 4px 12px;
+            border-radius: 8px;
+            border-width: 1.5px;
+            display: inline-block;
+            background: rgba(0,0,0,0.7);
+        }
+
+        #wp-custom-wrapper .hw-accent-text { color: var(--fs22-hw-color) !important; }
+        #wp-custom-wrapper .hw-accent-bg { background-color: var(--fs22-hw-color) !important; }
+        #wp-custom-wrapper .hw-accent-border { border-color: var(--fs22-hw-color) !important; }
+
+        #wp-custom-wrapper .op-btn-active {
+            box-shadow: 0 0 20px var(--fs22-op-color);
+            border-color: var(--fs22-op-color) !important;
+        }
+
+        @media (max-width: 768px) {
+            #wp-custom-wrapper .mobile-1-1 { 
+                aspect-ratio: 1 / 1 !important; 
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="wp-custom-wrapper">
+    <div id="fs22-app-container" class="fs22-main-shell p-6 md:p-12 mt-10">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 relative z-[100]">
+            <div class="fs-heavy-glass p-8 flex flex-col items-center">
+                <span class="text-[10px] font-black uppercase tracking-[0.5em] text-white/30 mb-5">Select Operator</span>
+                <div id="fs22-user-selector" class="flex flex-wrap justify-center gap-4"></div>
+            </div>
+            <div class="fs-heavy-glass p-8 flex flex-col items-center">
+                <span class="text-[10px] font-black uppercase tracking-[0.5em] text-white/30 mb-5">Hardware Logic</span>
+                <div class="flex gap-4">
+                    <button id="btn-PS5" class="fs22-btn px-10 py-3 rounded-2xl border-2 font-black text-xs uppercase tracking-widest">PS5</button>
+                    <button id="btn-PS4" class="fs22-btn px-10 py-3 rounded-2xl border-2 font-black text-xs uppercase tracking-widest">PS4</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="fs22-platinum-root" class="mb-12 relative z-10"></div>
+
+        <div id="fs22-trophy-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 relative z-10">
+            <p id="fs22-status-msg" class="col-span-full text-center py-20 animate-pulse text-white font-black tracking-widest uppercase">Initializing Protocol...</p>
+        </div>
+
+        <footer class="mt-32 text-center border-t border-white/5 pt-12 text-[10px] text-white/20 uppercase tracking-[0.8em] font-black">
+            Lead Developer: Werewolf3788 • FS22 Ultimate Protocol v7.8
+        </footer>
+    </div>
+</div>
+
+<script>
+(function() {
+    const firebaseConfig = {
+        apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+        authDomain: "angler-squad-tracker.firebaseapp.com",
+        projectId: "angler-squad-tracker",
+        storageBucket: "angler-squad-tracker.firebasestorage.app",
+        messagingSenderId: "325679067980",
+        appId: "1:325679067980:web:57edbad70fe12b988355e9"
+    };
+
+    const appId = 'fs22-master';
+    const fsAppName = 'FS22_ULTIMATE_SYNC';
+    const app = !firebase.apps.some(a => a.name === fsAppName) ? firebase.initializeApp(firebaseConfig, fsAppName) : firebase.app(fsAppName);
+    const db = app.firestore();
+    const auth = app.auth();
+
+    const SQUAD = [
+        { id: 'Werewolf3788', label: 'Werewolf', theme: '#ff8c00', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/1a4efdb4-023e-4802-b07c-82c09a45c4c8-profile_image-70x70.png' },
+        { id: 'Raymystyro', label: 'Ray', theme: '#c00000', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/032a0367-589f-4763-94de-4fc679a0b2df-profile_image-70x70.png' },
+        { id: 'terrdog420', label: 'TJ', theme: '#004a99', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/9dad426e-04cb-4fc0-a917-25982b3800ce-profile_image-70x70.png' }
+    ];
+
+    const HW_COLORS = { 'PS5': '#367c2b', 'PS4': '#ffde00' };
+
+    const MANIFEST = [
+        { id: "road_trip", title: "Road Trip", goal: 100, isInc: true, rarity: "Silver" },
+        { id: "plot_thickens", title: "The plot thickens", goal: 100, isInc: true, rarity: "Very Rare" },
+        { id: "helper_a", title: "Helper A", goal: 100, isInc: true, step: 2, rarity: "Very Rare" }, 
+        { id: "long_haul", title: "Long haul", goal: 50, isInc: true, rarity: "Very Rare" },
+        { id: "thoroughbred", title: "Thoroughbred!", goal: 100, isInc: true, rarity: "Very Rare" },
+        { id: "vehicle_fleet", title: "Vehicle fleet", goal: 60, isInc: true, rarity: "Rare" },
+        { id: "original_grain", title: "Original grain", goal: 50, isInc: true, rarity: "Very Rare" },
+        { id: "sow_easy", title: "It's sow easy", goal: 100, isInc: true, rarity: "Very Rare" },
+        { id: "large_scale", title: "Large-scale supplier", goal: 100, isInc: true, rarity: "Very Rare" },
+        { id: "field_trip", title: "Field Trip", goal: 150, isInc: true, rarity: "Rare" },
+        { id: "fix_me_up", title: "Fix me up", goal: 25, isInc: true, rarity: "Very Rare" },
+        { id: "fluffiness", title: "Fluffiness", goal: 30, isInc: true, rarity: "Very Rare" },
+        { id: "piggies", title: "Three little piggies…", goal: 50, isInc: true, rarity: "Very Rare" },
+        { id: "clucky_streak", title: "Clucky Streak", goal: 100, isInc: true, rarity: "Very Rare" },
+        { id: "honey", title: "Bringing in the Honey", goal: 15, isInc: true, rarity: "Very Rare" },
+        { id: "cowherd", title: "Cowherd", goal: 20, isInc: true, rarity: "Very Rare" },
+        { id: "switch_it_up", title: "I like to switch it up", goal: 30, isInc: true, rarity: "Rare" },
+        { id: "weekend_vehicle", title: "Weekend vehicle", goal: 45, isInc: true, rarity: "Rare" },
+        { id: "cultivated", title: "Highly cultivated", goal: 100, isInc: true, rarity: "Very Rare" },
+        { id: "wrap", title: "That's a wrap", goal: 40, isInc: true, rarity: "Very Rare" },
+        { id: "cotton", title: "Gone but not for cotton", goal: 40, isInc: true, rarity: "Very Rare" },
+        { id: "raisin", title: "Raisin the stakes", goal: 8, isInc: true, rarity: "Very Rare" },
+        { id: "olea", title: "Olea europaea", goal: 6, isInc: true, rarity: "Very Rare" },
+        { id: "stumped", title: "I'm stumped", goal: 25, isInc: true, rarity: "Rare" },
+        { id: "oiled", title: "Well-Oiled Machine", goal: 10, isInc: true, rarity: "Very Rare" },
+        { id: "colourful", title: "Pretty colourful", goal: 100, isInc: true, rarity: "Very Rare" },
+        { id: "game_on", title: "Game on", goal: 20, isInc: true, rarity: "Very Rare" },
+        { id: "cheese_it", title: "Cheese it", goal: 12, isInc: true, rarity: "Very Rare" },
+        { id: "beginning", title: "It's just the beginning", goal: 10, isInc: true, rarity: "Rare" },
+        { id: "plant_enough", title: "Plant get enough", rarity: "Bronze" },
+        { id: "allez_hopp", title: "Allez hopp", rarity: "Bronze" },
+        { id: "kangaroo", title: "You are not a kangaroo", rarity: "Very Rare" },
+        { id: "giddy_up", title: "Giddy-up!", rarity: "Very Rare" },
+        { id: "help_me", title: "Help me to help you", rarity: "Uncommon" },
+        { id: "sprinkle", title: "Just a sprinkle", rarity: "Uncommon" },
+        { id: "own_use", title: "Own use", rarity: "Uncommon" },
+        { id: "van_gogh", title: "van Gogh", rarity: "Rare" },
+        { id: "fell_off", title: "It just fell off", rarity: "Rare" },
+        { id: "shakespeare", title: "I read Shakespeare", rarity: "Uncommon" },
+        { id: "ultimutt", title: "Ultimutt Pawesomeness", rarity: "Rare" },
+        { id: "rock_on", title: "Rock on", rarity: "Very Rare" },
+        { id: "wood_not", title: "You wood not believe it", rarity: "Uncommon" },
+        { id: "hard_work", title: "Hard work pays off", rarity: "Rare" },
+        { id: "out_of_land", title: "All out of Land", rarity: "Rare" },
+        { id: "never_late", title: "It's never too late to farm", rarity: "Rare" }
+    ];
+
+    let currentSel = SQUAD[0];
+    let currentPlatform = 'PS5';
+    let userData = {};
+    let unsub = null;
+    let currentUser = null;
+
+    const getProfileRef = (userId) => db.collection('artifacts').doc(appId).collection('public').doc('data').collection('userTrophies').doc(userId);
+
+    // Internal Global Accessors for Divi
+    window.selectFsUser = (id) => { 
+        currentSel = SQUAD.find(u => u.id === id); 
+        renderShell(); 
+        initSync(); 
+    };
+
+    window.setFsPlatform = (p) => { 
+        currentPlatform = p; 
+        renderShell(); 
+        initSync(); 
+    };
+
+    window.updFsTrophy = async (trophyId, delta) => {
+        if (!currentUser) return;
+        const t = MANIFEST.find(m => m.id === trophyId);
+        const ref = getProfileRef(currentSel.id);
+        const platformData = userData[currentPlatform] || {};
+        const cur = platformData[trophyId] || { count: 0, isEarned: false };
+        
+        const newEntry = {};
+        if (t.isInc) {
+            const step = t.step || 1;
+            const nc = Math.max(0, Math.min(t.goal, (cur.count || 0) + (delta * step)));
+            newEntry[trophyId] = { count: nc, isEarned: nc >= t.goal };
+        } else {
+            newEntry[trophyId] = { isEarned: !cur.isEarned, count: !cur.isEarned ? 1 : 0 };
+        }
+        
+        const payload = {};
+        payload[currentPlatform] = newEntry;
+        await ref.set(payload, { merge: true });
+    };
+
+    function renderShell() {
+        const root = document.getElementById('fs22-app-container');
+        if (root) {
+            root.style.setProperty('--fs22-op-color', currentSel.theme);
+            root.style.setProperty('--fs22-hw-color', HW_COLORS[currentPlatform]);
+        }
+
+        const selector = document.getElementById('fs22-user-selector');
+        if (selector) {
+            selector.innerHTML = SQUAD.map(u => {
+                const isActive = currentSel.id === u.id;
+                return `
+                    <button onclick="window.selectFsUser('${u.id}')" class="fs22-btn flex items-center gap-3 p-1.5 pr-6 rounded-full border-2 transition-all ${isActive ? 'op-btn-active' : ''}"
+                        style="border-color: transparent; background: ${isActive ? u.theme + '33' : 'rgba(0,0,0,0.4)'}">
+                        <img src="${u.img}" class="w-10 h-10 rounded-full border-2 border-black/40 shadow-inner" />
+                        <span class="text-[11px] font-black uppercase text-white/90">${u.label}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        ['PS5', 'PS4'].forEach(p => {
+            const btn = document.getElementById(`btn-${p}`);
+            if (btn) {
+                const isActive = currentPlatform === p;
+                const hwColor = HW_COLORS[p];
+                btn.onclick = () => window.setFsPlatform(p);
+                btn.style.borderColor = isActive ? hwColor : 'rgba(255,255,255,0.08)';
+                btn.style.color = isActive ? '#fff' : 'rgba(255,255,255,0.2)';
+                btn.style.background = isActive ? hwColor + '22' : 'transparent';
+            }
+        });
+    }
+
+    function initSync() {
+        if (!currentUser) return;
+        if (unsub) unsub();
+        const ref = getProfileRef(currentSel.id);
+        unsub = ref.onSnapshot(doc => {
+            userData = doc.exists ? doc.data() : {};
+            renderAll();
+        });
+    }
+
+    function getRarityStyle(rarity) {
+        const colors = {
+            'Very Rare': '#a335ee', 'Rare': '#0070dd', 'Uncommon': '#1eff00',
+            'Bronze': '#cd7f32', 'Silver': '#c0c0c0', 'Gold': '#ffd700', 'Platinum': '#e5e4e2'
+        };
+        const color = colors[rarity] || '#ffffff';
+        return `border-color: ${color}; color: ${color};`;
+    }
+
+    function renderAll() {
+        const grid = document.getElementById('fs22-trophy-grid');
+        const pData = userData[currentPlatform] || {};
+        const earned = MANIFEST.filter(m => pData[m.id]?.isEarned).length;
+        const total = MANIFEST.length;
+        const isPlatEarned = earned >= total;
+        const platPct = Math.floor((earned / total) * 100);
+
+        const platRoot = document.getElementById('fs22-platinum-root');
+        if (platRoot) {
+            platRoot.innerHTML = `
+                <div class="fs-heavy-glass p-10 md:p-16 flex flex-col md:flex-row gap-12 items-center border-t-8 shadow-2xl transition-all" style="border-top-color: var(--fs22-op-color)">
+                    <div class="flex-1 text-center md:text-left">
+                        <span class="text-[12px] font-black uppercase tracking-[0.5em] mb-3 block text-white/20">${currentSel.label}'s Progress</span>
+                        <h2 class="text-4xl md:text-7xl font-black italic uppercase text-white leading-none drop-shadow-2xl">Mastery: ${earned}/${total}</h2>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-9xl font-black italic leading-none hw-accent-text">${platPct}%</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        const platCard = `
+            <div class="fs-card-glass p-8 relative flex flex-col justify-between mobile-1-1 shadow-2xl ${isPlatEarned ? 'fs22-earned-glow' : 'opacity-40'}">
+                <div class="text-left w-full">
+                    <span class="rarity-tag" style="${getRarityStyle('Platinum')}">Platinum</span>
+                    <h3 class="text-2xl font-black italic uppercase text-white mt-5 leading-tight">Completed all tasks</h3>
+                </div>
+                <div class="flex items-center gap-4 mt-6 w-full justify-center">
+                    <div class="flex-1 py-4 rounded-xl text-[11px] font-black border uppercase tracking-widest text-center"
+                        style="background: ${isPlatEarned ? '#e5e4e2' : 'rgba(0,0,0,0.5)'}; border-color: #e5e4e2; color: ${isPlatEarned ? '#000' : '#e5e4e2'}">
+                        ${isPlatEarned ? 'PLATINUM ACHIEVED' : 'LOCKED'}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        grid.innerHTML = platCard + MANIFEST.map(t => {
+            const d = pData[t.id] || { count: 0, isEarned: false };
+            const hwColor = HW_COLORS[currentPlatform];
+            
+            return `
+                <div class="fs-card-glass p-8 relative flex flex-col justify-between mobile-1-1 shadow-2xl ${d.isEarned ? 'fs22-earned-glow' : ''}">
+                    <div class="text-left w-full">
+                        <span class="rarity-tag" style="${getRarityStyle(t.rarity)}">${t.rarity}</span>
+                        <h3 class="text-2xl font-black italic uppercase text-white mt-5 leading-tight">${t.title}</h3>
+                    </div>
+                    <div class="flex items-center gap-4 mt-6 w-full justify-center">
+                        ${t.isInc ? `
+                            <button onclick="window.updFsTrophy('${t.id}', -1)" class="fs22-btn w-12 h-12 rounded-xl bg-black/50 text-white font-bold text-xl border border-white/10 hover:bg-white/10">-</button>
+                            <span class="text-xl font-black min-w-[70px] text-center hw-accent-text">
+                                ${d.count}<span class="text-white/30 text-xs">/${t.goal}</span>
+                            </span>
+                            <button onclick="window.updFsTrophy('${t.id}', 1)" class="fs22-btn w-12 h-12 rounded-xl bg-black/50 text-white font-bold text-xl border border-white/10 hover:bg-white/10">+</button>
+                        ` : `
+                            <button onclick="window.updFsTrophy('${t.id}', 1)" class="fs22-btn flex-1 py-4 rounded-xl text-[11px] font-black border uppercase tracking-widest transition-all" 
+                                style="background: ${d.isEarned ? hwColor : 'rgba(0,0,0,0.5)'}; border-color: ${hwColor}; color: ${d.isEarned ? '#000' : hwColor}">
+                                ${d.isEarned ? 'Harvested' : 'Collect'}
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    auth.onAuthStateChanged((user) => {
+        currentUser = user;
+        if (user) {
+            renderShell();
+            initSync();
+        }
+    });
+
+    auth.signInAnonymously();
+})();
+</script>
+</body>
+</html>
