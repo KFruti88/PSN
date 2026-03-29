@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FS25 Squad Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        #wp-custom-wrapper {
+            --fs-green: #367c2b;
+            --fs-red: #c00000;
+            --fs-blue: #004a99;
+            --fs-gold: #ffd700;
+            background: transparent !important;
+            width: 98% !important; /* Adjusted to 98% per your preferences */
+            max-width: 2560px;
+            margin: 0 auto !important;
+            color: #f1f5f9 !important;
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        #wp-custom-wrapper .fs25-main-shell {
+            width: 100%;
+            border-radius: 3.5rem;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: url('https://i.psnprofiles.com/games/c94068/L843e83.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8);
+        }
+
+        #wp-custom-wrapper .fs25-main-shell::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.96) 100%);
+            z-index: 1;
+        }
+
+        /* FS25 Header Title Styles */
+        #wp-custom-wrapper .fs25-header-title {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 900;
+            font-style: italic;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            line-height: 0.8;
+            color: var(--fs25-theme);
+            text-shadow: 0 0 30px var(--fs25-theme), 0 0 60px rgba(0,0,0,0.5);
+            transition: all 0.5s ease;
+        }
+
+        #wp-custom-wrapper .fs-heavy-glass {
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        #wp-custom-wrapper .fs-card-glass {
+            background: color-mix(in srgb, var(--fs25-plat-color) 12%, rgba(12, 14, 16, 0.96));
+            backdrop-filter: blur(12px);
+            border: 2px solid color-mix(in srgb, var(--fs25-theme) 40%, transparent);
+            border-radius: 2.2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            min-height: 320px;
+        }
+
+        #wp-custom-wrapper .fs25-btn {
+            cursor: pointer !important;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #wp-custom-wrapper .fs25-earned-glow {
+            box-shadow: 0 0 45px -10px var(--fs25-theme) !important;
+            border-color: var(--fs25-theme) !important;
+            background: color-mix(in srgb, var(--fs25-plat-color) 25%, rgba(10, 12, 14, 0.98)) !important;
+        }
+
+        #wp-custom-wrapper .rarity-tag {
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid;
+            display: inline-block;
+        }
+
+        #wp-custom-wrapper .trophy-desc {
+            font-size: 11px;
+            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.5);
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            #wp-custom-wrapper .mobile-1-1 { aspect-ratio: 1 / 1 !important; }
+            #wp-custom-wrapper .trophy-desc { -webkit-line-clamp: 3; }
+            #wp-custom-wrapper .fs25-main-shell { border-radius: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="wp-custom-wrapper">
+    <div id="fs25-app-container" class="fs25-main-shell p-6 md:p-12 mt-10">
+        
+        <header class="text-center mb-16 relative z-[1000]">
+            <h1 class="fs25-header-title">FS25</h1>
+            <div class="flex items-center justify-center gap-4 mt-2">
+                <div class="h-[2px] w-12 opacity-30" style="background: var(--fs25-theme)"></div>
+                <span class="text-[10px] font-black uppercase tracking-[0.8em] text-white/40">Squad Master Protocol</span>
+                <div class="h-[2px] w-12 opacity-30" style="background: var(--fs25-theme)"></div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 relative z-[1000]">
+            <div class="fs-heavy-glass p-8 flex flex-col items-center">
+                <span class="text-[10px] font-black uppercase tracking-[0.5em] text-white/30 mb-5">Select Operator</span>
+                <div id="fs25-user-selector" class="flex flex-wrap justify-center gap-4"></div>
+            </div>
+            <div class="fs-heavy-glass p-8 flex flex-col items-center">
+                <span class="text-[10px] font-black uppercase tracking-[0.5em] text-white/30 mb-5">Hardware Logic</span>
+                <div id="fs25-platform-selector" class="flex flex-wrap justify-center gap-3"></div>
+            </div>
+        </div>
+
+        <div id="fs25-platinum-root" class="mb-12 relative z-10"></div>
+
+        <div id="fs25-trophy-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
+            <p class="col-span-full text-center py-20 animate-pulse text-white font-black tracking-widest uppercase">Syncing FS25 Data...</p>
+        </div>
+
+        <footer class="mt-32 text-center border-t border-white/5 pt-12 text-[10px] text-white/20 uppercase tracking-[0.8em] font-black">
+            Lead Developer: Werewolf3788 • FS25 Master Protocol v9.2
+        </footer>
+    </div>
+</div>
+
+<script>
+(function() {
+    const config = {
+        apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+        authDomain: "angler-squad-tracker.firebaseapp.com",
+        projectId: "angler-squad-tracker",
+        storageBucket: "angler-squad-tracker.firebasestorage.app",
+        messagingSenderId: "325679067980",
+        appId: "1:325679067980:web:57edbad70fe12b988355e9"
+    };
+
+    const fsAppName = 'FS25_MASTER_SYNC';
+    const app = !firebase.apps.some(a => a.name === fsAppName) ? firebase.initializeApp(config, fsAppName) : firebase.app(fsAppName);
+    const db = app.firestore();
+
+    const SQUAD = [
+        { id: 'Werewolf3788', label: 'Werewolf', theme: '#ff8c00', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/1a4efdb4-023e-4802-b07c-82c09a45c4c8-profile_image-70x70.png' },
+        { id: 'Raymystyro', label: 'Ray', theme: '#c00000', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/032a0367-589f-4763-94de-4fc679a0b2df-profile_image-70x70.png' },
+        { id: 'terrdog420', label: 'TJ', theme: '#8a2be2', img: 'https://static-cdn.jtvnw.net/jtv_user_pictures/9dad426e-04cb-4fc0-a917-25982b3800ce-profile_image-70x70.png' }
+    ];
+
+    const PLATFORM_CONFIG = {
+        'PS5': { color: '#004a99', label: 'PlayStation 5' },
+        'Xbox': { color: '#107c10', label: 'Xbox Series' },
+        'PC': { color: '#ffcc00', label: 'Desktop PC' },
+        'Steam': { color: '#666666', label: 'Steam Deck' }
+    };
+
+    const PLATFORMS = Object.keys(PLATFORM_CONFIG);
+
+    const MANIFEST = [
+        { id: "road_trip", title: "Road Trip", goal: 100, isInc: true, rarity: "Rare", desc: "Drive 100km in a recreational vehicle." },
+        { id: "plant_get_enough", title: "Plant get enough", goal: 1, isInc: true, rarity: "Common", desc: "Fertilize 1 hectare of land." },
+        { id: "plot_thickens", title: "The plot thickens", goal: 100, isInc: true, rarity: "Uncommon", desc: "Fertilize 100 hectares." },
+        { id: "allez_hopp", title: "Allez hopp", rarity: "Uncommon", desc: "Jump once while riding a horse." },
+        { id: "not_a_kangaroo", title: "You are not a kangaroo", goal: 500, isInc: true, rarity: "Rare", desc: "Jump 500 times while riding a horse." },
+        { id: "giddy_up", title: "Giddy-up!", rarity: "Uncommon", desc: "Fill the riding progress bar while riding a horse." },
+        { id: "thoroughbred", title: "Thoroughbred!", goal: 50, isInc: true, rarity: "Rare", desc: "Ride a horse for a total of 50 kilometers." },
+        { id: "help_me", title: "Help me to help you", rarity: "Common", desc: "Complete one contract for a neighbor." },
+        { id: "helper_a", title: "Helper A", goal: 50, isInc: true, rarity: "Uncommon", desc: "Complete 50 contracts." },
+        { id: "beginning", title: "It's just the beginning", goal: 10, isInc: true, rarity: "Common", desc: "Play for 10 hours on a single save file." },
+        { id: "sprinkle", title: "Just a sprinkle", goal: 1, isInc: true, rarity: "Common", desc: "Sow 1 hectare of land." },
+        { id: "sow_easy", title: "It's sow easy", goal: 100, isInc: true, rarity: "Rare", desc: "Sow 100 hectares in total." },
+        { id: "own_use", title: "Own use", goal: 1, isInc: true, rarity: "Common", desc: "Harvest 1 hectare of land." },
+        { id: "large_supplier", title: "Large-scale supplier", goal: 100, isInc: true, rarity: "Uncommon", desc: "Harvest 100 hectares in total." },
+        { id: "field_trip", title: "Field Trip", goal: 150, isInc: true, rarity: "Uncommon", desc: "Drive for a total of 150 km in tractors." },
+        { id: "long_haul", title: "Long haul", goal: 50, isInc: true, rarity: "Uncommon", desc: "Drive for a total of 50 km in trucks." },
+        { id: "van_gogh", title: "van Gogh", rarity: "Uncommon", desc: "Repaint one of your vehicles at the workshop." },
+        { id: "fell_off", title: "It just fell off", rarity: "Uncommon", desc: "Repair a vehicle or piece of equipment." },
+        { id: "fix_me_up", title: "Fix me up", goal: 25, isInc: true, rarity: "Uncommon", desc: "Repair 25 vehicles or pieces of equipment." },
+        { id: "fluffiness", title: "Fluffiness", goal: 30, isInc: true, rarity: "Rare", desc: "Breed 30 sheep." },
+        { id: "piggies", title: "Three little piggies…", goal: 50, isInc: true, rarity: "Rare", desc: "Breed 50 pigs." },
+        { id: "clucky_streak", title: "Clucky Streak", goal: 100, isInc: true, rarity: "Uncommon", desc: "Breed 100 chickens." },
+        { id: "honey", title: "Bringing in the Honey", goal: 15, isInc: true, rarity: "Uncommon", desc: "Have a total of 15 beehives on your property." },
+        { id: "cowherd", title: "Cowherd", goal: 20, isInc: true, rarity: "Rare", desc: "Breed 20 cows." },
+        { id: "switch_it_up", title: "I like to switch it up", goal: 15, isInc: true, rarity: "Uncommon", desc: "Own 15 drivable vehicles simultaneously." },
+        { id: "weekend_vehicle", title: "Weekend vehicle", goal: 30, isInc: true, rarity: "Uncommon", desc: "Own 30 vehicles or equipment pieces." },
+        { id: "vehicle_fleet", title: "Vehicle fleet", goal: 60, isInc: true, rarity: "Uncommon", desc: "Own 60 vehicles." },
+        { id: "shakespeare", title: "I read Shakespeare", goal: 1, isInc: true, rarity: "Common", desc: "Cultivate 1 hectare of land." },
+        { id: "cultivated", title: "Highly cultivated", goal: 100, isInc: true, rarity: "Rare", desc: "Cultivate 100 hectares of land in total." },
+        { id: "ultimutt", title: "Ultimutt Pawesomeness", rarity: "Uncommon", desc: "Pet your dog for the first time." },
+        { id: "wrap", title: "That's a wrap", goal: 40, isInc: true, rarity: "Uncommon", desc: "Make and wrap 40 bales of grass." },
+        { id: "cotton", title: "Gone but not for cotton", goal: 40, isInc: true, rarity: "Rare", desc: "Sell 40 cotton bales." },
+        { id: "raisin", title: "Raisin the stakes", goal: 80000, isInc: true, rarity: "Rare", desc: "Sell 80,000 liters of grapes." },
+        { id: "olea", title: "Olea europaea", goal: 60000, isInc: true, rarity: "Rare", desc: "Sell a total of 60,000 liters of olives." },
+        { id: "original_grain", title: "Original grain", goal: 500000, isInc: true, rarity: "Rare", desc: "Sell 500,000 liters of sorghum." },
+        { id: "rock_on", title: "Rock on", rarity: "Uncommon", desc: "Sell stones at the Debris Crusher." },
+        { id: "stumped", title: "I'm stumped", rarity: "Common", desc: "Cut down one tree." },
+        { id: "wood_not", title: "You wood not believe it", goal: 25, isInc: true, rarity: "Uncommon", desc: "Cut down 25 trees in total." },
+        { id: "hard_work", title: "Hard work pays off", goal: 10000000, isInc: true, rarity: "Uncommon", desc: "Reach €10,000,000." },
+        { id: "out_of_land", title: "All out of Land", goal: 20, isInc: true, rarity: "Uncommon", desc: "Build 20 buildings or signposts on your land." },
+        { id: "well_oiled", title: "Well-Oiled Machine", goal: 10, isInc: true, rarity: "Uncommon", desc: "Build a total of 10 factories on your property." },
+        { id: "rusty", title: "Rusty", goal: 25, isInc: true, rarity: "Rare", desc: "Find all 25 pieces of the Grain Elevator Museum." },
+        { id: "over_9000", title: "Over 9000!", rarity: "Rare", desc: "Find all farm balls on the Hutan Pantai map." },
+        { id: "tutti_frutti", title: "Tutti-Frutti", goal: 50, isInc: true, rarity: "Rare", desc: "Find all 50 golden apples on Zielonka map." },
+        { id: "never_late", title: "It's never too late to farm", goal: 100, isInc: true, rarity: "Uncommon", desc: "Load a save file you haven't played for 1 year." }
+    ];
+
+    function getRarityStyle(rarity) {
+        const colors = { 'Rare': '#a335ee', 'Uncommon': '#1eff00', 'Common': '#ffffff' };
+        const color = colors[rarity] || '#ffffff';
+        return `border-color: ${color}44; color: ${color};`;
+    }
+
+    let currentSel = SQUAD[0];
+    let currentPlatform = 'PS5';
+    let userData = {};
+    let unsub = null;
+
+    window.selectFsUser = (id) => { currentSel = SQUAD.find(u => u.id === id); renderShell(); initSync(); };
+    window.setFsPlatform = (p) => { currentPlatform = p; renderShell(); initSync(); };
+
+    window.updFsTrophy = async (trophyId, delta) => {
+        const t = MANIFEST.find(m => m.id === trophyId);
+        const ref = db.collection('artifacts').doc('fs25-master').collection('public').doc('data').collection('userTrophies').doc(currentSel.id);
+        const platformData = userData[currentPlatform] || {};
+        const cur = platformData[trophyId] || { count: 0, isEarned: false };
+        
+        if (t.goal && t.goal > 1) {
+            let nc = (cur.count || 0);
+            
+            if (t.id === 'hard_work') nc += (delta * 100000); 
+            else if (t.id === 'never_late') nc += delta;
+            else if (['raisin', 'olea', 'original_grain'].includes(t.id)) nc += (delta * 1000);
+            else nc += delta;
+            
+            nc = Math.max(0, Math.min(t.goal, nc));
+            await ref.set({ [currentPlatform]: { [trophyId]: { count: nc, isEarned: nc >= t.goal } } }, { merge: true });
+        } else {
+            const newState = !cur.isEarned;
+            await ref.set({ [currentPlatform]: { [trophyId]: { isEarned: newState, count: newState ? 1 : 0 } } }, { merge: true });
+        }
+    };
+
+    function renderShell() {
+        const root = document.getElementById('fs25-app-container');
+        root.style.setProperty('--fs25-theme', currentSel.theme);
+        root.style.setProperty('--fs25-plat-color', PLATFORM_CONFIG[currentPlatform].color);
+
+        document.getElementById('fs25-user-selector').innerHTML = SQUAD.map(u => `
+            <button onclick="selectFsUser('${u.id}')" class="fs25-btn flex items-center gap-3 p-1.5 pr-6 rounded-full border-2 transition-all shadow-xl"
+                style="border-color: ${currentSel.id === u.id ? u.theme : 'transparent'}; background: ${currentSel.id === u.id ? u.theme : 'rgba(0,0,0,0.4)'}">
+                <img src="${u.img}" class="w-10 h-10 rounded-full border-2 border-black/40 shadow-inner" />
+                <span class="text-[11px] font-black uppercase text-white/90">${u.label}</span>
+            </button>
+        `).join('');
+
+        document.getElementById('fs25-platform-selector').innerHTML = PLATFORMS.map(p => `
+            <button onclick="setFsPlatform('${p}')" class="fs25-btn px-6 py-2.5 rounded-xl border-2 font-black text-[10px] uppercase tracking-widest transition-all"
+                style="border-color: ${currentPlatform === p ? '#fff' : 'rgba(255,255,255,0.08)'};
+                       color: ${currentPlatform === p ? '#000' : 'rgba(255,255,255,0.4)'};
+                       background: ${currentPlatform === p ? PLATFORM_CONFIG[p].color : 'rgba(0,0,0,0.5)'};
+                       box-shadow: ${currentPlatform === p ? '0 0 20px ' + PLATFORM_CONFIG[p].color + '66' : 'none'}">
+                ${p}
+            </button>
+        `).join('');
+    }
+
+    function initSync() {
+        if (unsub) unsub();
+        const ref = db.collection('artifacts').doc('fs25-master').collection('public').doc('data').collection('userTrophies').doc(currentSel.id);
+        unsub = ref.onSnapshot(doc => {
+            userData = doc.exists ? doc.data() : {};
+            renderAll();
+        }, () => renderAll());
+    }
+
+    function renderAll() {
+        const grid = document.getElementById('fs25-trophy-grid');
+        const pData = userData[currentPlatform] || {};
+        const earned = MANIFEST.filter(m => pData[m.id]?.isEarned).length;
+        const total = MANIFEST.length;
+        const platPct = ((earned / total) * 100).toFixed(2);
+        const pColor = PLATFORM_CONFIG[currentPlatform].color;
+
+        document.getElementById('fs25-platinum-root').innerHTML = `
+            <div class="fs-heavy-glass p-10 md:p-16 flex flex-col md:flex-row gap-12 items-center border-t-8 shadow-2xl" 
+                 style="border-top-color: ${currentSel.theme}; background: linear-gradient(135deg, ${pColor}11 0%, rgba(0,0,0,0.92) 100%);">
+                <div class="flex-1 text-left">
+                    <span class="text-[12px] font-black uppercase tracking-[0.5em] mb-3 block text-white/20">Farming is in our nature</span>
+                    <h2 class="text-4xl md:text-5xl font-black italic uppercase text-white leading-tight drop-shadow-lg">Plant today - harvest tomorrow.</h2>
+                    <div class="mt-6 flex flex-wrap gap-4 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <span class="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full border border-white/5">Hardware: <span style="color: ${pColor}">${currentPlatform}</span></span>
+                        <span class="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full border border-white/5">Operator: <span style="color: ${currentSel.theme}">${currentSel.label}</span></span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-8xl md:text-9xl font-black italic leading-none" style="color: ${currentSel.theme}">${earned === total ? '100%' : platPct + '%'}</span>
+                    <div class="text-[10px] font-black uppercase tracking-widest text-white/40 mt-2">Squad Mastery</div>
+                </div>
+            </div>
+        `;
+
+        grid.innerHTML = MANIFEST.map(t => {
+            const d = pData[t.id] || { count: 0, isEarned: false };
+            const isInc = t.goal && t.goal > 1;
+            const progress = isInc ? Math.floor(((d.count || 0) / t.goal) * 100) : (d.isEarned ? 100 : 0);
+            
+            return `
+                <div class="fs-card-glass p-8 relative shadow-2xl ${d.isEarned ? 'fs25-earned-glow' : ''}">
+                    <div class="text-left mb-auto">
+                        <span class="rarity-tag" style="${getRarityStyle(t.rarity)}">${t.rarity}</span>
+                        <h3 class="text-xl font-black italic uppercase text-white mt-4 leading-tight">${t.title}</h3>
+                        <p class="trophy-desc mt-3">${t.desc}</p>
+                    </div>
+
+                    <div class="mt-8">
+                        ${d.isEarned ? `
+                            <div class="flex items-center justify-center py-6 bg-white/5 rounded-2xl border border-white/10">
+                                <span class="text-[11px] font-black uppercase tracking-[0.4em] text-white/40">Mastered</span>
+                            </div>
+                        ` : `
+                            ${isInc ? `
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-[10px] font-black uppercase text-white/40">Progress</span>
+                                    <span class="text-xs font-black text-white">${progress}%<span class="text-white/20"> / ${t.goal.toLocaleString()}</span></span>
+                                </div>
+                                <div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden mb-5">
+                                    <div class="h-full transition-all duration-1000" style="width: ${progress}%; background: ${currentSel.theme}"></div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="updFsTrophy('${t.id}', -1)" class="fs25-btn flex-1 py-3 rounded-xl bg-black/60 text-white font-bold border border-white/5 hover:bg-white/10">-</button>
+                                    <button onclick="updFsTrophy('${t.id}', 1)" class="fs25-btn flex-1 py-3 rounded-xl bg-black/60 text-white font-bold border border-white/5 hover:bg-white/10">+</button>
+                                </div>
+                            ` : `
+                                <button onclick="updFsTrophy('${t.id}', 1)" class="fs25-btn w-full py-5 rounded-2xl text-[11px] font-black border uppercase tracking-widest transition-all shadow-lg" 
+                                    style="background: rgba(0,0,0,0.6); border-color: ${currentSel.theme}; color: ${currentSel.theme}">
+                                    Collect
+                                </button>
+                            `}
+                        `}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    const check = setInterval(async () => {
+        if (document.getElementById('fs25-app-container')) {
+            clearInterval(check);
+            try {
+                await app.auth().signInAnonymously();
+                renderShell();
+                initSync();
+            } catch(e) { console.error("Squad Auth Failure", e); }
+        }
+    }, 100);
+})();
+</script>
+
+</body>
+</html>
