@@ -1,168 +1,190 @@
 <div id="wp-custom-wrapper">
-  <div class="fs25-financial-command">
-    <!-- Main Uplink Header -->
-    <header class="finance-vitals">
-      <div class="vital-group">
-        <span class="label">FINANCIAL UPLINK [FS25]</span>
-        <h1 class="glow-blue">MARKET & ASSET AUDIT</h1>
+  <div class="fs25-market-terminal">
+    
+    <!-- TERMINAL HEADER -->
+    <header class="terminal-header">
+      <div class="branding">
+        <span class="label">FINANCIAL INTELLIGENCE [FS25]</span>
+        <h1 class="glow-blue">MARKET COMMAND & AUDIT</h1>
       </div>
-      <div class="vital-group right-align">
-        <span class="label">SIGNAL STATUS</span>
-        <div id="sync-status" class="value-sm neon-green">● LINK ENCRYPTED</div>
+      <div class="terminal-meta">
+        <span class="label">UPLINK STATUS</span>
+        <div id="sync-status" class="neon-green">● SECURE CONNECTION</div>
       </div>
     </header>
 
-    <!-- Dynamic Container for Farm Cards -->
-    <div id="dynamic-finance-grid" class="finance-grid">
-      <div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">
-        SCANNING FINANCIAL REGISTRY...
+    <!-- TOP TICKER BAR (Market Summary) -->
+    <div class="market-ticker">
+      <div class="ticker-wrap" id="top-ticker">
+        <span class="ticker-item">INITIALIZING COMMODITY FEED...</span>
       </div>
     </div>
 
-    <!-- Global Footer -->
-    <footer class="finance-footer">
-      <div class="footer-item">
-        <span class="label">CENTRAL TIME SYNC</span>
-        <span id="finance-clock" class="mono">00:00:00</span>
+    <!-- MAIN TERMINAL GRID -->
+    <div class="terminal-layout">
+      
+      <!-- LEFT: COMMODITY EXCHANGE -->
+      <section class="market-ledger">
+        <div class="section-header">
+          <span class="label">LIVE EXCHANGE</span>
+          <h3>CROP PRICE LEDGER</h3>
+        </div>
+        <div class="table-scroll">
+          <table class="terminal-table">
+            <thead>
+              <tr>
+                <th>COMMODITY</th>
+                <th>LIVE PRICE</th>
+                <th>YEARLY PEAK</th>
+                <th>MOMENTUM</th>
+              </tr>
+            </thead>
+            <tbody id="market-tbody">
+              <!-- Auto-populated -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- RIGHT: FARM PORTFOLIOS -->
+      <aside class="farm-portfolios">
+        <div class="section-header">
+          <span class="label">FARM ASSETS</span>
+          <h3>LIQUIDITY AUDIT</h3>
+        </div>
+        <div id="farm-card-container" class="portfolio-list">
+          <!-- Auto-populated -->
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- TERMINAL FOOTER -->
+    <footer class="terminal-footer">
+      <div class="footer-group">
+        <span class="label">TIME SYNC (CENTRAL)</span>
+        <span id="terminal-clock" class="mono">00:00:00</span>
       </div>
-      <div class="footer-item right-align">
-        <span class="label">DATA REFRESH</span>
-        <span class="mono">LIVE / 30S</span>
+      <div class="footer-group right-align">
+        <span class="label">DATA INTEGRITY</span>
+        <span class="mono neon-blue">VERIFIED BY 618 CREW</span>
       </div>
     </footer>
   </div>
 
   <style>
     #wp-custom-wrapper {
-      --bg-deep: rgba(10, 12, 16, 0.98);
+      --bg-terminal: #0a0b0d;
+      --bg-card: rgba(15, 17, 22, 0.95);
       --neon-blue: #00f2ff;
+      --neon-green: #76b041;
       --neon-orange: #ff5f00;
       --neon-red: #ff3131;
-      --neon-green: #76b041;
-      --neon-purple: #bc13fe;
-      --neon-yellow: #f4b400;
-      --border: rgba(255, 255, 255, 0.1);
-      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --border: rgba(255, 255, 255, 0.08);
+      --font: 'Inter', -apple-system, system-ui, sans-serif;
     }
 
-    #wp-custom-wrapper .fs25-financial-command {
+    #wp-custom-wrapper .fs25-market-terminal {
       width: 95%;
-      margin: 50px auto; /* Divi Section Height Setting: 50 */
+      margin: 50px auto; /* Section Height: 50 */
       max-width: 1400px;
       font-family: var(--font);
       color: #fff;
     }
 
-    /* Header Section */
-    #wp-custom-wrapper .finance-vitals {
+    /* Terminal Header: Row Height 30 / Title 30 */
+    #wp-custom-wrapper .terminal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--bg-deep);
-      padding: 30px 25px; /* Divi Row Height Setting: 30 */
+      background: var(--bg-card);
+      padding: 30px 25px; /* Row Height: 30 */
       border: 1px solid var(--border);
       border-radius: 12px 12px 0 0;
       border-left: 5px solid var(--neon-blue);
-      margin-bottom: 30px; /* Divi Row Height Setting: 30 */
     }
 
-    /* Labels: Body Size 14px */
     #wp-custom-wrapper .label { 
-      display: block; 
-      font-size: 14px; 
-      font-weight: 800; 
-      color: #718096; 
-      letter-spacing: 2px; 
-      text-transform: uppercase;
-      margin-bottom: 5px;
+      display: block; font-size: 14px; font-weight: 800; color: #718096; 
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px;
     }
 
-    /* Titles/Values: Header Size 30px */
-    #wp-custom-wrapper h1, #wp-custom-wrapper .balance-val { 
-      font-size: 30px; 
-      font-weight: 900; 
-      margin: 0; 
-      text-transform: uppercase;
+    #wp-custom-wrapper h1 { 
+      font-size: 30px; font-weight: 900; margin: 0; text-transform: uppercase;
     }
 
-    /* Grid Layout */
-    #wp-custom-wrapper .finance-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 30px; /* Divi Row Height Setting: 30 */
-    }
-
-    /* Individual Farm Card */
-    #wp-custom-wrapper .farm-finance-card {
-      background: var(--bg-deep);
+    /* Market Ticker */
+    #wp-custom-wrapper .market-ticker {
+      background: #000;
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-top: none;
+      padding: 10px 20px;
       overflow: hidden;
-      animation: fadeInUp 0.5s ease forwards;
+      white-space: nowrap;
+    }
+    #wp-custom-wrapper .ticker-item {
+      display: inline-block;
+      margin-right: 40px;
+      font-size: 12px;
+      font-weight: 900;
+      font-family: monospace;
+      color: var(--neon-blue);
     }
 
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-    #wp-custom-wrapper .card-header {
-      padding: 20px 25px;
-      background: rgba(255,255,255,0.03);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    #wp-custom-wrapper .card-header h3 { margin: 0; font-size: 16px; font-weight: 900; }
-
-    #wp-custom-wrapper .balance-container {
-      padding: 25px;
-      text-align: center;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
-    }
-
-    /* Data Ledger Rows */
-    #wp-custom-wrapper .ledger-section { padding: 15px 25px; border-top: 1px solid rgba(255,255,255,0.05); }
-    #wp-custom-wrapper .ledger-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      font-size: 14px; /* Body Size 14px */
-      font-weight: 600;
-    }
-
-    #wp-custom-wrapper .ledger-label { color: #718096; text-transform: uppercase; font-size: 11px; font-weight: 800; }
-    #wp-custom-wrapper .neg { color: var(--neon-red); }
-    #wp-custom-wrapper .pos { color: var(--neon-green); }
-
-    /* Farm Borders */
-    #wp-custom-wrapper .f-1 { border-top: 4px solid var(--neon-orange); }
-    #wp-custom-wrapper .f-2 { border-top: 4px solid var(--neon-red); }
-    #wp-custom-wrapper .f-3 { border-top: 4px solid var(--neon-blue); }
-    #wp-custom-wrapper .f-4 { border-top: 4px solid var(--neon-green); }
-    #wp-custom-wrapper .f-5 { border-top: 4px solid var(--neon-purple); }
-    #wp-custom-wrapper .f-6 { border-top: 4px solid var(--neon-yellow); }
-
-    /* Glows */
-    #wp-custom-wrapper .glow-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); }
-    #wp-custom-wrapper .neon-green { color: var(--neon-green); }
-
-    /* Footer Settings */
-    #wp-custom-wrapper .finance-footer {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 30px;
-      padding: 20px 25px;
-      background: var(--bg-deep);
+    /* Layout Grid */
+    #wp-custom-wrapper .terminal-layout {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2px;
+      background: var(--border);
       border: 1px solid var(--border);
+    }
+
+    #wp-custom-wrapper .market-ledger, #wp-custom-wrapper .farm-portfolios {
+      background: var(--bg-terminal);
+      padding: 25px;
+    }
+
+    #wp-custom-wrapper .section-header { margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    #wp-custom-wrapper h3 { font-size: 18px; font-weight: 900; margin: 0; color: #fff; }
+
+    /* Tables */
+    #wp-custom-wrapper .terminal-table { width: 100%; border-collapse: collapse; }
+    #wp-custom-wrapper th { text-align: left; font-size: 11px; color: #718096; padding: 10px; border-bottom: 1px solid var(--border); }
+    #wp-custom-wrapper td { padding: 15px 10px; font-size: 14px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+    /* Portfolio Cards */
+    #wp-custom-wrapper .portfolio-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-left: 4px solid var(--neon-orange);
+    }
+    #wp-custom-wrapper .balance-lg { font-size: 24px; font-weight: 900; color: var(--neon-blue); margin: 5px 0; }
+
+    /* Footer */
+    #wp-custom-wrapper .terminal-footer {
+      display: flex;
+      justify-content: space-between;
+      background: var(--bg-card);
+      padding: 20px 25px;
+      border: 1px solid var(--border);
+      border-top: none;
       border-radius: 0 0 12px 12px;
     }
 
-    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
+    /* Utility */
+    #wp-custom-wrapper .glow-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); }
+    #wp-custom-wrapper .neon-green { color: var(--neon-green); }
+    #wp-custom-wrapper .mono { font-family: monospace; font-size: 14px; }
     #wp-custom-wrapper .right-align { text-align: right; }
 
-    @media (max-width: 600px) {
-      #wp-custom-wrapper h1 { font-size: 24px; }
-      #wp-custom-wrapper .finance-grid { grid-template-columns: 1fr; }
+    @media (max-width: 900px) {
+      #wp-custom-wrapper .terminal-layout { grid-template-columns: 1fr; }
+      #wp-custom-wrapper .terminal-header { flex-direction: column; text-align: center; gap: 15px; }
+      #wp-custom-wrapper .right-align { text-align: center; }
     }
   </style>
 
@@ -171,125 +193,96 @@
 
   <script>
     (function() {
-      const config = { 
-        apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
-        databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
-      };
+      const config = { databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" };
+      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25MarketTerminal'); }
+      const db = firebase.app('fs25MarketTerminal').database();
 
-      const appName = 'fs25FinanceCommand';
-      let app;
-      try {
-        app = firebase.apps.find(a => a.name === appName) || firebase.initializeApp(config, appName);
-      } catch (e) {
-        app = firebase.app(appName);
+      // SMART HANDSHAKE: Searches for data regardless of label style
+      function find(o, ...keys) { 
+        if (!o) return null;
+        for (let k of keys) { if (o[k] !== undefined) return o[k]; } 
+        return null; 
       }
-      
-      const db = app.database();
 
-      const farmBrands = {
-        "1": { name: "WEREWOLF ENTERPRISE", icon: "🐺", color: "1", accent: "#ff5f00" },
-        "2": { name: "RAYMYSTRO HOLDINGS", icon: "⚡", color: "2", accent: "#ff3131" },
-        "3": { name: "COBALT CAPITAL", icon: "💎", color: "3", accent: "#00f2ff" },
-        "4": { name: "EMERALD ASSETS", icon: "🌿", color: "4", accent: "#76b041" },
-        "5": { name: "PURPLE PEAK LLC", icon: "🏔️", color: "5", accent: "#bc13fe" },
-        "6": { name: "GOLDEN VALLEY INC", icon: "☀️", color: "6", accent: "#f4b400" }
+      const farmDetails = {
+        "1": { name: "WEREWOLF OPS", color: "#ff5f00" },
+        "2": { name: "RAYMYSTRO OPS", color: "#ff3131" }
       };
-
-      function fmt(num) {
-        return '$' + Math.floor(num || 0).toLocaleString();
-      }
 
       db.ref('fs25_live').on('value', (snap) => {
         const data = snap.val();
-        const container = document.getElementById('dynamic-finance-grid');
         if (!data) return;
 
-        // Grouping Data - We check for farm data in the main payload
-        // This logic assumes your master script sends a 'farms' object or similar
-        // If not, it falls back to parsing farm IDs from fleet and productions
-        const farmsDetected = {};
+        // 1. UPDATE MARKET TICKER & TABLE
+        const market = find(data, "Market Prices", "market_prices", "market") || {};
+        const tbody = document.getElementById('market-tbody');
+        const ticker = document.getElementById('top-ticker');
         
-        // 1. Check direct farm data (if exists)
-        if (data.farms) {
-          Object.keys(data.farms).forEach(fid => farmsDetected[fid] = data.farms[fid]);
-        } 
-        
-        // 2. Fallback: Identify farms from activity
-        if (data.fleet?.vehicles) {
-          data.fleet.vehicles.forEach(v => { if(v.farmId) farmsDetected[v.farmId] = farmsDetected[v.farmId] || { money: 0 }; });
-        }
+        tbody.innerHTML = '';
+        ticker.innerHTML = '';
 
-        // Special handling for Farm 1 money which is usually in data.server.money
-        if (data.server?.money && !farmsDetected["1"]) {
-          farmsDetected["1"] = { money: data.server.money };
-        } else if (data.server?.money) {
-          farmsDetected["1"].money = data.server.money;
-        }
-
-        container.innerHTML = '';
-
-        Object.keys(farmsDetected).sort().forEach(fid => {
-          if (parseInt(fid) > 6 || fid == "0") return;
-
-          const farm = farmsDetected[fid];
-          const brand = farmBrands[fid] || { name: `FARM ACCOUNT ${fid}`, icon: "📂", color: fid, accent: "#fff" };
-
-          // Calculated Mock Data (To be replaced by real economy.xml values if bridge provides them)
-          const fleetCost = farm.fleetSpent || 0;
-          const attachCost = farm.attachSpent || 0;
-          const landCost = farm.landSpent || 0;
-          const revenue = farm.revenue || 0;
-
-          const card = document.createElement('div');
-          card.className = `farm-finance-card f-${brand.color}`;
-          card.innerHTML = `
-            <div class="card-header">
-              <h3>${brand.icon} ${brand.name}</h3>
-              <span class="label" style="margin:0; color:${brand.accent}">FARM ID: 0${fid}</span>
-            </div>
+        Object.keys(market).forEach(crop => {
+            const item = market[crop];
+            const rawPrice = find(item, "Current Price", "current_price", "Sell_Price") || "$0";
+            const rawPeak = find(item, "Best Price This Year", "yearly_peak") || "$0";
             
-            <div class="balance-container">
-              <span class="label">CURRENT LIQUIDITY</span>
-              <div class="balance-val" style="color:${brand.accent}">${fmt(farm.money)}</div>
-            </div>
+            // Clean pricing for math
+            const priceVal = parseInt(String(rawPrice).replace(/[^0-9]/g, '')) || 0;
+            const peakVal = parseInt(String(rawPeak).replace(/[^0-9]/g, '')) || 1;
+            const isHot = priceVal >= (peakVal * 0.92);
 
-            <div class="ledger-section">
-              <span class="label">CAPITAL EXPENDITURES</span>
-              <div class="ledger-row"><span class="ledger-label">Motorized Fleet</span><span class="neg">-${fmt(fleetCost)}</span></div>
-              <div class="ledger-row"><span class="ledger-label">Attachments</span><span class="neg">-${fmt(attachCost)}</span></div>
-              <div class="ledger-row"><span class="ledger-label">Land Acquisitions</span><span class="neg">-${fmt(landCost)}</span></div>
-            </div>
+            // Add to Table
+            tbody.innerHTML += `
+              <tr>
+                <td style="color:var(--neon-blue); font-weight:900;">${crop.replace(/_/g, ' ')}</td>
+                <td class="mono">${rawPrice}</td>
+                <td class="mono" style="color:#718096">${rawPeak}</td>
+                <td>
+                  <span style="color:${isHot ? 'var(--neon-green)' : 'var(--neon-orange)'}; font-size:11px; font-weight:900;">
+                    ${isHot ? '▲ PEAK MARKET' : '▼ HOLD ASSET'}
+                  </span>
+                </td>
+              </tr>
+            `;
 
-            <div class="ledger-section">
-              <span class="label">OPERATIONAL REVENUE</span>
-              <div class="ledger-row"><span class="ledger-label">Crop Sales</span><span class="pos">+${fmt(revenue)}</span></div>
-              <div class="ledger-row"><span class="ledger-label">Asset Liquidation</span><span class="pos">+$0</span></div>
-            </div>
-
-            <div class="ledger-section" style="background:rgba(0,0,0,0.2)">
-              <div class="ledger-row">
-                <span class="ledger-label" style="color:#fff">NET PROFIT (LTD)</span>
-                <span class="${(revenue - (fleetCost + landCost)) >= 0 ? 'pos' : 'neg'}" style="font-weight:900">
-                  ${fmt(revenue - (fleetCost + landCost + attachCost))}
-                </span>
-              </div>
-            </div>
-          `;
-          container.appendChild(card);
+            // Add to Ticker
+            ticker.innerHTML += `<span class="ticker-item">${crop}: ${rawPrice}</span>`;
         });
 
-        if (container.innerHTML === '') {
-          container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size:14px;">AWAITING FINANCIAL TELEMETRY...</div>';
+        // 2. UPDATE FARM PORTFOLIOS
+        const farmContainer = document.getElementById('farm-card-container');
+        farmContainer.innerHTML = '';
+
+        const farms = find(data, "Farms", "farms", "Farm Accounts") || {};
+        const overview = find(data, "Server Overview", "server") || {};
+
+        // Force Farm 1 if it's missing but server money exists
+        const farmsList = {...farms};
+        if (!farmsList["1"] && find(overview, "Money", "money")) {
+            farmsList["1"] = { "Money": find(overview, "Money", "money") };
         }
 
-        // Update Clock
-        document.getElementById('finance-clock').innerText = new Date().toLocaleTimeString('en-US', { 
-          timeZone: 'America/Chicago', hour12: false 
+        Object.keys(farmsList).sort().forEach(fid => {
+            if (fid === "0" || parseInt(fid) > 6) return;
+            const farm = farmsList[fid];
+            const meta = farmDetails[fid] || { name: `FARM ACCOUNT ${fid}`, color: "#bc13fe" };
+            const balance = find(farm, "Money", "money", "balance") || 0;
+
+            farmContainer.innerHTML += `
+              <div class="portfolio-card" style="border-left-color:${meta.color}">
+                <span class="label" style="color:${meta.color}">${meta.name}</span>
+                <div class="balance-lg">$${parseInt(balance).toLocaleString()}</div>
+                <div style="font-size:10px; color:#718096; font-weight:900;">LIQUID ASSETS VERIFIED</div>
+              </div>
+            `;
         });
 
-      }, (err) => {
-        console.error("Firebase Finance Error:", err);
-      });
+        // 3. UI EXTRAS
+        document.getElementById('terminal-clock').innerText = new Date().toLocaleTimeString('en-US', { 
+            timeZone: 'America/Chicago', hour12: false 
+        });
+
+      }, (err) => console.error("Market Feed Error:", err));
     })();
   </script>
 </div>
