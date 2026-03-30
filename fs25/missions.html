@@ -1,175 +1,193 @@
 <div id="wp-custom-wrapper">
-  <div class="fs25-mission-control">
-    <!-- Header Section -->
-    <header class="mission-header">
+  <div class="fs25-contract-terminal">
+    
+    <!-- TERMINAL HEADER -->
+    <header class="terminal-header">
       <div class="branding">
-        <span class="label">CONTRACT UPLINK [FS25]</span>
+        <span class="label">SATELLITE COMMAND [FS25]</span>
         <h1 class="glow-blue">MISSION CONTROL CENTER</h1>
       </div>
-      <div class="sync-info">
-        <span class="label">SATELLITE SYNC</span>
-        <span id="contract-clock" class="mono">00:00:00</span>
+      <div class="terminal-meta">
+        <span class="label">UPLINK STATUS</span>
+        <div id="sync-status" class="neon-green">● SECURE CONNECTION</div>
       </div>
     </header>
 
-    <!-- ACTIVE MISSIONS (TOP) -->
-    <section class="mission-group">
-      <div class="group-title">
-        <span class="label">OPERATIONAL STATUS</span>
-        <h3>ACTIVE CONTRACTS</h3>
+    <!-- INTEL SUMMARY BAR (Fills the 'blank' space) -->
+    <div class="intel-summary">
+      <div class="intel-box">
+        <span class="label">ACTIVE OPS</span>
+        <span id="stat-active-count" class="intel-val neon-orange">0</span>
       </div>
-      <div id="active-missions-container" class="mission-grid">
-        <!-- Active cards will mount here -->
-        <div class="loading-state">SCANNING FOR ACTIVE FIELD OPS...</div>
+      <div class="intel-box">
+        <span class="label">MARKET OPPORTUNITIES</span>
+        <span id="stat-avail-count" class="intel-val neon-blue">0</span>
       </div>
-    </section>
+      <div class="intel-box">
+        <span class="label">POTENTIAL REVENUE</span>
+        <span id="stat-total-value" class="intel-val neon-green">$0</span>
+      </div>
+      <div class="intel-box last">
+        <span class="label">SYSTEM CLOCK</span>
+        <span id="contract-clock" class="intel-val mono">00:00:00</span>
+      </div>
+    </div>
 
-    <!-- AVAILABLE MISSIONS (BOTTOM) -->
-    <section class="mission-group available-section">
-      <div class="group-title">
-        <span class="label">OPPORTUNITIES</span>
-        <h3>AVAILABLE CONTRACTS</h3>
-      </div>
-      <div id="available-missions-container" class="mission-grid">
-        <!-- Available cards will mount here -->
-        <div class="loading-state">BROWSING MARKET DEALS...</div>
-      </div>
-    </section>
+    <!-- MISSION VIEWPORT -->
+    <div class="mission-viewport">
+      
+      <!-- ACTIVE MISSIONS -->
+      <section class="mission-column">
+        <div class="column-header">
+          <span class="label">OPERATIONAL STATUS</span>
+          <h3>IN-PROGRESS CONTRACTS</h3>
+        </div>
+        <div id="active-missions-container" class="mission-grid">
+          <div class="loading-state">SCANNING FOR ACTIVE FIELD OPS...</div>
+        </div>
+      </section>
 
-    <!-- Footer Stats -->
-    <footer class="mission-footer">
-      <div class="stat-pill">
-        <span class="label">TOTAL VALUE</span>
-        <span id="total-contract-value" class="glow-blue">$0</span>
+      <!-- AVAILABLE MISSIONS -->
+      <section class="mission-column">
+        <div class="column-header">
+          <span class="label">MARKET DATA</span>
+          <h3>AVAILABLE CONTRACTS</h3>
+        </div>
+        <div id="available-missions-container" class="mission-grid">
+          <div class="loading-state">BROWSING OPEN OPPORTUNITIES...</div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- TERMINAL FOOTER -->
+    <footer class="terminal-footer">
+      <div class="footer-group">
+        <span class="label">CENTRAL TIME SYNC</span>
+        <span id="footer-sync-time" class="mono">--:--:--</span>
       </div>
-      <div class="stat-pill right">
-        <span class="label">LINK STATUS</span>
-        <span style="color:var(--neon-green)">● SECURE</span>
+      <div class="footer-group right-align">
+        <span class="label">DATA INTEGRITY</span>
+        <span class="mono neon-blue">VERIFIED BY 618 CREW</span>
       </div>
     </footer>
   </div>
 
   <style>
     #wp-custom-wrapper {
-      --bg-ops: rgba(10, 12, 16, 0.98);
+      --bg-deep: #0a0b0d;
+      --bg-card: rgba(15, 17, 22, 0.95);
       --neon-blue: #00f2ff;
+      --neon-green: #76b041;
       --neon-orange: #ff5f00;
       --neon-red: #ff3131;
-      --neon-green: #76b041;
-      --neon-purple: #bc13fe;
-      --neon-yellow: #f4b400;
-      --border-ops: rgba(255, 255, 255, 0.1);
-      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --border: rgba(255, 255, 255, 0.08);
+      --font: 'Inter', -apple-system, system-ui, sans-serif;
     }
 
-    #wp-custom-wrapper .fs25-mission-control {
+    #wp-custom-wrapper .fs25-contract-terminal {
       width: 95%;
-      margin: 50px auto; /* Divi Section Height Setting: 50 */
-      max-width: 1200px;
+      margin: 50px auto; /* Section Height: 50 */
+      max-width: 1400px;
       font-family: var(--font);
       color: #fff;
     }
 
-    /* Header: Divi Row Height 30px / Header 30px */
-    #wp-custom-wrapper .mission-header {
+    /* Terminal Header: Row Height 30 / Title 30 */
+    #wp-custom-wrapper .terminal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--bg-ops);
-      padding: 30px 25px; /* Divi Row Height: 30 */
-      border: 1px solid var(--border-ops);
-      border-radius: 16px;
+      background: var(--bg-card);
+      padding: 30px 25px; /* Row Height: 30 */
+      border: 1px solid var(--border);
+      border-radius: 12px 12px 0 0;
       border-left: 5px solid var(--neon-blue);
-      margin-bottom: 30px; /* Divi Row Height: 30 */
     }
 
-    #wp-custom-wrapper .label { 
-      display: block; 
-      font-size: 14px; /* User Body Setting: 14 */
-      font-weight: 800; 
-      color: #718096; 
-      letter-spacing: 2px; 
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    #wp-custom-wrapper h1 { 
-      font-size: 30px; /* User Header Setting: 30 */
-      font-weight: 900; 
-      margin: 0; 
-      text-transform: uppercase;
-    }
-
-    /* Group Titles */
-    #wp-custom-wrapper .mission-group { margin-bottom: 50px; }
-    #wp-custom-wrapper .group-title { margin-bottom: 20px; padding-left: 10px; }
-    #wp-custom-wrapper h3 { font-size: 18px; font-weight: 900; margin: 0; color: #fff; letter-spacing: 1px; }
-
-    /* Mission Grid */
-    #wp-custom-wrapper .mission-grid {
+    /* Intel Summary Bar */
+    #wp-custom-wrapper .intel-summary {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 25px;
+      grid-template-columns: repeat(4, 1fr);
+      background: #000;
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: 15px 0;
     }
+    #wp-custom-wrapper .intel-box {
+      border-right: 1px solid var(--border);
+      padding: 0 25px;
+      text-align: center;
+    }
+    #wp-custom-wrapper .intel-box.last { border-right: none; }
+    #wp-custom-wrapper .intel-val { font-size: 20px; font-weight: 900; display: block; }
 
-    /* Individual Card */
-    #wp-custom-wrapper .mission-card {
-      background: var(--bg-ops);
-      border: 1px solid var(--border-ops);
-      border-radius: 12px;
+    /* Layout */
+    #wp-custom-wrapper .mission-viewport {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    #wp-custom-wrapper .mission-column {
+      background: var(--bg-deep);
       padding: 25px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.2s ease;
     }
-    
-    #wp-custom-wrapper .mission-card:hover { transform: translateY(-5px); }
+    #wp-custom-wrapper .column-header { margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    #wp-custom-wrapper h3 { font-size: 18px; font-weight: 900; margin: 0; color: #fff; }
 
-    /* Farm Color Coding Borders */
-    #wp-custom-wrapper .f-1 { border-top: 4px solid var(--neon-orange); }
-    #wp-custom-wrapper .f-2 { border-top: 4px solid var(--neon-red); }
-    #wp-custom-wrapper .f-3 { border-top: 4px solid var(--neon-blue); }
-    #wp-custom-wrapper .f-4 { border-top: 4px solid var(--neon-green); }
-    #wp-custom-wrapper .f-5 { border-top: 4px solid var(--neon-purple); }
-    #wp-custom-wrapper .f-6 { border-top: 4px solid var(--neon-yellow); }
-    #wp-custom-wrapper .f-unassigned { border-top: 4px solid #333; opacity: 0.8; }
+    /* Mission Cards */
+    #wp-custom-wrapper .mission-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+    #wp-custom-wrapper .mission-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      position: relative;
+      border-left: 4px solid #333;
+    }
+    #wp-custom-wrapper .f-1 { border-left-color: var(--neon-orange); }
+    #wp-custom-wrapper .f-2 { border-left-color: var(--neon-red); }
 
-    /* Card Layout */
-    #wp-custom-wrapper .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-    #wp-custom-wrapper .mission-type { font-size: 14px; font-weight: 900; text-transform: uppercase; }
-    #wp-custom-wrapper .reward { font-size: 24px; font-weight: 900; color: var(--neon-green); }
+    #wp-custom-wrapper .card-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    #wp-custom-wrapper .m-type { font-size: 14px; font-weight: 900; text-transform: uppercase; color: var(--neon-blue); }
+    #wp-custom-wrapper .m-reward { font-size: 22px; font-weight: 900; color: var(--neon-green); }
 
-    #wp-custom-wrapper .details { font-size: 14px; color: #a0aec0; margin-bottom: 15px; font-weight: 600; }
-    #wp-custom-wrapper .details span { color: #fff; }
+    /* Progress: 14px text */
+    #wp-custom-wrapper .m-details { font-size: 14px; font-weight: 600; color: #718096; line-height: 1.6; }
+    #wp-custom-wrapper .m-details span { color: #fff; }
 
-    /* Progress Bar */
-    #wp-custom-wrapper .progress-container { margin-top: 10px; }
-    #wp-custom-wrapper .progress-label { display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; margin-bottom: 5px; color: #718096; }
-    #wp-custom-wrapper .bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
-    #wp-custom-wrapper .bar-fill { height: 100%; background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); transition: width 1s ease-in-out; }
-
-    /* Glows */
-    #wp-custom-wrapper .glow-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); }
-
-    /* Footer */
-    #wp-custom-wrapper .mission-footer {
+    /* Footer: Row Height 30 */
+    #wp-custom-wrapper .terminal-footer {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      background: var(--bg-ops);
+      background: var(--bg-card);
       padding: 20px 25px;
-      border: 1px solid var(--border-ops);
-      border-radius: 12px;
-      margin-top: 30px;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 12px 12px;
     }
 
-    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
-    #wp-custom-wrapper .loading-state { grid-column: 1/-1; padding: 50px; text-align: center; opacity: 0.3; font-size: 14px; font-style: italic; }
+    /* Labels & Standard Text: 14px */
+    #wp-custom-wrapper .label { 
+      display: block; font-size: 14px; font-weight: 800; color: #718096; 
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px;
+    }
+    /* Main Headers: 30px */
+    #wp-custom-wrapper h1 { font-size: 30px; font-weight: 900; margin: 0; text-transform: uppercase; }
 
-    @media (max-width: 600px) {
-      #wp-custom-wrapper .mission-header { flex-direction: column; align-items: flex-start; gap: 15px; }
-      #wp-custom-wrapper .mission-grid { grid-template-columns: 1fr; }
-      #wp-custom-wrapper h1 { font-size: 24px; }
+    #wp-custom-wrapper .glow-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); }
+    #wp-custom-wrapper .neon-green { color: var(--neon-green); }
+    #wp-custom-wrapper .neon-orange { color: var(--neon-orange); }
+    #wp-custom-wrapper .mono { font-family: monospace; font-size: 14px; }
+    #wp-custom-wrapper .loading-state { padding: 50px; text-align: center; opacity: 0.3; font-size: 14px; font-style: italic; }
+
+    @media (max-width: 900px) {
+      #wp-custom-wrapper .mission-viewport { grid-template-columns: 1fr; }
+      #wp-custom-wrapper .intel-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+      #wp-custom-wrapper .intel-box { border-bottom: 1px solid var(--border); border-right: none; padding: 10px; }
+      #wp-custom-wrapper .terminal-header { flex-direction: column; text-align: center; gap: 15px; }
     }
   </style>
 
@@ -178,38 +196,23 @@
 
   <script>
     (function() {
-      const config = { 
-        apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
-        databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
-      };
+      const config = { databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" };
+      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25MissionTerminal'); }
+      const db = firebase.app('fs25MissionTerminal').database();
 
-      const appName = 'fs25MissionOps';
-      let app;
-      try {
-        app = firebase.apps.find(a => a.name === appName) || firebase.initializeApp(config, appName);
-      } catch (e) {
-        app = firebase.app(appName);
-      }
-      
-      const db = app.database();
-
-      const farmMap = {
-        "1": "f-1", "2": "f-2", "3": "f-3", "4": "f-4", "5": "f-5", "6": "f-6"
-      };
-
-      function formatMoney(num) {
-        return '$' + parseInt(num).toLocaleString();
+      // SMART HANDSHAKE HELPER
+      function find(o, ...keys) { 
+        if (!o) return null;
+        for (let k of keys) { if (o[k] !== undefined && o[k] !== null) return o[k]; } 
+        return null; 
       }
 
-      function getMissionIcon(type) {
-        type = type.toLowerCase();
+      function getIcon(type) {
+        type = String(type).toLowerCase();
         if(type.includes("harvest")) return "🌾";
         if(type.includes("plow")) return "🚜";
         if(type.includes("sow") || type.includes("plant")) return "🌱";
-        if(type.includes("fert")) return "🧪";
         if(type.includes("bale")) return "📦";
-        if(type.includes("mow")) return "✂️";
-        if(type.includes("transport")) return "🚛";
         return "📋";
       }
 
@@ -217,72 +220,63 @@
         const data = snap.val();
         if (!data) return;
 
-        // Clock Update
-        document.getElementById('contract-clock').innerText = new Date().toLocaleTimeString('en-US', { 
-          timeZone: 'America/Chicago', hour12: false 
-        });
+        const activeCont = document.getElementById('active-missions-container');
+        const availCont = document.getElementById('available-missions-container');
+        activeCont.innerHTML = '';
+        availCont.innerHTML = '';
 
-        const activeContainer = document.getElementById('active-missions-container');
-        const availableContainer = document.getElementById('available-missions-container');
-        
-        activeContainer.innerHTML = '';
-        availableContainer.innerHTML = '';
+        // SMART HANDSHAKE: Locate missions list
+        const missionsRaw = find(data, "missions", "contracts", "Contract Ledger", "active_missions") || [];
+        const missionList = Array.isArray(missionsRaw) ? missionsRaw : Object.values(missionsRaw);
 
-        const missions = data.missions || [];
-        const missionList = Array.isArray(missions) ? missions : Object.values(missions);
-
-        let totalValue = 0;
-        let activeCount = 0;
-        let availableCount = 0;
+        let activeCount = 0, availCount = 0, totalVal = 0;
 
         missionList.forEach(m => {
-          const status = (m.status || "available").toLowerCase();
-          const farmId = m.farmId ? m.farmId.toString() : null;
-          const farmClass = farmId ? (farmMap[farmId] || "") : "f-unassigned";
-          const progress = Math.round((m.progress || 0) * 100);
-          const type = (m.type || "Contract").replace(/mission/gi, "").trim();
-          
+          const status = String(find(m, "status", "state", "Status") || "available").toLowerCase();
+          const farmId = String(find(m, "farmId", "farm_id", "Owner Farm") || "0");
+          const reward = parseInt(find(m, "reward", "payout", "value") || 0);
+          const type = String(find(m, "type", "name") || "Contract").replace(/mission/gi, "").trim();
+          const progress = Math.round(parseFloat(find(m, "progress", "completion") || 0) * 100);
+
           const card = document.createElement('div');
-          card.className = `mission-card ${farmClass}`;
-          
+          card.className = `mission-card f-${farmId}`;
           card.innerHTML = `
-            <div class="card-top">
-              <span class="mission-type">${getMissionIcon(type)} ${type}</span>
-              <span class="reward">${formatMoney(m.reward || 0)}</span>
+            <div class="card-main">
+              <span class="m-type">${getIcon(type)} ${type}</span>
+              <span class="m-reward">$${reward.toLocaleString()}</span>
             </div>
-            <div class="details">
-              FIELD: <span>#${m.fieldId || 'N/A'}</span><br>
-              OBJECTIVE: <span>${m.objective || 'Complete task'}</span>
-              ${farmId ? `<br>ASSIGNED: <span style="font-weight:900">FARM ${farmId}</span>` : ''}
+            <div class="m-details">
+              FIELD: <span>#${find(m, "fieldId", "field_id") || 'N/A'}</span> | 
+              TARGET: <span>${find(m, "objective", "task") || 'Operation'}</span>
+              ${farmId !== "0" ? `<br>ASSIGNEE: <span style="color:var(--neon-orange)">FARM ${farmId}</span>` : ''}
             </div>
-            <div class="progress-container">
-              <div class="progress-label">
-                <span>COMPLETION RATE</span>
-                <span>${progress}%</span>
-              </div>
-              <div class="bar-bg">
-                <div class="bar-fill" style="width: ${progress}%"></div>
-              </div>
+            <div style="margin-top:10px; height:4px; background:rgba(255,255,255,0.05); border-radius:2px;">
+              <div style="width:${progress}%; height:100%; background:var(--neon-blue); box-shadow:0 0 5px var(--neon-blue);"></div>
             </div>
           `;
 
-          if (status === "active" || (farmId && farmId !== "0")) {
-            activeContainer.appendChild(card);
+          if (status === "active" || farmId !== "0") {
+            activeCont.appendChild(card);
             activeCount++;
-            totalValue += parseInt(m.reward || 0);
+            totalVal += reward;
           } else {
-            availableContainer.appendChild(card);
-            availableCount++;
+            availCont.appendChild(card);
+            availCount++;
           }
         });
 
-        if (activeCount === 0) activeContainer.innerHTML = '<div class="loading-state">NO ACTIVE FIELD MISSIONS REPORTED</div>';
-        if (availableCount === 0) availableContainer.innerHTML = '<div class="loading-state">NO NEW CONTRACTS AVAILABLE</div>';
+        // Update Intel Stats
+        document.getElementById('stat-active-count').innerText = activeCount;
+        document.getElementById('stat-avail-count').innerText = availCount;
+        document.getElementById('stat-total-value').innerText = `$${totalVal.toLocaleString()}`;
         
-        document.getElementById('total-contract-value').innerText = formatMoney(totalValue);
+        const clock = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Chicago', hour12: false });
+        document.getElementById('contract-clock').innerText = clock;
+        document.getElementById('footer-sync-time').innerText = clock;
 
-      }, (err) => {
-        console.error("Mission Sync Error:", err);
+        if (activeCount === 0) activeCont.innerHTML = '<div class="loading-state">NO ACTIVE FIELD OPS</div>';
+        if (availCount === 0) availCont.innerHTML = '<div class="loading-state">NO OPEN CONTRACTS</div>';
+
       });
     })();
   </script>
