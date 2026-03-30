@@ -1,0 +1,376 @@
+<div id="wp-custom-wrapper">
+  <div class="fs25-tactical-ops">
+    <header class="map-vitals-nav">
+      <div class="vital-branding">
+        <span class="label">PRECISION TACTICAL [FS25]</span>
+        <span id="map-name-display" class="value glow-blue">SYNCING...</span>
+      </div>
+      
+      <!-- Smart Legend / Farm Toggles -->
+      <div class="farm-filter-strip" id="farm-filters">
+        <button class="filter-btn active" data-farm="all">ALL</button>
+        <button class="filter-btn" data-farm="1">F1</button>
+        <button class="filter-btn" data-farm="2">F2</button>
+        <button class="filter-btn" data-farm="3">F3</button>
+        <button class="filter-btn" data-farm="4">F4</button>
+        <button class="filter-btn" data-farm="5">F5</button>
+        <button class="filter-btn" data-farm="6">F6</button>
+      </div>
+
+      <div class="map-controls">
+        <button id="btn-zoom-in" title="Zoom In">+</button>
+        <button id="btn-zoom-out" title="Zoom Out">-</button>
+        <button id="btn-zoom-reset">⟲ RESET</button>
+      </div>
+    </header>
+
+    <div class="map-main-frame" id="map-viewport">
+      <div id="map-scaling-engine">
+        <!-- High-Res Satellite Feed -->
+        <img id="tactical-map-img" src="https://wsrv.nl/?url=http://207.244.243.68:8500/feed/dedicated-server-stats-map.jpg?code=jeRZKn2jNdgJNqqs&quality=80&size=1024" alt="FS25 Map" draggable="false">
+        <div id="marker-canvas"></div>
+      </div>
+      
+      <!-- Interaction Overlay (Helps with Panning performance) -->
+      <div id="pan-overlay"></div>
+    </div>
+
+    <footer class="map-legend-footer">
+      <div class="legend-set">
+        <div class="legend-item"><span class="shape triangle"></span> PLAYER</div>
+        <div class="legend-item"><span class="shape cone"></span> FLEET</div>
+        <div class="legend-item"><span class="shape dot"></span> ATTACHMENT</div>
+        <div class="legend-item"><span class="shape factory"></span> FACTORY</div>
+      </div>
+      <div id="firebase-status" class="mono">● DB CONNECTED</div>
+    </footer>
+  </div>
+
+  <style>
+    #wp-custom-wrapper {
+      --glass: rgba(10, 12, 16, 0.98);
+      --neon-blue: #00f2ff;
+      --neon-orange: #ff5f00;
+      --neon-green: #76b041;
+      --border: rgba(255, 255, 255, 0.1);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #wp-custom-wrapper .fs25-tactical-ops {
+      width: 95%; 
+      margin: 50px auto; /* User Section Height Setting: 50 */
+      max-width: 1100px;
+      font-family: var(--font); 
+      color: #fff;
+    }
+
+    /* Header & Navigation */
+    #wp-custom-wrapper .map-vitals-nav {
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      padding: 30px 20px; /* User Row Height: 30 */
+      background: var(--glass);
+      border: 1px solid var(--border); 
+      border-radius: 12px 12px 0 0;
+      border-bottom: 2px solid var(--neon-blue); 
+      flex-wrap: wrap; 
+      gap: 15px;
+    }
+
+    #wp-custom-wrapper .label { display: block; font-size: 11px; font-weight: 900; color: #718096; letter-spacing: 2px; }
+    #wp-custom-wrapper .value { font-size: 30px; font-weight: 900; text-transform: uppercase; } /* User Header Setting: 30 */
+    #wp-custom-wrapper .glow-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); }
+
+    /* Farm Filters */
+    #wp-custom-wrapper .farm-filter-strip { display: flex; gap: 6px; flex-wrap: wrap; }
+    #wp-custom-wrapper .filter-btn {
+      background: #1a1d21; border: 1px solid #333; color: #666;
+      padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: 900; cursor: pointer;
+    }
+    #wp-custom-wrapper .filter-btn.active { border-color: var(--neon-blue); color: var(--neon-blue); background: rgba(0,242,255,0.1); }
+
+    /* Map Controls (Zoom) */
+    #wp-custom-wrapper .map-controls { display: flex; gap: 8px; }
+    #wp-custom-wrapper .map-controls button {
+      background: #000; border: 1px solid var(--neon-blue); color: var(--neon-blue);
+      padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: 900;
+      transition: 0.2s;
+    }
+    #wp-custom-wrapper .map-controls button:hover { background: var(--neon-blue); color: #000; }
+
+    /* Map Engine */
+    #wp-custom-wrapper .map-main-frame {
+      position: relative; width: 100%; aspect-ratio: 1 / 1; 
+      background: #000; overflow: hidden; border: 1px solid var(--border);
+      cursor: grab;
+      touch-action: none; /* Prevents browser scroll while panning map */
+    }
+    #wp-custom-wrapper .map-main-frame:active { cursor: grabbing; }
+
+    #wp-custom-wrapper #map-scaling-engine {
+      position: absolute; width: 100%; height: 100%; 
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+    #wp-custom-wrapper #tactical-map-img { 
+        width: 100%; height: 100%; 
+        opacity: 0.75; 
+        filter: contrast(1.1) brightness(0.5) saturate(1.2); 
+        pointer-events: none;
+    }
+
+    /* Tactical Markers */
+    #wp-custom-wrapper .marker { position: absolute; transform: translate(-50%, -50%); cursor: pointer; z-index: 10; }
+
+    /* PLAYER: Triangle */
+    #wp-custom-wrapper .shape-player {
+      width: 0; height: 0; 
+      border-left: 8px solid transparent; border-right: 8px solid transparent;
+      border-bottom: 15px solid var(--neon-orange);
+      filter: drop-shadow(0 0 8px var(--neon-orange));
+    }
+
+    /* FLEET: Cone */
+    #wp-custom-wrapper .shape-fleet {
+      width: 14px; height: 14px; background: var(--neon-blue);
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      filter: drop-shadow(0 0 6px var(--neon-blue));
+    }
+
+    /* ATTACHMENT: Dot */
+    #wp-custom-wrapper .shape-attach {
+      width: 8px; height: 8px; background: #fff; border-radius: 50%;
+      border: 1px solid var(--neon-blue);
+      box-shadow: 0 0 5px #fff;
+    }
+
+    /* FACTORY: Industrial Icon */
+    #wp-custom-wrapper .shape-factory {
+      width: 18px; height: 18px; background: var(--neon-green);
+      clip-path: polygon(0% 100%, 0% 40%, 20% 40%, 20% 60%, 40% 60%, 40% 20%, 60% 20%, 60% 40%, 80% 40%, 80% 0%, 100% 0%, 100% 100%);
+      filter: drop-shadow(0 0 5px var(--neon-green));
+    }
+
+    /* Smart Tooltip (14px body) */
+    #wp-custom-wrapper .marker .tooltip {
+      position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%) translateY(10px);
+      background: rgba(0,0,0,0.95); border: 1px solid var(--neon-blue); padding: 12px;
+      border-radius: 8px; min-width: 200px; opacity: 0; visibility: hidden;
+      transition: 0.2s ease; z-index: 100; pointer-events: none;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+    }
+    #wp-custom-wrapper .marker:hover .tooltip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    #wp-custom-wrapper .tt-header { color: var(--neon-blue); font-weight: 900; font-size: 11px; border-bottom: 1px solid var(--border); margin-bottom: 8px; display: block; text-transform: uppercase; }
+    #wp-custom-wrapper .tt-row { display: flex; justify-content: space-between; font-size: 14px; margin-top: 4px; font-weight: 700; } /* User Body Setting: 14 */
+
+    /* Legend Footer */
+    #wp-custom-wrapper .map-legend-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--glass); padding: 20px; border-radius: 0 0 12px 12px;
+      border: 1px solid var(--border); font-size: 14px; flex-wrap: wrap; gap: 15px;
+    }
+    #wp-custom-wrapper .legend-set { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+    #wp-custom-wrapper .legend-item { display: flex; align-items: center; gap: 10px; color: #718096; font-weight: 800; }
+    
+    #wp-custom-wrapper .shape { display: inline-block; width: 12px; height: 12px; }
+    #wp-custom-wrapper .shape.triangle { border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 10px solid var(--neon-orange); }
+    #wp-custom-wrapper .shape.cone { background: var(--neon-blue); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+    #wp-custom-wrapper .shape.dot { background: #fff; border-radius: 50%; }
+    #wp-custom-wrapper .shape.factory { background: var(--neon-green); clip-path: polygon(0% 100%, 0% 40%, 100% 0%, 100% 100%); }
+
+    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; color: var(--neon-blue); font-size: 14px; }
+
+    @media (max-width: 600px) {
+      #wp-custom-wrapper .map-vitals-nav { padding: 20px 15px; }
+      #wp-custom-wrapper .value { font-size: 24px; }
+      #wp-custom-wrapper .farm-filter-strip { justify-content: center; width: 100%; }
+      #wp-custom-wrapper .map-controls { width: 100%; justify-content: center; margin-top: 10px; }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+
+  <script>
+    (function() {
+      const config = { 
+        apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
+        databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
+      };
+      
+      let app;
+      try {
+        if (firebase.apps.length === 0) {
+          app = firebase.initializeApp(config, 'fs25TacticalMaster');
+        } else {
+          app = firebase.apps.find(a => a.name === 'fs25TacticalMaster') || firebase.initializeApp(config, 'fs25TacticalMaster');
+        }
+      } catch (e) {
+        console.error("Firebase Init Error:", e);
+        app = firebase.app('fs25TacticalMaster');
+      }
+      
+      const db = app.database();
+      const MAP_SIZE = 2048;
+      let activeFarmFilter = 'all';
+
+      // --- ZOOM & PAN ENGINE ---
+      const viewport = document.getElementById('map-viewport');
+      const engine = document.getElementById('map-scaling-engine');
+      
+      let scale = 1;
+      let translateX = 0;
+      let translateY = 0;
+      let isDragging = false;
+      let startX = 0, startY = 0;
+
+      function updateTransform() {
+        const vw = viewport?.offsetWidth || 0;
+        if (!vw) return;
+
+        const limit = (scale - 1) * vw;
+        translateX = Math.min(0, Math.max(translateX, -limit));
+        translateY = Math.min(0, Math.max(translateY, -limit));
+        
+        if (engine) {
+          engine.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        }
+      }
+
+      const getEvPos = (e) => {
+        if (e.pageX !== undefined) return { x: e.pageX, y: e.pageY };
+        if (e.touches && e.touches.length > 0) return { x: e.touches[0].pageX, y: e.touches[0].pageY };
+        return { x: 0, y: 0 };
+      };
+
+      const handleZoomIn = () => { scale = Math.min(scale + 0.5, 6); updateTransform(); };
+      const handleZoomOut = () => { scale = Math.max(scale - 0.5, 1); updateTransform(); };
+      const handleReset = () => { 
+        scale = 1; translateX = 0; translateY = 0; 
+        activeFarmFilter = 'all';
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        const allBtn = document.querySelector('[data-farm="all"]');
+        if (allBtn) allBtn.classList.add('active');
+        updateTransform(); 
+      };
+
+      document.getElementById('btn-zoom-in').onclick = handleZoomIn;
+      document.getElementById('btn-zoom-out').onclick = handleZoomOut;
+      document.getElementById('btn-zoom-reset').onclick = handleReset;
+
+      viewport.onwheel = (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.2 : 0.2;
+        scale = Math.min(Math.max(scale + delta, 1), 6);
+        updateTransform();
+      };
+
+      const startPan = (e) => {
+        isDragging = true;
+        const pos = getEvPos(e);
+        startX = pos.x - translateX;
+        startY = pos.y - translateY;
+      };
+
+      const movePan = (e) => {
+        if (!isDragging) return;
+        const pos = getEvPos(e);
+        translateX = pos.x - startX;
+        translateY = pos.y - startY;
+        updateTransform();
+      };
+
+      const endPan = () => { isDragging = false; };
+
+      viewport.addEventListener('mousedown', startPan);
+      window.addEventListener('mousemove', movePan);
+      window.addEventListener('mouseup', endPan);
+      
+      viewport.addEventListener('touchstart', startPan, { passive: false });
+      window.addEventListener('touchmove', movePan, { passive: false });
+      window.addEventListener('touchend', endPan);
+
+      // --- DATA HANDLING ---
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeFarmFilter = btn.dataset.farm;
+        };
+      });
+
+      db.ref('fs25_live').on('value', (snap) => {
+        const data = snap.val();
+        if (!data) return;
+
+        const nameDisplay = document.getElementById('map-name-display');
+        if (nameDisplay) nameDisplay.innerText = (data.server?.mapName || "WORLD").toUpperCase();
+        
+        const canvas = document.getElementById('marker-canvas');
+        if (!canvas) return;
+        canvas.innerHTML = '';
+
+        // Render Fleet
+        const vehicles = data.fleet?.vehicles || [];
+        vehicles.forEach(v => {
+          if (!v) return;
+          const farmIdStr = v.farmId?.toString() || "0";
+          if (activeFarmFilter !== 'all' && farmIdStr !== activeFarmFilter) return;
+
+          const isPlayer = v.user && v.user !== "";
+          const typeClass = isPlayer ? 'shape-player' : (v.isAttachment ? 'shape-attach' : 'shape-fleet');
+          
+          addMarker(v.x, v.z, typeClass, `
+            <span class="tt-header">${v.name || 'Unit'}</span>
+            <div class="tt-row"><span>OPERATOR:</span> <span style="color:var(--neon-orange)">${v.user || 'AI'}</span></div>
+            <div class="tt-row"><span>LICENSE:</span> <span>${v.licensePlate || 'N/A'}</span></div>
+            <div class="tt-row"><span>FARM ID:</span> <span>${farmIdStr}</span></div>
+            <div class="tt-row"><span>FUEL:</span> <span style="color:var(--neon-blue)">${v.fuel || 0}%</span></div>
+            <div class="tt-row"><span>WEAR:</span> <span style="color:var(--neon-green)">${v.damage || 0}%</span></div>
+          `, canvas);
+        });
+
+        // Render Factories
+        const factories = data.productions || [];
+        factories.forEach(f => {
+          if (!f) return;
+          const farmIdStr = f.farmId?.toString() || "0";
+          if (activeFarmFilter !== 'all' && farmIdStr !== activeFarmFilter) return;
+
+          addMarker(f.x, f.z, 'shape-factory', `
+            <span class="tt-header" style="color:var(--neon-green)">${f.name || 'Factory'}</span>
+            <div class="tt-row"><span>ZONE:</span> <span>INDUSTRIAL</span></div>
+            <div class="tt-row"><span>FARM:</span> <span>${farmIdStr}</span></div>
+            <div class="tt-row"><span>CAPACITY:</span> <span style="color:var(--neon-green)">${f.fillLevel || 0}%</span></div>
+          `, canvas);
+        });
+
+        const syncClock = document.getElementById('sync-clock');
+        if (syncClock) {
+          syncClock.innerText = new Date().toLocaleTimeString('en-US', { 
+              timeZone: 'America/Chicago', hour12: false 
+          });
+        }
+      });
+
+      function addMarker(x, z, cssClass, tooltipHtml, container) {
+        if (x === undefined || z === undefined) return;
+        
+        const normX = (Number(x) / MAP_SIZE) + 0.5;
+        const normZ = (Number(z) / MAP_SIZE) + 0.5;
+        
+        const marker = document.createElement('div');
+        marker.className = 'marker';
+        marker.style.left = `${normX * 100}%`;
+        marker.style.top = `${normZ * 100}%`;
+        
+        marker.innerHTML = `
+            <div class="${cssClass}"></div>
+            <div class="tooltip">${tooltipHtml}</div>
+        `;
+        container.appendChild(marker);
+      }
+    })();
+  </script>
+</div>
