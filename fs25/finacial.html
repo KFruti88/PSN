@@ -1,0 +1,295 @@
+<div id="wp-custom-wrapper">
+  <div class="fs25-financial-command">
+    <!-- Main Uplink Header -->
+    <header class="finance-vitals">
+      <div class="vital-group">
+        <span class="label">FINANCIAL UPLINK [FS25]</span>
+        <h1 class="glow-blue">MARKET & ASSET AUDIT</h1>
+      </div>
+      <div class="vital-group right-align">
+        <span class="label">SIGNAL STATUS</span>
+        <div id="sync-status" class="value-sm neon-green">● LINK ENCRYPTED</div>
+      </div>
+    </header>
+
+    <!-- Dynamic Container for Farm Cards -->
+    <div id="dynamic-finance-grid" class="finance-grid">
+      <div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">
+        SCANNING FINANCIAL REGISTRY...
+      </div>
+    </div>
+
+    <!-- Global Footer -->
+    <footer class="finance-footer">
+      <div class="footer-item">
+        <span class="label">CENTRAL TIME SYNC</span>
+        <span id="finance-clock" class="mono">00:00:00</span>
+      </div>
+      <div class="footer-item right-align">
+        <span class="label">DATA REFRESH</span>
+        <span class="mono">LIVE / 30S</span>
+      </div>
+    </footer>
+  </div>
+
+  <style>
+    #wp-custom-wrapper {
+      --bg-deep: rgba(10, 12, 16, 0.98);
+      --neon-blue: #00f2ff;
+      --neon-orange: #ff5f00;
+      --neon-red: #ff3131;
+      --neon-green: #76b041;
+      --neon-purple: #bc13fe;
+      --neon-yellow: #f4b400;
+      --border: rgba(255, 255, 255, 0.1);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #wp-custom-wrapper .fs25-financial-command {
+      width: 95%;
+      margin: 50px auto; /* Divi Section Height Setting: 50 */
+      max-width: 1400px;
+      font-family: var(--font);
+      color: #fff;
+    }
+
+    /* Header Section */
+    #wp-custom-wrapper .finance-vitals {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-deep);
+      padding: 30px 25px; /* Divi Row Height Setting: 30 */
+      border: 1px solid var(--border);
+      border-radius: 12px 12px 0 0;
+      border-left: 5px solid var(--neon-blue);
+      margin-bottom: 30px; /* Divi Row Height Setting: 30 */
+    }
+
+    /* Labels: Body Size 14px */
+    #wp-custom-wrapper .label { 
+      display: block; 
+      font-size: 14px; 
+      font-weight: 800; 
+      color: #718096; 
+      letter-spacing: 2px; 
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    /* Titles/Values: Header Size 30px */
+    #wp-custom-wrapper h1, #wp-custom-wrapper .balance-val { 
+      font-size: 30px; 
+      font-weight: 900; 
+      margin: 0; 
+      text-transform: uppercase;
+    }
+
+    /* Grid Layout */
+    #wp-custom-wrapper .finance-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 30px; /* Divi Row Height Setting: 30 */
+    }
+
+    /* Individual Farm Card */
+    #wp-custom-wrapper .farm-finance-card {
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    #wp-custom-wrapper .card-header {
+      padding: 20px 25px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #wp-custom-wrapper .card-header h3 { margin: 0; font-size: 16px; font-weight: 900; }
+
+    #wp-custom-wrapper .balance-container {
+      padding: 25px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+    }
+
+    /* Data Ledger Rows */
+    #wp-custom-wrapper .ledger-section { padding: 15px 25px; border-top: 1px solid rgba(255,255,255,0.05); }
+    #wp-custom-wrapper .ledger-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      font-size: 14px; /* Body Size 14px */
+      font-weight: 600;
+    }
+
+    #wp-custom-wrapper .ledger-label { color: #718096; text-transform: uppercase; font-size: 11px; font-weight: 800; }
+    #wp-custom-wrapper .neg { color: var(--neon-red); }
+    #wp-custom-wrapper .pos { color: var(--neon-green); }
+
+    /* Farm Borders */
+    #wp-custom-wrapper .f-1 { border-top: 4px solid var(--neon-orange); }
+    #wp-custom-wrapper .f-2 { border-top: 4px solid var(--neon-red); }
+    #wp-custom-wrapper .f-3 { border-top: 4px solid var(--neon-blue); }
+    #wp-custom-wrapper .f-4 { border-top: 4px solid var(--neon-green); }
+    #wp-custom-wrapper .f-5 { border-top: 4px solid var(--neon-purple); }
+    #wp-custom-wrapper .f-6 { border-top: 4px solid var(--neon-yellow); }
+
+    /* Glows */
+    #wp-custom-wrapper .glow-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); }
+    #wp-custom-wrapper .neon-green { color: var(--neon-green); }
+
+    /* Footer Settings */
+    #wp-custom-wrapper .finance-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      padding: 20px 25px;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 0 0 12px 12px;
+    }
+
+    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
+    #wp-custom-wrapper .right-align { text-align: right; }
+
+    @media (max-width: 600px) {
+      #wp-custom-wrapper h1 { font-size: 24px; }
+      #wp-custom-wrapper .finance-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+
+  <script>
+    (function() {
+      const config = { 
+        apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
+        databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
+      };
+
+      const appName = 'fs25FinanceCommand';
+      let app;
+      try {
+        app = firebase.apps.find(a => a.name === appName) || firebase.initializeApp(config, appName);
+      } catch (e) {
+        app = firebase.app(appName);
+      }
+      
+      const db = app.database();
+
+      const farmBrands = {
+        "1": { name: "WEREWOLF ENTERPRISE", icon: "🐺", color: "1", accent: "#ff5f00" },
+        "2": { name: "RAYMYSTRO HOLDINGS", icon: "⚡", color: "2", accent: "#ff3131" },
+        "3": { name: "COBALT CAPITAL", icon: "💎", color: "3", accent: "#00f2ff" },
+        "4": { name: "EMERALD ASSETS", icon: "🌿", color: "4", accent: "#76b041" },
+        "5": { name: "PURPLE PEAK LLC", icon: "🏔️", color: "5", accent: "#bc13fe" },
+        "6": { name: "GOLDEN VALLEY INC", icon: "☀️", color: "6", accent: "#f4b400" }
+      };
+
+      function fmt(num) {
+        return '$' + Math.floor(num || 0).toLocaleString();
+      }
+
+      db.ref('fs25_live').on('value', (snap) => {
+        const data = snap.val();
+        const container = document.getElementById('dynamic-finance-grid');
+        if (!data) return;
+
+        // Grouping Data - We check for farm data in the main payload
+        // This logic assumes your master script sends a 'farms' object or similar
+        // If not, it falls back to parsing farm IDs from fleet and productions
+        const farmsDetected = {};
+        
+        // 1. Check direct farm data (if exists)
+        if (data.farms) {
+          Object.keys(data.farms).forEach(fid => farmsDetected[fid] = data.farms[fid]);
+        } 
+        
+        // 2. Fallback: Identify farms from activity
+        if (data.fleet?.vehicles) {
+          data.fleet.vehicles.forEach(v => { if(v.farmId) farmsDetected[v.farmId] = farmsDetected[v.farmId] || { money: 0 }; });
+        }
+
+        // Special handling for Farm 1 money which is usually in data.server.money
+        if (data.server?.money && !farmsDetected["1"]) {
+          farmsDetected["1"] = { money: data.server.money };
+        } else if (data.server?.money) {
+          farmsDetected["1"].money = data.server.money;
+        }
+
+        container.innerHTML = '';
+
+        Object.keys(farmsDetected).sort().forEach(fid => {
+          if (parseInt(fid) > 6 || fid == "0") return;
+
+          const farm = farmsDetected[fid];
+          const brand = farmBrands[fid] || { name: `FARM ACCOUNT ${fid}`, icon: "📂", color: fid, accent: "#fff" };
+
+          // Calculated Mock Data (To be replaced by real economy.xml values if bridge provides them)
+          const fleetCost = farm.fleetSpent || 0;
+          const attachCost = farm.attachSpent || 0;
+          const landCost = farm.landSpent || 0;
+          const revenue = farm.revenue || 0;
+
+          const card = document.createElement('div');
+          card.className = `farm-finance-card f-${brand.color}`;
+          card.innerHTML = `
+            <div class="card-header">
+              <h3>${brand.icon} ${brand.name}</h3>
+              <span class="label" style="margin:0; color:${brand.accent}">FARM ID: 0${fid}</span>
+            </div>
+            
+            <div class="balance-container">
+              <span class="label">CURRENT LIQUIDITY</span>
+              <div class="balance-val" style="color:${brand.accent}">${fmt(farm.money)}</div>
+            </div>
+
+            <div class="ledger-section">
+              <span class="label">CAPITAL EXPENDITURES</span>
+              <div class="ledger-row"><span class="ledger-label">Motorized Fleet</span><span class="neg">-${fmt(fleetCost)}</span></div>
+              <div class="ledger-row"><span class="ledger-label">Attachments</span><span class="neg">-${fmt(attachCost)}</span></div>
+              <div class="ledger-row"><span class="ledger-label">Land Acquisitions</span><span class="neg">-${fmt(landCost)}</span></div>
+            </div>
+
+            <div class="ledger-section">
+              <span class="label">OPERATIONAL REVENUE</span>
+              <div class="ledger-row"><span class="ledger-label">Crop Sales</span><span class="pos">+${fmt(revenue)}</span></div>
+              <div class="ledger-row"><span class="ledger-label">Asset Liquidation</span><span class="pos">+$0</span></div>
+            </div>
+
+            <div class="ledger-section" style="background:rgba(0,0,0,0.2)">
+              <div class="ledger-row">
+                <span class="ledger-label" style="color:#fff">NET PROFIT (LTD)</span>
+                <span class="${(revenue - (fleetCost + landCost)) >= 0 ? 'pos' : 'neg'}" style="font-weight:900">
+                  ${fmt(revenue - (fleetCost + landCost + attachCost))}
+                </span>
+              </div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+        if (container.innerHTML === '') {
+          container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size:14px;">AWAITING FINANCIAL TELEMETRY...</div>';
+        }
+
+        // Update Clock
+        document.getElementById('finance-clock').innerText = new Date().toLocaleTimeString('en-US', { 
+          timeZone: 'America/Chicago', hour12: false 
+        });
+
+      }, (err) => {
+        console.error("Firebase Finance Error:", err);
+      });
+    })();
+  </script>
+</div>
