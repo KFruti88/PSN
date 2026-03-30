@@ -1,178 +1,196 @@
 <div id="wp-custom-wrapper">
-  <div class="fs25-animal-dashboard">
-    <header class="ops-vitals-header">
-      <div class="vital-branding">
-        <span class="label">LIVESTOCK UPLINK [FS25]</span>
-        <h2 class="glow-blue">ANIMAL HEALTH & PRODUCTION</h2>
+  <div class="fs25-war-room-animals" id="animal-main-viewport">
+    
+    <!-- TOP TACTICAL INTEL -->
+    <header class="terminal-header">
+      <div class="branding">
+        <span class="label">LIVESTOCK INTELLIGENCE [FS25]</span>
+        <h1 class="glow-blue">ANIMAL HEALTH & PRODUCTION</h1>
       </div>
-      <div class="ops-sync-info">
-        <span class="label">CENTRAL TIME SYNC</span>
-        <span id="animal-sync-clock" class="mono">00:00:00</span>
+      <div class="terminal-meta">
+        <span class="label">VITAL STATUS</span>
+        <span id="last-recon-time" class="val mono glow-blue">--:--:--</span>
       </div>
     </header>
 
-    <!-- Dynamic container that expands as new farms are detected -->
-    <div class="animal-grid" id="dynamic-farm-container">
-        <div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">
-            INITIALIZING SATELLITE UPLINK...
-        </div>
+    <!-- ANIMAL INTEL STRIP (Fills top body) -->
+    <div class="animal-intel-bar">
+      <div class="intel-box">
+        <span class="label">ACTIVE HERDS</span>
+        <span id="stat-total-herds" class="intel-val neon-blue">0</span>
+      </div>
+      <div class="intel-box">
+        <span class="label">AVG HEALTH</span>
+        <span id="stat-avg-health" class="intel-val neon-green">0%</span>
+      </div>
+      <div class="intel-box">
+        <span class="label">PRODUCTION LOAD</span>
+        <span id="stat-total-prod" class="intel-val neon-orange">0%</span>
+      </div>
+      <div class="intel-box last">
+        <span class="label">K9 UNIT</span>
+        <span id="stat-dog-status" class="intel-val mono neon-blue">SCANNING</span>
+      </div>
     </div>
+
+    <!-- MAIN OPERATIONS VIEWPORT -->
+    <div class="animal-viewport">
+      
+      <!-- LEFT: STRATEGIC HERD LEDGER -->
+      <section class="herd-ledger">
+        <div class="section-header">
+          <span class="label">BIOMETRIC AUDIT</span>
+          <h3>HERD PERFORMANCE LOGS</h3>
+        </div>
+        <div class="table-container">
+          <table class="terminal-table">
+            <thead>
+              <tr>
+                <th>SPECIES / GROUP</th>
+                <th>FARM</th>
+                <th>HEALTH & REPRO</th>
+                <th>RESOURCE LEVELS</th>
+                <th>PRODUCTION</th>
+              </tr>
+            </thead>
+            <tbody id="animal-tbody">
+              <tr><td colspan="5" class="loading-cell">AWAITING SATELLITE PING...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- RIGHT: RESOURCE ALERTS -->
+      <aside class="resource-sidebar">
+        <div class="section-header">
+          <span class="label">LOGISTICS ALERTS</span>
+          <h3>CRITICAL SHORTAGES</h3>
+        </div>
+        
+        <!-- K9 UNIT DETAIL BLOCK -->
+        <div class="dog-detail-card" id="dog-unit-block">
+            <span class="label">K9 TACTICAL UNIT</span>
+            <div class="dog-stats">
+                <div class="dog-row"><span>HUNGER:</span> <span id="dog-hunger" class="mono">--</span></div>
+                <div class="dog-row"><span>HEALTH:</span> <span id="dog-health" class="mono">--</span></div>
+                <div class="dog-row"><span>BOWL:</span> <span id="dog-bowl" class="mono">--</span></div>
+            </div>
+        </div>
+
+        <div id="resource-alerts" class="alert-list">
+          <div class="empty-alert">SCANNING PENS...</div>
+        </div>
+      </aside>
+
+    </div>
+
   </div>
 
   <style>
     #wp-custom-wrapper {
-      --bg-ops: rgba(15, 18, 22, 0.98);
+      --bg-terminal: #0a0b0d;
+      --bg-card: rgba(15, 17, 22, 0.95);
       --neon-blue: #00f2ff;
+      --neon-green: #76b041;
       --neon-orange: #ff5f00;
       --neon-red: #ff3131;
-      --neon-green: #76b041;
-      --neon-purple: #bc13fe;
-      --neon-yellow: #f4b400;
-      --border-ops: rgba(255, 255, 255, 0.1);
-      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --border: rgba(255, 255, 255, 0.08);
+      --font: 'Inter', -apple-system, system-ui, sans-serif;
     }
 
-    #wp-custom-wrapper .fs25-animal-dashboard {
-      width: 90%; 
-      margin: 50px auto; /* Divi Section Height Setting: 50 */
+    #wp-custom-wrapper .fs25-war-room-animals {
+      width: 95%;
+      margin: 50px auto; 
       max-width: 1400px;
       font-family: var(--font);
       color: #fff;
-      background: transparent;
     }
 
-    /* Header Section */
-    #wp-custom-wrapper .ops-vitals-header {
+    /* Terminal Header: 30px Title / 14px Labels */
+    #wp-custom-wrapper .terminal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap; 
-      gap: 30px; /* Divi Row Height Setting: 30 */
-      background: var(--bg-ops);
-      padding: 30px 25px; /* Divi Padding Setting: 30 */
-      border: 1px solid var(--border-ops);
-      border-radius: 12px;
-      margin-bottom: 30px; /* Divi Row Height Setting: 30 */
+      background: var(--bg-card);
+      padding: 30px 25px; 
+      border: 1px solid var(--border);
+      border-radius: 12px 12px 0 0;
       border-left: 5px solid var(--neon-blue);
     }
 
-    #wp-custom-wrapper .label { 
-      display: block; 
-      font-size: 14px; /* User Body Setting: 14 */
-      font-weight: 800; 
-      color: #718096; 
-      letter-spacing: 2px; 
-      text-transform: uppercase;
-    }
+    #wp-custom-wrapper .label { display: block; font-size: 14px; font-weight: 800; color: #718096; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+    #wp-custom-wrapper h1, #wp-custom-wrapper .val { font-size: 30px; font-weight: 900; margin: 0; text-transform: uppercase; }
 
-    #wp-custom-wrapper .glow-blue { 
-      color: var(--neon-blue); 
-      text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); 
-      margin: 0; 
-      font-size: 30px; /* User Header Setting: 30 */
-      font-weight: 900; 
-      text-transform: uppercase;
+    /* Animal Intel Bar */
+    #wp-custom-wrapper .animal-intel-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: #000;
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: 15px 0;
+      margin-bottom: 20px;
     }
+    #wp-custom-wrapper .intel-box { border-right: 1px solid var(--border); padding: 0 25px; text-align: center; }
+    #wp-custom-wrapper .intel-box.last { border-right: none; }
+    #wp-custom-wrapper .intel-val { font-size: 22px; font-weight: 900; display: block; }
 
-    /* Grid now supports 1 to 3 columns depending on screen size */
-    #wp-custom-wrapper .animal-grid { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-      gap: 30px; /* Divi Row Height Setting: 30 */
+    /* Layout Viewport */
+    #wp-custom-wrapper .animal-viewport {
+      display: grid;
+      grid-template-columns: 2.5fr 1fr;
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
     }
-    
-    #wp-custom-wrapper .animal-column { 
-      background: var(--bg-ops); 
-      border: 1px solid var(--border-ops); 
-      border-radius: 16px; 
-      overflow: hidden; 
-      display: flex;
-      flex-direction: column;
-      animation: fadeIn 0.5s ease;
-    }
+    #wp-custom-wrapper .herd-ledger, #wp-custom-wrapper .resource-sidebar { background: var(--bg-terminal); padding: 25px; }
+    #wp-custom-wrapper .section-header { margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    #wp-custom-wrapper h3 { font-size: 18px; font-weight: 900; margin: 0; }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    /* Tables: Body Text 14px */
+    #wp-custom-wrapper .terminal-table { width: 100%; border-collapse: collapse; }
+    #wp-custom-wrapper th { text-align: left; font-size: 11px; color: #718096; padding: 10px; border-bottom: 1px solid var(--border); text-transform: uppercase; }
+    #wp-custom-wrapper td { padding: 18px 10px; font-size: 14px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: top; }
 
-    /* Farm-specific Border Accents */
-    #wp-custom-wrapper .f-border-1 { border-top: 4px solid var(--neon-orange); }
-    #wp-custom-wrapper .f-border-2 { border-top: 4px solid var(--neon-red); }
-    #wp-custom-wrapper .f-border-3 { border-top: 4px solid var(--neon-blue); }
-    #wp-custom-wrapper .f-border-4 { border-top: 4px solid var(--neon-green); }
-    #wp-custom-wrapper .f-border-5 { border-top: 4px solid var(--neon-purple); }
-    #wp-custom-wrapper .f-border-6 { border-top: 4px solid var(--neon-yellow); }
+    /* Dog Card */
+    #wp-custom-wrapper .dog-detail-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--neon-blue);
+    }
+    #wp-custom-wrapper .dog-stats { margin-top: 10px; }
+    #wp-custom-wrapper .dog-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; font-weight: 800; }
 
-    #wp-custom-wrapper .column-header { 
-      padding: 20px 25px; 
-      background: rgba(255,255,255,0.03); 
-      border-bottom: 1px solid var(--border-ops); 
-    }
-    #wp-custom-wrapper .column-header h3 { 
-      margin: 0; 
-      font-size: 16px; 
-      font-weight: 900; 
-      letter-spacing: 1px; 
-      text-transform: uppercase;
-    }
+    /* Progress Mini Bars */
+    #wp-custom-wrapper .mini-bar-bg { width: 100px; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+    #wp-custom-wrapper .mini-bar-fill { height: 100%; transition: width 1s ease; }
 
-    #wp-custom-wrapper .animal-card {
-      padding: 25px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+    /* Alert Cards */
+    #wp-custom-wrapper .alert-card {
+      background: rgba(255, 49, 49, 0.05);
+      border: 1px solid rgba(255, 49, 49, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-left: 4px solid var(--neon-red);
     }
-    #wp-custom-wrapper .card-top { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: flex-start; 
-      margin-bottom: 15px; 
-    }
-    #wp-custom-wrapper .animal-type { 
-      font-weight: 900; 
-      font-size: 14px; /* User Body Setting: 14 */
-      text-transform: uppercase; 
-    }
-    
-    #wp-custom-wrapper .health-badge {
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-weight: 900;
-      border: 1px solid var(--neon-blue);
-      color: var(--neon-blue);
-      text-transform: uppercase;
-    }
+    #wp-custom-wrapper .alert-title { font-size: 11px; font-weight: 900; color: var(--neon-red); text-transform: uppercase; }
+    #wp-custom-wrapper .alert-msg { font-size: 13px; font-weight: 600; margin-top: 4px; }
 
-    #wp-custom-wrapper .stat-row { margin-top: 12px; }
-    #wp-custom-wrapper .stat-label { 
-      font-size: 11px; 
-      color: #718096; 
-      font-weight: 800; 
-      text-transform: uppercase; 
-      margin-bottom: 6px; 
-      display: block; 
-    }
-    #wp-custom-wrapper .bar-bg { 
-      width: 100%; 
-      height: 8px; 
-      background: rgba(255,255,255,0.08); 
-      border-radius: 4px; 
-      overflow: hidden; 
-    }
-    
-    /* Specific Fill Colors */
-    #wp-custom-wrapper .f-fill-1 { background: var(--neon-orange); box-shadow: 0 0 8px var(--neon-orange); }
-    #wp-custom-wrapper .f-fill-2 { background: var(--neon-red); box-shadow: 0 0 8px var(--neon-red); }
-    #wp-custom-wrapper .f-fill-3 { background: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue); }
-    #wp-custom-wrapper .f-fill-4 { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
-    #wp-custom-wrapper .f-fill-5 { background: var(--neon-purple); box-shadow: 0 0 8px var(--neon-purple); }
-    #wp-custom-wrapper .f-fill-6 { background: var(--neon-yellow); box-shadow: 0 0 8px var(--neon-yellow); }
+    #wp-custom-wrapper .glow-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); }
+    #wp-custom-wrapper .mono { font-family: monospace; font-size: 14px; }
+    #wp-custom-wrapper .loading-cell { padding: 100px; text-align: center; opacity: 0.3; font-style: italic; font-size: 14px; }
 
-    #wp-custom-wrapper .bar-fill-blue { height: 100%; background: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue); }
-
-    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
-
-    @media (max-width: 600px) {
-      #wp-custom-wrapper .ops-vitals-header { padding: 20px; }
-      #wp-custom-wrapper .glow-blue { font-size: 24px; }
-      #wp-custom-wrapper .fs25-animal-dashboard { width: 95%; }
+    @media (max-width: 1000px) {
+      #wp-custom-wrapper .animal-viewport { grid-template-columns: 1fr; }
+      #wp-custom-wrapper .animal-intel-bar { grid-template-columns: 1fr 1fr; gap: 10px; }
+      #wp-custom-wrapper .intel-box { border-bottom: 1px solid var(--border); border-right: none; padding: 10px; }
+      #wp-custom-wrapper .terminal-header { flex-direction: column; text-align: center; gap: 15px; }
     }
   </style>
 
@@ -186,7 +204,7 @@
         databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
       };
 
-      const appName = 'fs25AnimalOpsDynamic';
+      const appName = 'fs25AnimalWarRoomFinal';
       let app;
       try {
         app = firebase.apps.find(a => a.name === appName) || firebase.initializeApp(config, appName);
@@ -196,103 +214,94 @@
       
       const db = app.database();
 
-      // Formatting helper
-      const farmBrands = {
-          "1": { name: "WEREWOLF RANCH", icon: "🐺", color: "1" },
-          "2": { name: "RAYMYSTRO RANCH", icon: "⚡", color: "2" },
-          "3": { name: "COBALT STATION", icon: "💎", color: "3" },
-          "4": { name: "EMERALD FIELDS", icon: "🌿", color: "4" },
-          "5": { name: "PURPLE PEAK", icon: "🏔️", color: "5" },
-          "6": { name: "GOLDEN VALLEY", icon: "☀️", color: "6" }
-      };
+      function find(o, ...keys) { 
+        if (!o) return null;
+        for (let k of keys) { if (o[k] !== undefined && o[k] !== null) return o[k]; } 
+        return null; 
+      }
+
+      let lastDigest = "";
 
       db.ref('fs25_live').on('value', (snap) => {
-        const data = snap.val();
-        const container = document.getElementById('dynamic-farm-container');
-        
-        if (!data || !data.animals) {
-            container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size:14px;">NO ACTIVE LIVESTOCK DATA DETECTED</div>';
-            return;
-        }
+        try {
+          const data = snap.val();
+          if (!data) return;
 
-        // Sync Clock
-        const ctTime = new Intl.DateTimeFormat('en-US', {
-            timeZone: 'America/Chicago',
-            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-        }).format(new Date());
-        document.getElementById('animal-sync-clock').innerText = ctTime;
+          // Element Targets with Safety
+          const elTbody = document.getElementById('animal-tbody');
+          const elAlerts = document.getElementById('resource-alerts');
+          const elReconTime = document.getElementById('last-recon-time');
 
-        // Group animals by Farm ID
-        const rawAnimals = data.animals;
-        const animals = Array.isArray(rawAnimals) ? rawAnimals : Object.values(rawAnimals);
-        
-        const farmGroups = {};
-        animals.forEach(a => {
-            if (!a || !a.farmId) return;
-            const fid = a.farmId.toString();
-            // Only allow farms 1 through 6
-            if (parseInt(fid) > 6) return;
+          const animalsRaw = find(data, "animals", "livestock", "herds") || [];
+          const animals = Array.isArray(animalsRaw) ? animalsRaw : Object.values(animalsRaw);
+          const dogData = find(data, "dog", "k9_unit", "pets/dog");
 
-            if (!farmGroups[fid]) farmGroups[fid] = [];
-            farmGroups[fid].push(a);
-        });
+          // 1. K9 TACTICAL PROCESSING
+          if (dogData) {
+              const hunger = parseInt(find(dogData, "hunger", "food") || 0);
+              const bowl = find(dogData, "bowlFilled", "bowl");
+              const isFilled = (bowl === true || bowl === "true" || bowl === "FILLED");
+              
+              const h_el = document.getElementById('dog-hunger');
+              const hl_el = document.getElementById('dog-health');
+              const b_el = document.getElementById('dog-bowl');
+              const s_el = document.getElementById('stat-dog-status');
 
-        // Clear and rebuild UI
-        container.innerHTML = '';
+              if(h_el) { h_el.innerText = hunger + "%"; h_el.style.color = hunger > 80 ? 'var(--neon-red)' : 'var(--neon-green)'; }
+              if(hl_el) hl_el.innerText = (find(dogData, "health") || 100) + "%";
+              if(b_el) { b_el.innerText = isFilled ? "FILLED" : "EMPTY"; b_el.style.color = isFilled ? 'var(--neon-green)' : 'var(--neon-red)'; }
+              if(s_el) { s_el.innerText = isFilled ? "READY" : "FEED K9"; s_el.style.color = isFilled ? 'var(--neon-blue)' : 'var(--neon-red)'; }
+          }
 
-        // Iterate through detected farms in order
-        Object.keys(farmGroups).sort().forEach(fid => {
-            const group = farmGroups[fid];
-            const brand = farmBrands[fid] || { name: `FARM ${fid}`, icon: "🚜", color: fid };
+          // 2. HERD LEDGER PROCESSING
+          let tH = 0, tP = 0, tC = 0, tableHtml = '', alertsHtml = '';
 
-            const section = document.createElement('section');
-            section.className = `animal-column f-border-${brand.color}`;
-            
-            let html = `
-                <div class="column-header">
-                    <h3>${brand.icon} ${brand.name}</h3>
-                </div>
-                <div class="animal-list">
+          animals.forEach(a => {
+            if (!a) return;
+            const species = String(find(a, "type", "species") || "UNSPECIFIED").toUpperCase();
+            const fid = String(find(a, "farmId", "farm_id") || "1");
+            const h = parseInt(find(a, "health", "health_pct") || 0);
+            const f = parseInt(find(a, "foodLevel", "food") || 0);
+            const p = parseInt(find(a, "productionLevel", "output") || 0);
+            const count = parseInt(find(a, "count", "amount") || 0);
+
+            tH += h; tP += p; tC += count;
+
+            if (f < 20) alertsHtml += `<div class="alert-card"><div class="alert-title">Feed Critical</div><div class="alert-msg">${species} FARM ${fid}</div></div>`;
+
+            tableHtml += `
+              <tr>
+                <td><strong style="color:var(--neon-blue);">${species}</strong><br><small style="color:#718096">${count} HEAD</small></td>
+                <td class="mono" style="color:${fid === '1' ? 'var(--neon-orange)' : 'var(--neon-red)'}">FARM ${fid}</td>
+                <td><span style="color:${h > 80 ? 'var(--neon-green)' : 'var(--neon-red)'}">H: ${h}%</span></td>
+                <td><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${f}%; background:${f < 20 ? 'var(--neon-red)' : 'var(--neon-blue)'}"></div></div></td>
+                <td><span style="color:var(--neon-green)">${p}% YIELD</span></td>
+              </tr>
             `;
+          });
 
-            group.forEach(a => {
-                const health = a.health || 0;
-                const food = a.foodLevel || 0;
-                const prod = a.productionLevel || 0;
-                const type = (a.type || "Unknown").toUpperCase();
+          if (elTbody) elTbody.innerHTML = tableHtml || '<tr><td colspan="5" class="loading-cell">NO LIVESTOCK DETECTED</td></tr>';
+          if (elAlerts) elAlerts.innerHTML = alertsHtml || '<div class="empty-alert">ALL PENS NOMINAL</div>';
 
-                html += `
-                    <div class="animal-card">
-                        <div class="card-top">
-                            <span class="animal-type">${type} (${a.count || 0} HEAD)</span>
-                            <span class="health-badge">HEALTH: ${health}%</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">FOOD RESERVES: ${food}%</span>
-                            <div class="bar-bg"><div class="f-fill-${brand.color}" style="width:${food}%; height:100%"></div></div>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">PRODUCTION YIELD: ${prod}%</span>
-                            <div class="bar-bg" style="background:rgba(0,242,255,0.05)">
-                                <div class="bar-fill-blue" style="width:${prod}%"></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
+          // 3. BAR STATS
+          const sH = document.getElementById('stat-total-herds');
+          const aH = document.getElementById('stat-avg-health');
+          const tPr = document.getElementById('stat-total-prod');
+          if (sH) sH.innerText = animals.length;
+          if (aH) aH.innerText = Math.round(tH / (animals.length || 1)) + "%";
+          if (tPr) tPr.innerText = Math.round(tP / (animals.length || 1)) + "%";
 
-            html += `</div>`;
-            section.innerHTML = html;
-            container.appendChild(section);
-        });
+          // 4. HEARTBEAT
+          const digest = JSON.stringify(data);
+          if (digest !== lastDigest) {
+            if (elReconTime) elReconTime.innerText = new Date().toLocaleTimeString('en-US', { hour12: false });
+            lastDigest = digest;
+          }
 
-        if (container.innerHTML === '') {
-            container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size:14px;">WAITING FOR FARM ACTIVITY...</div>';
+        } catch (err) {
+          console.error("Dashboard Render Error:", err);
         }
-
-      }, (err) => {
-        console.error("Firebase Animal Sync Error:", err);
-      });
+      }, (err) => console.error("Firebase Sync Error:", err));
     })();
   </script>
 </div>
