@@ -1,311 +1,250 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FS25 Server Status Footer</title>
-    <style>
-        :root {
-            --fs-green: #76b041;
-            --fs-dark: #121212;
-            --fs-accent: #f4b400;
-            --bg-card: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-dim: #999;
-            --border: #333;
-        }
+<div id="wp-custom-wrapper">
+  <div class="fs25-footer-recon">
+    
+    <!-- FOOTER HEADER -->
+    <header class="footer-ops-header">
+      <div class="branding">
+        <span class="label">LIVE SERVER FEED [FS25]</span>
+        <h2 class="glow-green">SYSTEM STATUS & PARAMETERS</h2>
+      </div>
+      <div class="sync-meta">
+        <span class="label">LAST PULSE</span>
+        <span id="footer-pulse-time" class="mono glow-green">--:--:--</span>
+      </div>
+    </header>
 
-        /* Responsive Container */
-        #fs25-footer-dashboard {
-            width: 100%;
-            max-width: 100%;
-            padding: 50px 15px; /* User Section Height Setting */
-            background-color: var(--fs-dark);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            box-sizing: border-box;
-        }
-
-        .dashboard-content {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        h2 {
-            font-size: 30px; /* User Header Setting */
-            color: var(--fs-green);
-            margin: 0 0 25px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        h2::before {
-            content: '';
-            width: 4px;
-            height: 30px;
-            background: var(--fs-green);
-            display: inline-block;
-        }
-
-        h3 {
-            font-size: 18px;
-            color: var(--fs-accent);
-            margin: 0 0 15px 0;
-            text-transform: uppercase;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-        }
-
-        /* Layout Grid for Desktop, Stacked for Mobile */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 30px; /* User Row Height Setting */
-        }
-
-        @min-width: 981px {
-            .dashboard-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        .row-container {
-            background: var(--bg-card);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            border: 1px solid var(--border);
-            padding: 20px;
-        }
-
-        .no-padding { padding: 0; }
-
-        .map-container {
-            position: relative;
-            width: 100%;
-            background: #000;
-            display: flex;
-            justify-content: center;
-        }
-
-        #server-map {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .stat-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            font-size: 14px; /* User Body Text Setting */
-        }
-
-        .stat-box {
-            background: rgba(255,255,255,0.03);
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #2a2a2a;
-        }
-
-        .stat-label {
-            display: block;
-            font-size: 10px;
-            color: var(--text-dim);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
-            font-weight: bold;
-            color: var(--fs-accent);
-        }
-
-        .status-online { color: #4caf50; font-size: 12px; font-weight: bold; }
-        
-        #error-msg {
-            display: none;
-            background: #441111;
-            color: #ff9999;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
-
-        .refresh-notice {
-            text-align: center;
-            font-size: 11px;
-            color: #555;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-
-<div id="fs25-footer-dashboard">
-    <div class="dashboard-content">
-        <h2>Live Server Feed</h2>
-
-        <div id="error-msg"></div>
-
-        <div class="dashboard-grid">
-            <!-- COLUMN 1: LIVE MAP & STATUS -->
-            <div class="column">
-                <div class="row-container no-padding" style="margin-bottom: 20px;">
-                    <div class="map-container">
-                        <img id="server-map" src="http://207.244.243.68:8500/feed/dedicated-server-stats-map.jpg?code=jeRZKn2jNdgJNqqs&quality=60&size=512" alt="Live Map">
-                    </div>
-                </div>
-                <div class="row-container">
-                    <h3>Live Connection</h3>
-                    <div class="stat-grid">
-                        <div class="stat-box">
-                            <span class="stat-label">Status</span>
-                            <span id="status-text" class="stat-value">Connecting...</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Operators</span>
-                            <span id="player-count" class="stat-value">0 / 0</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Farm Bank</span>
-                            <span id="farm-money" class="stat-value">$---,---</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Current Map</span>
-                            <span id="map-name" class="stat-value">-</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- COLUMN 2: FARM RULES -->
-            <div class="column">
-                <div class="row-container" style="height: 100%; box-sizing: border-box;">
-                    <h3>Farm Rules</h3>
-                    <div class="stat-grid">
-                        <div class="stat-box">
-                            <span class="stat-label">Economy</span>
-                            <span class="stat-value">NORMAL</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Growth</span>
-                            <span class="stat-value">SEASONAL</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Traffic/Snow</span>
-                            <span class="stat-value">ENABLED</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Fuel Usage</span>
-                            <span class="stat-value">HIGH (2x)</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Plowing</span>
-                            <span class="stat-value">NOT REQ.</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Lime/Weeds</span>
-                            <span class="stat-value">REQUIRED</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- COLUMN 3: NODE PERFORMANCE -->
-            <div class="column">
-                <div class="row-container" style="height: 100%; box-sizing: border-box;">
-                    <h3>Node Performance</h3>
-                    <div class="stat-grid">
-                        <div class="stat-box" style="grid-column: span 2;">
-                            <span class="stat-label">System CPU</span>
-                            <span class="stat-value">AMD EPYC 7282 (64 Cores)</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Allocated RAM</span>
-                            <span class="stat-value">512 GB DDR4</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Engine Build</span>
-                            <span class="stat-value">10.0.0 (44649)</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Fleet Size</span>
-                            <span id="vehicle-count" class="stat-value">--</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="stat-label">Physics</span>
-                            <span class="stat-value">v6.3.7</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- MAIN FOOTER GRID -->
+    <div class="footer-grid">
+      
+      <!-- COLUMN 1: SATELLITE RECON -->
+      <div class="footer-col">
+        <div class="row-container no-padding">
+          <div class="map-frame">
+            <img id="footer-map-img" src="https://wsrv.nl/?url=http://207.244.243.68:8500/feed/dedicated-server-stats-map.jpg?code=jeRZKn2jNdgJNqqs&quality=60&size=512" alt="Server Map">
+          </div>
         </div>
-
-        <div class="refresh-notice">
-            Live Data Sync every 30s | <span id="last-update"></span>
+        <div class="row-container">
+          <h3>SATELLITE RECON</h3>
+          <div class="stat-grid">
+            <div class="stat-box">
+              <span class="stat-label">SIGNAL</span>
+              <span id="footer-status" class="stat-val neon-green">OFFLINE</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">OPERATORS</span>
+              <span id="footer-players" class="stat-val">0 / 6</span>
+            </div>
+            <div class="stat-box full-w">
+              <span class="stat-label">CONSOLE SLOT USAGE</span>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                <span id="footer-slots-text" class="stat-val">0 / 4400</span>
+                <span id="slot-warning" style="font-size:10px; font-weight:900;">STABLE</span>
+              </div>
+              <div class="slot-bar-bg">
+                <div id="slot-bar-fill" class="slot-bar-fill" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">TOTAL ASSETS</span>
+              <span id="footer-vehicles" class="stat-val">-- UNITS</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">MAP VERSION</span>
+              <span id="footer-map-name" class="stat-val">SCANNING...</span>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- COLUMN 2: TACTICAL DIRECTIVES -->
+      <div class="footer-col">
+        <div class="row-container fill-h">
+          <h3>FARM DIRECTIVES</h3>
+          <div class="stat-grid">
+            <div class="stat-box"><span class="stat-label">ECONOMY</span><span class="stat-val">NORMAL</span></div>
+            <div class="stat-box"><span class="stat-label">GROWTH</span><span class="stat-val">SEASONAL</span></div>
+            <div class="stat-box"><span class="stat-label">TRAFFIC</span><span class="stat-val">ACTIVE</span></div>
+            <div class="stat-box"><span class="stat-label">FUEL USE</span><span class="stat-val">HIGH (2X)</span></div>
+            <div class="stat-box"><span class="stat-label">PLOWING</span><span class="stat-val">OPTIONAL</span></div>
+            <div class="stat-box"><span class="stat-label">WEEDS</span><span class="stat-val">REQUIRED</span></div>
+            <div class="stat-box"><span class="stat-label">LIME</span><span class="stat-val">REQUIRED</span></div>
+            <div class="stat-box"><span class="stat-label">STONES</span><span class="stat-val">ENABLED</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLUMN 3: NODE INTEL -->
+      <div class="footer-col">
+        <div class="row-container fill-h">
+          <h3>NODE PERFORMANCE</h3>
+          <div class="stat-grid">
+            <div class="stat-box full-w">
+              <span class="stat-label">CPU ARCHITECTURE</span>
+              <span class="stat-val neon-blue">AMD EPYC 7282 (64 CORES)</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">SYSTEM RAM</span>
+              <span class="stat-val">512 GB DDR4</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">BUILD ID</span>
+              <span class="stat-val">10.0.0.44649</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">LATENCY</span>
+              <span class="stat-val">STABLE</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">UPTIME</span>
+              <span class="stat-val">99.9%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-</div>
 
-<script>
-    const AUTH_CODE = "jeRZKn2jNdgJNqqs";
-    const BASE_FEED = "http://207.244.243.68:8500/feed/";
-    const PROXY = "https://corsproxy.io/?url=";
+  </div>
 
-    async function updateDashboard() {
-        try {
-            // 1. Core Server Stats
-            const statsUrl = `${PROXY}${encodeURIComponent(BASE_FEED + 'dedicated-server-stats.xml?code=' + AUTH_CODE)}`;
-            const response = await fetch(statsUrl);
-            const text = await response.text();
-            const xml = new DOMParser().parseFromString(text, "text/xml");
-            const server = xml.getElementsByTagName("Server")[0];
-
-            if (server) {
-                document.getElementById('status-text').innerHTML = '<span class="status-online">● ONLINE</span>';
-                document.getElementById('map-name').innerText = server.getAttribute("mapName");
-                document.getElementById('player-count').innerText = `${server.getAttribute("numPlayers")} / ${server.getAttribute("capacity")}`;
-            }
-
-            // 2. Financials
-            const econUrl = `${PROXY}${encodeURIComponent(BASE_FEED + 'dedicated-server-savegame.html?code=' + AUTH_CODE + '&file=economy')}`;
-            const econResp = await fetch(econUrl);
-            const econText = await econResp.text();
-            const moneyMatch = econText.match(/<money>(\\d+)<\\/money>/);
-            if(moneyMatch) {
-                document.getElementById('farm-money').innerText = `$${parseInt(moneyMatch[1]).toLocaleString()}`;
-            }
-
-            // 3. Vehicle Fleet Count
-            const vehicleUrl = `${PROXY}${encodeURIComponent(BASE_FEED + 'dedicated-server-savegame.html?code=' + AUTH_CODE + '&file=vehicles')}`;
-            const vehicleResp = await fetch(vehicleUrl);
-            const vehicleText = await vehicleResp.text();
-            const vCount = (vehicleText.match(/<vehicle /g) || []).length;
-            document.getElementById('vehicle-count').innerText = `${vCount} Units`;
-
-            // 4. Update Map Image
-            const mapImg = document.getElementById('server-map');
-            mapImg.src = BASE_FEED + "dedicated-server-stats-map.jpg?code=" + AUTH_CODE + "&quality=60&size=512&t=" + new Date().getTime();
-
-            document.getElementById('last-update').innerText = new Date().toLocaleTimeString();
-            document.getElementById('error-msg').style.display = 'none';
-
-        } catch (err) {
-            console.error(err);
-            document.getElementById('error-msg').style.display = 'block';
-            document.getElementById('error-msg').innerText = "Feed Connection Error. The server may be offline.";
-        }
+  <style>
+    #wp-custom-wrapper {
+      --bg-dark: #0a0b0d;
+      --bg-card: rgba(18, 20, 25, 0.95);
+      --neon-green: #76b041;
+      --neon-blue: #00f2ff;
+      --neon-orange: #ff5f00;
+      --neon-red: #ff3131;
+      --border: rgba(255, 255, 255, 0.08);
+      --font: 'Inter', -apple-system, system-ui, sans-serif;
     }
 
-    updateDashboard();
-    setInterval(updateDashboard, 30000);
-</script>
+    #wp-custom-wrapper .fs25-footer-recon {
+      width: 95%;
+      margin: 50px auto;
+      max-width: 1400px;
+      font-family: var(--font);
+      color: #fff;
+    }
 
-</body>
-</html>
+    #wp-custom-wrapper .footer-ops-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 15px;
+    }
+
+    #wp-custom-wrapper .label { display: block; font-size: 14px; font-weight: 800; color: #718096; text-transform: uppercase; letter-spacing: 1px; }
+    #wp-custom-wrapper h2 { font-size: 30px; font-weight: 900; color: var(--neon-green); margin: 0; text-transform: uppercase; }
+    #wp-custom-wrapper h3 { font-size: 18px; color: var(--neon-orange); margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+
+    #wp-custom-wrapper .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 30px;
+    }
+
+    #wp-custom-wrapper .row-container {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      margin-bottom: 20px;
+    }
+    #wp-custom-wrapper .no-padding { padding: 0; overflow: hidden; }
+    #wp-custom-wrapper .fill-h { height: calc(100% - 20px); box-sizing: border-box; }
+
+    #wp-custom-wrapper .map-frame img { width: 100%; display: block; filter: brightness(0.5); }
+
+    #wp-custom-wrapper .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    #wp-custom-wrapper .stat-box { background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.03); }
+    #wp-custom-wrapper .full-w { grid-column: span 2; }
+    
+    #wp-custom-wrapper .stat-label { display: block; font-size: 10px; color: #718096; font-weight: 900; margin-bottom: 4px; text-transform: uppercase; }
+    #wp-custom-wrapper .stat-val { font-size: 14px; font-weight: 700; color: #fff; }
+
+    /* Console Slot Bar Styling */
+    #wp-custom-wrapper .slot-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+    #wp-custom-wrapper .slot-bar-fill { height: 100%; background: var(--neon-green); transition: width 1s ease; box-shadow: 0 0 8px var(--neon-green); }
+
+    #wp-custom-wrapper .neon-green { color: var(--neon-green); text-shadow: 0 0 10px rgba(118, 176, 65, 0.4); }
+    #wp-custom-wrapper .neon-blue { color: var(--neon-blue); }
+    #wp-custom-wrapper .glow-green { text-shadow: 0 0 8px var(--neon-green); }
+    #wp-custom-wrapper .mono { font-family: monospace; font-size: 14px; }
+
+    @media (max-width: 800px) {
+      #wp-custom-wrapper .footer-ops-header { flex-direction: column; text-align: center; gap: 15px; }
+      #wp-custom-wrapper h2 { font-size: 24px; }
+      #wp-custom-wrapper .stat-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+
+  <script>
+    (function() {
+      const config = { databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" };
+      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25FooterRecon'); }
+      const db = firebase.app('fs25FooterRecon').database();
+
+      function find(o, ...keys) { 
+        if (!o) return null;
+        for (let k of keys) { if (o[k] !== undefined && o[k] !== null) return o[k]; } 
+        return null; 
+      }
+
+      db.ref('fs25_live').on('value', (snap) => {
+        const data = snap.val();
+        if (!data) return;
+
+        const overview = find(data, "Server Overview", "server", "server_info") || {};
+        const isOnline = find(overview, "Status", "isOnline") === "ONLINE" || find(overview, "isOnline") === true;
+        
+        document.getElementById('footer-status').innerText = isOnline ? '● ONLINE' : '○ OFFLINE';
+        document.getElementById('footer-status').className = isOnline ? 'stat-val neon-green' : 'stat-val';
+        document.getElementById('footer-map-name').innerText = (find(overview, "Active Map", "mapName") || "WORLD").toUpperCase();
+        const currentP = find(overview, "Players Online", "numPlayers") || 0;
+        document.getElementById('footer-players').innerText = `${currentP} / 6`;
+
+        const fleetRaw = find(data, "Vehicle Fleet", "fleet", "fleet_registry") || [];
+        const fleetArray = Array.isArray(fleetRaw) ? fleetRaw : Object.values(fleetRaw);
+        document.getElementById('footer-vehicles').innerText = `${fleetArray.length} UNITS`;
+
+        // CONSOLE SLOT CALCULATION (FS25 Engine Limit approx 4400)
+        // Note: Real slot usage comes from the XML, but we can estimate based on fleet density
+        // if your sync script isn't pushing the exact slot usage yet.
+        const baseSlots = find(overview, "slotsUsed", "slots") || (fleetArray.length * 45); // Estimate
+        const maxSlots = 4400;
+        const pct = Math.min(100, Math.round((baseSlots / maxSlots) * 100));
+        
+        const bar = document.getElementById('slot-bar-fill');
+        const text = document.getElementById('footer-slots-text');
+        const warn = document.getElementById('slot-warning');
+        
+        text.innerText = `${Math.round(baseSlots)} / ${maxSlots}`;
+        bar.style.width = `${pct}%`;
+        
+        if (pct > 85) {
+          bar.style.background = 'var(--neon-red)';
+          warn.innerText = "CRITICAL";
+          warn.style.color = 'var(--neon-red)';
+        } else if (pct > 60) {
+          bar.style.background = 'var(--neon-orange)';
+          warn.innerText = "HEAVY";
+          warn.style.color = 'var(--neon-orange)';
+        } else {
+          bar.style.background = 'var(--neon-green)';
+          warn.innerText = "STABLE";
+          warn.style.color = 'var(--neon-green)';
+        }
+
+        const lastTime = find(data, "Last Update Time", "lastUpdate", "last_heartbeat") || "--:--:--";
+        document.getElementById('footer-pulse-time').innerText = lastTime;
+
+      }, (err) => console.error("Footer Sync Error:", err));
+    })();
+  </script>
+</div>
