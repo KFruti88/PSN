@@ -1,0 +1,298 @@
+<div id="wp-custom-wrapper">
+  <div class="fs25-animal-dashboard">
+    <header class="ops-vitals-header">
+      <div class="vital-branding">
+        <span class="label">LIVESTOCK UPLINK [FS25]</span>
+        <h2 class="glow-blue">ANIMAL HEALTH & PRODUCTION</h2>
+      </div>
+      <div class="ops-sync-info">
+        <span class="label">CENTRAL TIME SYNC</span>
+        <span id="animal-sync-clock" class="mono">00:00:00</span>
+      </div>
+    </header>
+
+    <!-- Dynamic container that expands as new farms are detected -->
+    <div class="animal-grid" id="dynamic-farm-container">
+        <div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">
+            INITIALIZING SATELLITE UPLINK...
+        </div>
+    </div>
+  </div>
+
+  <style>
+    #wp-custom-wrapper {
+      --bg-ops: rgba(15, 18, 22, 0.98);
+      --neon-blue: #00f2ff;
+      --neon-orange: #ff5f00;
+      --neon-red: #ff3131;
+      --neon-green: #76b041;
+      --neon-purple: #bc13fe;
+      --neon-yellow: #f4b400;
+      --border-ops: rgba(255, 255, 255, 0.1);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #wp-custom-wrapper .fs25-animal-dashboard {
+      width: 90%; 
+      margin: 50px auto; /* Divi Section Height Setting: 50 */
+      max-width: 1400px;
+      font-family: var(--font);
+      color: #fff;
+      background: transparent;
+    }
+
+    /* Header Section */
+    #wp-custom-wrapper .ops-vitals-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap; 
+      gap: 30px; /* Divi Row Height Setting: 30 */
+      background: var(--bg-ops);
+      padding: 30px 25px; /* Divi Padding Setting: 30 */
+      border: 1px solid var(--border-ops);
+      border-radius: 12px;
+      margin-bottom: 30px; /* Divi Row Height Setting: 30 */
+      border-left: 5px solid var(--neon-blue);
+    }
+
+    #wp-custom-wrapper .label { 
+      display: block; 
+      font-size: 14px; /* User Body Setting: 14 */
+      font-weight: 800; 
+      color: #718096; 
+      letter-spacing: 2px; 
+      text-transform: uppercase;
+    }
+
+    #wp-custom-wrapper .glow-blue { 
+      color: var(--neon-blue); 
+      text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); 
+      margin: 0; 
+      font-size: 30px; /* User Header Setting: 30 */
+      font-weight: 900; 
+      text-transform: uppercase;
+    }
+
+    /* Grid now supports 1 to 3 columns depending on screen size */
+    #wp-custom-wrapper .animal-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+      gap: 30px; /* Divi Row Height Setting: 30 */
+    }
+    
+    #wp-custom-wrapper .animal-column { 
+      background: var(--bg-ops); 
+      border: 1px solid var(--border-ops); 
+      border-radius: 16px; 
+      overflow: hidden; 
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Farm-specific Border Accents */
+    #wp-custom-wrapper .f-border-1 { border-top: 4px solid var(--neon-orange); }
+    #wp-custom-wrapper .f-border-2 { border-top: 4px solid var(--neon-red); }
+    #wp-custom-wrapper .f-border-3 { border-top: 4px solid var(--neon-blue); }
+    #wp-custom-wrapper .f-border-4 { border-top: 4px solid var(--neon-green); }
+    #wp-custom-wrapper .f-border-5 { border-top: 4px solid var(--neon-purple); }
+    #wp-custom-wrapper .f-border-6 { border-top: 4px solid var(--neon-yellow); }
+
+    #wp-custom-wrapper .column-header { 
+      padding: 20px 25px; 
+      background: rgba(255,255,255,0.03); 
+      border-bottom: 1px solid var(--border-ops); 
+    }
+    #wp-custom-wrapper .column-header h3 { 
+      margin: 0; 
+      font-size: 16px; 
+      font-weight: 900; 
+      letter-spacing: 1px; 
+      text-transform: uppercase;
+    }
+
+    #wp-custom-wrapper .animal-card {
+      padding: 25px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    #wp-custom-wrapper .card-top { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: flex-start; 
+      margin-bottom: 15px; 
+    }
+    #wp-custom-wrapper .animal-type { 
+      font-weight: 900; 
+      font-size: 14px; /* User Body Setting: 14 */
+      text-transform: uppercase; 
+    }
+    
+    #wp-custom-wrapper .health-badge {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 900;
+      border: 1px solid var(--neon-blue);
+      color: var(--neon-blue);
+      text-transform: uppercase;
+    }
+
+    #wp-custom-wrapper .stat-row { margin-top: 12px; }
+    #wp-custom-wrapper .stat-label { 
+      font-size: 11px; 
+      color: #718096; 
+      font-weight: 800; 
+      text-transform: uppercase; 
+      margin-bottom: 6px; 
+      display: block; 
+    }
+    #wp-custom-wrapper .bar-bg { 
+      width: 100%; 
+      height: 8px; 
+      background: rgba(255,255,255,0.08); 
+      border-radius: 4px; 
+      overflow: hidden; 
+    }
+    
+    /* Specific Fill Colors */
+    #wp-custom-wrapper .f-fill-1 { background: var(--neon-orange); box-shadow: 0 0 8px var(--neon-orange); }
+    #wp-custom-wrapper .f-fill-2 { background: var(--neon-red); box-shadow: 0 0 8px var(--neon-red); }
+    #wp-custom-wrapper .f-fill-3 { background: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue); }
+    #wp-custom-wrapper .f-fill-4 { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
+    #wp-custom-wrapper .f-fill-5 { background: var(--neon-purple); box-shadow: 0 0 8px var(--neon-purple); }
+    #wp-custom-wrapper .f-fill-6 { background: var(--neon-yellow); box-shadow: 0 0 8px var(--neon-yellow); }
+
+    #wp-custom-wrapper .bar-fill-blue { height: 100%; background: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue); }
+
+    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
+
+    @media (max-width: 600px) {
+      #wp-custom-wrapper .ops-vitals-header { padding: 20px; }
+      #wp-custom-wrapper .glow-blue { font-size: 24px; }
+      #wp-custom-wrapper .fs25-animal-dashboard { width: 95%; }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+
+  <script>
+    (function() {
+      const config = { 
+        apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
+        databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
+      };
+
+      const appName = 'fs25AnimalOpsDynamic';
+      let app;
+      try {
+        app = firebase.apps.find(a => a.name === appName) || firebase.initializeApp(config, appName);
+      } catch (e) {
+        app = firebase.app(appName);
+      }
+      
+      const db = app.database();
+
+      // Formatting helper
+      const farmBrands = {
+          "1": { name: "WEREWOLF RANCH", icon: "🐺", color: "1" },
+          "2": { name: "RAYMYSTRO RANCH", icon: "⚡", color: "2" },
+          "3": { name: "COBALT STATION", icon: "💎", color: "3" },
+          "4": { name: "EMERALD FIELDS", icon: "🌿", color: "4" },
+          "5": { name: "PURPLE PEAK", icon: "🏔️", color: "5" },
+          "6": { name: "GOLDEN VALLEY", icon: "☀️", color: "6" }
+      };
+
+      db.ref('fs25_live').on('value', (snap) => {
+        const data = snap.val();
+        const container = document.getElementById('dynamic-farm-container');
+        
+        if (!data || !data.animals) {
+            container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size:14px;">NO ACTIVE LIVESTOCK DATA DETECTED</div>';
+            return;
+        }
+
+        // Sync Clock
+        const ctTime = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Chicago',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        }).format(new Date());
+        document.getElementById('animal-sync-clock').innerText = ctTime;
+
+        // Group animals by Farm ID
+        const rawAnimals = data.animals;
+        const animals = Array.isArray(rawAnimals) ? rawAnimals : Object.values(rawAnimals);
+        
+        const farmGroups = {};
+        animals.forEach(a => {
+            if (!a || !a.farmId) return;
+            const fid = a.farmId.toString();
+            // Only allow farms 1 through 6
+            if (parseInt(fid) > 6) return;
+
+            if (!farmGroups[fid]) farmGroups[fid] = [];
+            farmGroups[fid].push(a);
+        });
+
+        // Clear and rebuild UI
+        container.innerHTML = '';
+
+        // Iterate through detected farms in order
+        Object.keys(farmGroups).sort().forEach(fid => {
+            const group = farmGroups[fid];
+            const brand = farmBrands[fid] || { name: `FARM ${fid}`, icon: "🚜", color: fid };
+
+            const section = document.createElement('section');
+            section.className = `animal-column f-border-${brand.color}`;
+            
+            let html = `
+                <div class="column-header">
+                    <h3>${brand.icon} ${brand.name}</h3>
+                </div>
+                <div class="animal-list">
+            `;
+
+            group.forEach(a => {
+                const health = a.health || 0;
+                const food = a.foodLevel || 0;
+                const prod = a.productionLevel || 0;
+                const type = (a.type || "Unknown").toUpperCase();
+
+                html += `
+                    <div class="animal-card">
+                        <div class="card-top">
+                            <span class="animal-type">${type} (${a.count || 0} HEAD)</span>
+                            <span class="health-badge">HEALTH: ${health}%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">FOOD RESERVES: ${food}%</span>
+                            <div class="bar-bg"><div class="f-fill-${brand.color}" style="width:${food}%; height:100%"></div></div>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">PRODUCTION YIELD: ${prod}%</span>
+                            <div class="bar-bg" style="background:rgba(0,242,255,0.05)">
+                                <div class="bar-fill-blue" style="width:${prod}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            section.innerHTML = html;
+            container.appendChild(section);
+        });
+
+        if (container.innerHTML === '') {
+            container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size:14px;">WAITING FOR FARM ACTIVITY...</div>';
+        }
+
+      }, (err) => {
+        console.error("Firebase Animal Sync Error:", err);
+      });
+    })();
+  </script>
+</div>
