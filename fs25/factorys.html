@@ -1,180 +1,200 @@
 <div id="wp-custom-wrapper">
-  <div class="fs25-production-dashboard">
-    <header class="ops-vitals-header">
-      <div class="vital-branding">
-        <span class="label">PRODUCTION UPLINK [FS25]</span>
-        <h2 class="glow-blue">FACTORY STATUS REPORT</h2>
+  <div class="fs25-industrial-terminal">
+    
+    <!-- TERMINAL HEADER -->
+    <header class="terminal-header">
+      <div class="branding">
+        <span class="label">INDUSTRIAL COMMAND [FS25]</span>
+        <h1 class="glow-blue">FACTORY STATUS REPORT</h1>
       </div>
-      <div class="ops-sync-info">
-        <span class="label">CENTRAL TIME SYNC</span>
-        <span id="factory-sync-clock" class="mono">00:00:00</span>
+      <div class="terminal-meta">
+        <span class="label">UPLINK STATUS</span>
+        <div id="sync-status" class="neon-green">● SATELLITE LINK ACTIVE</div>
       </div>
     </header>
 
-    <!-- Dynamic container that expands as new industrial zones are detected -->
-    <div class="factory-grid" id="dynamic-production-container">
-        <div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">
-            SCANNING INDUSTRIAL FREQUENCIES...
-        </div>
+    <!-- INDUSTRIAL INTEL BAR (Fills the top body) -->
+    <div class="industrial-intel">
+      <div class="intel-box">
+        <span class="label">ACTIVE ZONES</span>
+        <span id="stat-active-factories" class="intel-val neon-blue">0</span>
+      </div>
+      <div id="status-ticker" class="intel-box ticker-box">
+        <span class="label">LOGISTICS FEED</span>
+        <div class="ticker-content" id="intel-ticker-text">SCANNING INDUSTRIAL FREQUENCIES...</div>
+      </div>
+      <div class="intel-box last">
+        <span class="label">SYSTEM CLOCK</span>
+        <span id="factory-clock" class="intel-val mono">00:00:00</span>
+      </div>
     </div>
+
+    <!-- MAIN OPERATIONS VIEWPORT -->
+    <div class="operations-viewport">
+      
+      <!-- LEFT: STRATEGIC LEDGER (The Body) -->
+      <section class="ops-ledger">
+        <div class="section-header">
+          <span class="label">OPERATIONAL AUDIT</span>
+          <h3>MANUFACTURING LOGS</h3>
+        </div>
+        <div class="table-container">
+          <table class="terminal-table">
+            <thead>
+              <tr>
+                <th>FACILITY</th>
+                <th>FARM</th>
+                <th>EFFICIENCY</th>
+                <th>STORAGE</th>
+                <th>STATUS</th>
+              </tr>
+            </thead>
+            <tbody id="production-tbody">
+              <tr><td colspan="5" style="text-align:center; padding:100px; opacity:0.3; font-size:14px;">INITIALIZING DATA HANDSHAKE...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- RIGHT: CRITICAL ALERTS -->
+      <aside class="critical-sidebar">
+        <div class="section-header">
+          <span class="label">ALERT SYSTEM</span>
+          <h3>PRIORITY ACTIONS</h3>
+        </div>
+        <div id="priority-alerts" class="alert-list">
+          <div class="empty-alert">ALL SYSTEMS NOMINAL</div>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- TERMINAL FOOTER -->
+    <footer class="terminal-footer">
+      <div class="footer-group">
+        <span class="label">DATA REFRESH</span>
+        <span class="mono">LIVE / 30S CYCLE</span>
+      </div>
+      <div class="footer-group right-align">
+        <span class="label">INTEGRITY CHECK</span>
+        <span class="mono neon-blue">VERIFIED BY 618 CREW</span>
+      </div>
+    </footer>
   </div>
 
   <style>
     #wp-custom-wrapper {
-      --bg-ops: rgba(15, 18, 22, 0.98);
+      --bg-terminal: #0a0b0d;
+      --bg-card: rgba(15, 17, 22, 0.95);
       --neon-blue: #00f2ff;
+      --neon-green: #76b041;
       --neon-orange: #ff5f00;
       --neon-red: #ff3131;
-      --neon-green: #76b041;
-      --neon-purple: #bc13fe;
-      --neon-yellow: #f4b400;
-      --border-ops: rgba(255, 255, 255, 0.1);
-      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --border: rgba(255, 255, 255, 0.08);
+      --font: 'Inter', -apple-system, system-ui, sans-serif;
     }
 
-    #wp-custom-wrapper .fs25-production-dashboard {
-      width: 90%; 
-      margin: 50px auto; /* Divi Section Height Setting: 50 */
+    #wp-custom-wrapper .fs25-industrial-terminal {
+      width: 95%;
+      margin: 50px auto; /* Section Height: 50 */
       max-width: 1400px;
       font-family: var(--font);
       color: #fff;
-      background: transparent; 
     }
 
-    /* Header Section */
-    #wp-custom-wrapper .ops-vitals-header {
+    /* Terminal Header: Row Height 30 / Title 30 */
+    #wp-custom-wrapper .terminal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap; 
-      gap: 30px; /* Divi Row Height Setting: 30 */
-      background: var(--bg-ops);
-      padding: 30px 25px; /* Divi Padding Setting: 30 */
-      border: 1px solid var(--border-ops);
-      border-radius: 12px;
-      margin-bottom: 30px; /* Divi Row Height Setting: 30 */
+      background: var(--bg-card);
+      padding: 30px 25px; /* Row Height: 30 */
+      border: 1px solid var(--border);
+      border-radius: 12px 12px 0 0;
       border-left: 5px solid var(--neon-blue);
     }
 
-    /* User Body Text Setting: 14px */
     #wp-custom-wrapper .label { 
-      display: block; 
-      font-size: 14px; 
-      font-weight: 800; 
-      color: #718096; 
-      letter-spacing: 2px; 
-      text-transform: uppercase;
+      display: block; font-size: 14px; font-weight: 800; color: #718096; 
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px;
     }
 
-    /* User Header Text Setting: 30px */
-    #wp-custom-wrapper .glow-blue { 
-      color: var(--neon-blue); 
-      text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); 
-      margin: 0; 
-      font-size: 30px; 
-      font-weight: 900; 
-      text-transform: uppercase;
+    #wp-custom-wrapper h1 { 
+      font-size: 30px; font-weight: 900; margin: 0; text-transform: uppercase;
     }
 
-    /* Grid supports 1 to 3 columns depending on screen size */
-    #wp-custom-wrapper .factory-grid { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
-      gap: 30px; /* Divi Row Height Setting: 30 */
+    /* Industrial Intel Bar */
+    #wp-custom-wrapper .industrial-intel {
+      display: grid;
+      grid-template-columns: 180px 1fr 180px;
+      background: #000;
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: 15px 0;
     }
-    
-    #wp-custom-wrapper .factory-column { 
-      background: var(--bg-ops); 
-      border: 1px solid var(--border-ops); 
-      border-radius: 16px; 
-      overflow: hidden; 
+    #wp-custom-wrapper .intel-box { border-right: 1px solid var(--border); padding: 0 25px; text-align: center; }
+    #wp-custom-wrapper .intel-box.last { border-right: none; }
+    #wp-custom-wrapper .intel-val { font-size: 22px; font-weight: 900; display: block; }
+    #wp-custom-wrapper .ticker-box { text-align: left; overflow: hidden; }
+    #wp-custom-wrapper .ticker-content { font-size: 14px; font-weight: 700; color: var(--neon-orange); padding-top: 4px; }
+
+    /* Layout */
+    #wp-custom-wrapper .operations-viewport {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    #wp-custom-wrapper .ops-ledger, #wp-custom-wrapper .critical-sidebar {
+      background: var(--bg-terminal);
+      padding: 25px;
+    }
+    #wp-custom-wrapper .section-header { margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    #wp-custom-wrapper h3 { font-size: 18px; font-weight: 900; margin: 0; }
+
+    /* Tables: Body Text 14px */
+    #wp-custom-wrapper .terminal-table { width: 100%; border-collapse: collapse; }
+    #wp-custom-wrapper th { text-align: left; font-size: 11px; color: #718096; padding: 10px; border-bottom: 1px solid var(--border); text-transform: uppercase; }
+    #wp-custom-wrapper td { padding: 18px 10px; font-size: 14px; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+    /* Progress Bars */
+    #wp-custom-wrapper .p-bar-bg { width: 100px; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+    #wp-custom-wrapper .p-bar-fill { height: 100%; background: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue); transition: width 1s ease; }
+
+    /* Alert Cards */
+    #wp-custom-wrapper .alert-card {
+      background: rgba(255, 49, 49, 0.05);
+      border: 1px solid rgba(255, 49, 49, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-left: 4px solid var(--neon-red);
+    }
+    #wp-custom-wrapper .alert-title { font-size: 12px; font-weight: 900; color: var(--neon-red); text-transform: uppercase; }
+    #wp-custom-wrapper .alert-msg { font-size: 14px; font-weight: 600; margin-top: 4px; }
+
+    /* Footer */
+    #wp-custom-wrapper .terminal-footer {
       display: flex;
-      flex-direction: column;
-      animation: fadeIn 0.5s ease;
+      justify-content: space-between;
+      background: var(--bg-card);
+      padding: 20px 25px;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 12px 12px;
     }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    #wp-custom-wrapper .glow-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); }
+    #wp-custom-wrapper .neon-green { color: var(--neon-green); }
+    #wp-custom-wrapper .mono { font-family: monospace; font-size: 14px; }
+    #wp-custom-wrapper .right-align { text-align: right; }
 
-    /* Farm-specific Border Accents */
-    #wp-custom-wrapper .f-border-1 { border-top: 4px solid var(--neon-orange); }
-    #wp-custom-wrapper .f-border-2 { border-top: 4px solid var(--neon-red); }
-    #wp-custom-wrapper .f-border-3 { border-top: 4px solid var(--neon-blue); }
-    #wp-custom-wrapper .f-border-4 { border-top: 4px solid var(--neon-green); }
-    #wp-custom-wrapper .f-border-5 { border-top: 4px solid var(--neon-purple); }
-    #wp-custom-wrapper .f-border-6 { border-top: 4px solid var(--neon-yellow); }
-
-    #wp-custom-wrapper .column-header { 
-      padding: 20px 25px; 
-      background: rgba(255,255,255,0.03); 
-      border-bottom: 1px solid var(--border-ops); 
-    }
-    #wp-custom-wrapper .column-header h3 { 
-      margin: 0; 
-      font-size: 16px; 
-      font-weight: 900; 
-      letter-spacing: 1px; 
-      text-transform: uppercase;
-    }
-
-    /* Cards & Progress Bars */
-    #wp-custom-wrapper .factory-card { 
-      padding: 25px; 
-      border-bottom: 1px solid rgba(255,255,255,0.05); 
-    }
-    #wp-custom-wrapper .card-top { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: flex-start; 
-      margin-bottom: 15px; 
-    }
-    #wp-custom-wrapper .factory-name { 
-      font-weight: 900; 
-      font-size: 14px; /* User Body Setting: 14 */
-      text-transform: uppercase; 
-    }
-    
-    #wp-custom-wrapper .status-badge { 
-      font-size: 11px; 
-      padding: 4px 8px; 
-      border-radius: 4px; 
-      font-weight: 900; 
-    }
-    #wp-custom-wrapper .active { background: rgba(0, 242, 255, 0.2); color: var(--neon-blue); border: 1px solid var(--neon-blue); }
-    #wp-custom-wrapper .inactive { background: rgba(255, 49, 49, 0.2); color: var(--neon-red); border: 1px solid var(--neon-red); }
-
-    #wp-custom-wrapper .stat-row { margin-top: 12px; }
-    #wp-custom-wrapper .stat-label { 
-      font-size: 11px; 
-      color: #718096; 
-      font-weight: 800; 
-      text-transform: uppercase; 
-      margin-bottom: 6px; 
-      display: block; 
-    }
-    #wp-custom-wrapper .bar-bg { 
-      width: 100%; 
-      height: 8px; 
-      background: rgba(255,255,255,0.08); 
-      border-radius: 4px; 
-      overflow: hidden; 
-    }
-    
-    /* Specific Fill Colors for production bars */
-    #wp-custom-wrapper .f-fill-1 { background: var(--neon-orange); box-shadow: 0 0 8px var(--neon-orange); }
-    #wp-custom-wrapper .f-fill-2 { background: var(--neon-red); box-shadow: 0 0 8px var(--neon-red); }
-    #wp-custom-wrapper .f-fill-3 { background: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue); }
-    #wp-custom-wrapper .f-fill-4 { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); }
-    #wp-custom-wrapper .f-fill-5 { background: var(--neon-purple); box-shadow: 0 0 8px var(--neon-purple); }
-    #wp-custom-wrapper .f-fill-6 { background: var(--neon-yellow); box-shadow: 0 0 8px var(--neon-yellow); }
-
-    #wp-custom-wrapper .bar-fill-blue { height: 100%; background: var(--neon-blue); box-shadow: 0 0 8px var(--neon-blue); }
-
-    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
-
-    @media (max-width: 600px) {
-      #wp-custom-wrapper .ops-vitals-header { padding: 20px; }
-      #wp-custom-wrapper .glow-blue { font-size: 24px; }
-      #wp-custom-wrapper .fs25-production-dashboard { width: 95%; } 
+    @media (max-width: 950px) {
+      #wp-custom-wrapper .operations-viewport { grid-template-columns: 1fr; }
+      #wp-custom-wrapper .industrial-intel { grid-template-columns: 1fr 1fr; }
+      #wp-custom-wrapper .ticker-box { grid-column: span 2; border-right: none; border-top: 1px solid var(--border); }
+      #wp-custom-wrapper .terminal-header { flex-direction: column; text-align: center; gap: 15px; }
     }
   </style>
 
@@ -183,118 +203,98 @@
 
   <script>
     (function() {
-      const config = { 
-        apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
-        databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
-      };
+      const config = { databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" };
+      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25ProductionTerminal'); }
+      const db = firebase.app('fs25ProductionTerminal').database();
 
-      const appName = 'fs25ProductionOpsSmart';
-      let app;
-      try {
-        app = firebase.apps.length > 0 ? (firebase.apps.find(a => a.name === appName) || firebase.initializeApp(config, appName)) : firebase.initializeApp(config, appName);
-      } catch (e) {
-        app = firebase.app(appName);
+      // SMART HANDSHAKE: Searches for data regardless of folder or label naming
+      function find(o, ...keys) { 
+        if (!o) return null;
+        for (let k of keys) { if (o[k] !== undefined && o[k] !== null) return o[k]; } 
+        return null; 
       }
-      
-      const db = app.database();
 
-      const farmBrands = {
-          "1": { name: "WEREWOLF INDUSTRIAL", icon: "🐺", color: "1" },
-          "2": { name: "RAYMYSTRO INDUSTRIAL", icon: "⚡", color: "2" },
-          "3": { name: "COBALT FACTORIES", icon: "💎", color: "3" },
-          "4": { name: "EMERALD PROCESSING", icon: "🌿", color: "4" },
-          "5": { name: "PURPLE PEAK MFG", icon: "🏔️", color: "5" },
-          "6": { name: "GOLDEN VALLEY WORKS", icon: "☀️", color: "6" }
-      };
-
-      function cleanName(name) { 
-        return name.replace(/_/g, ' ').replace(/FACTORY/gi, '').trim().toUpperCase(); 
-      }
+      function clean(n) { return String(n).replace(/_/g, ' ').replace(/FACTORY/gi, '').trim().toUpperCase(); }
 
       db.ref('fs25_live').on('value', (snap) => {
         const data = snap.val();
-        const container = document.getElementById('dynamic-production-container');
+        if (!data) return;
+
+        const tbody = document.getElementById('production-tbody');
+        const alertBox = document.getElementById('priority-alerts');
+        const ticker = document.getElementById('intel-ticker-text');
         
-        if (!data || !data.productions) {
-            container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">NO ACTIVE INDUSTRIAL DATA DETECTED</div>';
-            return;
-        }
+        tbody.innerHTML = '';
+        alertBox.innerHTML = '';
 
-        // Sync Clock
-        const ctTime = new Intl.DateTimeFormat('en-US', {
-            timeZone: 'America/Chicago',
-            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
-        }).format(new Date());
-        document.getElementById('factory-sync-clock').innerText = ctTime;
-
-        // Group productions by Farm ID
-        const prodsRaw = data.productions;
+        // Locate Productions List (Smart Handshake)
+        const prodsRaw = find(data, "productions", "factories", "industrial", "Industrial Logs") || [];
         const prods = Array.isArray(prodsRaw) ? prodsRaw : Object.values(prodsRaw);
-        
-        const farmGroups = {};
-        prods.forEach(p => {
-            if (!p || !p.farmId) return;
-            const fid = p.farmId.toString();
-            if (parseInt(fid) > 6) return;
 
-            if (!farmGroups[fid]) farmGroups[fid] = [];
-            farmGroups[fid].push(p);
+        let activeCount = 0;
+        let criticalIssues = [];
+
+        prods.forEach(p => {
+            const name = find(p, "name", "Facility", "Factory Name") || "Unnamed Facility";
+            const farmId = find(p, "farmId", "farm_id", "Owner Farm") || "0";
+            const status = String(find(p, "status", "state", "Operational Status") || "OFFLINE").toUpperCase();
+            const fill = parseInt(find(p, "fillLevel", "storage", "Storage Capacity") || 0);
+            const progress = Math.round(parseFloat(find(p, "progress", "efficiency", "Production Rate") || 0) * 100);
+            
+            const isRunning = status === "ACTIVE" || status === "RUNNING" || p.isRunning === true;
+            if (isRunning) activeCount++;
+
+            // Detect Critical Issues
+            if (fill >= 90) criticalIssues.push(`${clean(name)} STORAGE CRITICAL (${fill}%)`);
+            if (!isRunning) criticalIssues.push(`${clean(name)} IS OFFLINE`);
+
+            // Populate Main Table
+            tbody.innerHTML += `
+              <tr>
+                <td style="color:var(--neon-blue); font-weight:900;">${clean(name)}</td>
+                <td class="mono" style="color:#718096">FARM ${farmId}</td>
+                <td>
+                  <div style="font-size:10px; color:#718096">EFFICIENCY: ${progress}%</div>
+                  <div class="p-bar-bg"><div class="p-bar-fill" style="width:${progress}%"></div></div>
+                </td>
+                <td class="mono">${fill}%</td>
+                <td>
+                  <span style="color:${isRunning ? 'var(--neon-green)' : 'var(--neon-red)'}; font-size:11px; font-weight:900;">
+                    ${isRunning ? '● OPERATIONAL' : '○ SHUTDOWN'}
+                  </span>
+                </td>
+              </tr>
+            `;
         });
 
-        // Rebuild UI
-        container.innerHTML = '';
-
-        Object.keys(farmGroups).sort().forEach(fid => {
-            const group = farmGroups[fid];
-            const brand = farmBrands[fid] || { name: `FARM ${fid} INDUSTRIAL`, icon: "🏭", color: fid };
-
-            const section = document.createElement('section');
-            section.className = `factory-column f-border-${brand.color}`;
-            
-            let html = `
-                <div class="column-header">
-                    <h3>${brand.icon} ${brand.name}</h3>
-                </div>
-                <div class="factory-list">
-            `;
-
-            group.forEach(p => {
-                const progress = (p.progress <= 1 && p.progress > 0) ? (p.progress * 100) : (p.progress || 0);
-                const isRunning = p.status === "running" || p.status === "active" || p.isRunning === true;
-
-                html += `
-                    <div class="factory-card">
-                        <div class="card-top">
-                            <span class="factory-name">${cleanName(p.name)}</span>
-                            <span class="status-badge ${isRunning ? 'active' : 'inactive'}">
-                                ${isRunning ? 'ACTIVE' : 'OFFLINE'}
-                            </span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">EFFICIENCY: ${Math.round(progress)}%</span>
-                            <div class="bar-bg"><div class="f-fill-${brand.color}" style="width:${progress}%; height:100%"></div></div>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">STORAGE CAPACITY: ${p.fillLevel || 0}%</span>
-                            <div class="bar-bg" style="background:rgba(0,242,255,0.05)">
-                                <div class="bar-fill-blue" style="width:${p.fillLevel || 0}%"></div>
-                            </div>
-                        </div>
-                    </div>
+        // Update Intel Bar
+        document.getElementById('stat-active-factories').innerText = activeCount;
+        ticker.innerText = criticalIssues.length > 0 ? `⚠️ ${criticalIssues[0]}` : "✅ ALL INDUSTRIAL ZONES REPORTING STABLE STATUS";
+        
+        // Update Sidebar Alerts
+        if (criticalIssues.length > 0) {
+            criticalIssues.slice(0, 4).forEach(issue => {
+                alertBox.innerHTML += `
+                  <div class="alert-card">
+                    <div class="alert-title">Critical Attention</div>
+                    <div class="alert-msg">${issue}</div>
+                  </div>
                 `;
             });
+        } else {
+            alertBox.innerHTML = '<div class="empty-alert" style="padding:40px; text-align:center; opacity:0.3; font-size:12px;">NO PRIORITY ALERTS</div>';
+        }
 
-            html += `</div>`;
-            section.innerHTML = html;
-            container.appendChild(section);
+        // Clock Update
+        document.getElementById('factory-clock').innerText = new Date().toLocaleTimeString('en-US', { 
+            timeZone: 'America/Chicago', hour12: false 
         });
 
-        if (container.innerHTML === '') {
-            container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">AWAITING INDUSTRIAL ACTIVITY...</div>';
+        if (prods.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:60px; opacity:0.3;">NO PRODUCTION DATA DETECTED</td></tr>';
         }
-      }, (err) => {
-        console.error("Firebase Production Error:", err);
-      });
+
+      }, (err) => console.error("Production Feed Error:", err));
     })();
   </script>
 </div>
