@@ -1,0 +1,247 @@
+<div id="wp-custom-wrapper">
+  <div class="fs25-field-manager">
+    <header class="ops-header">
+      <div class="ops-branding">
+        <span class="label">FIELD COMMAND [FS25]</span>
+        <h2 class="glow-red">RAYMYSTRO ASSETS (F2)</h2>
+      </div>
+      <div class="ops-sync">
+        <span class="label">LIVE UPLINK</span>
+        <span id="f2-field-sync-clock" class="mono">00:00:00</span>
+      </div>
+    </header>
+
+    <!-- This container is dynamically filled with categorized tables -->
+    <div id="f2-categorized-ledger-mount">
+        <div style="text-align:center; padding:100px; opacity:0.3; font-size: 14px;">
+            CATEGORIZING FIELD DATA...
+        </div>
+    </div>
+  </div>
+
+  <style>
+    #wp-custom-wrapper {
+      --bg-ops: rgba(10, 11, 13, 0.98);
+      --neon-red: #ff3131;
+      --neon-blue: #00f2ff;
+      --neon-orange: #ff5f00;
+      --border-ops: rgba(255, 255, 255, 0.1);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #wp-custom-wrapper .fs25-field-manager {
+      width: 90%;
+      margin: 50px auto; /* Divi Section Height Setting: 50 */
+      max-width: 1200px;
+      font-family: var(--font);
+      color: #fff;
+    }
+
+    /* Header: Divi Row Height 30px / Header 30px */
+    #wp-custom-wrapper .ops-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-ops);
+      padding: 30px 25px; /* Divi Row Height Setting: 30 */
+      border: 1px solid var(--border-ops);
+      border-radius: 12px 12px 0 0;
+      border-left: 5px solid var(--neon-red);
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    #wp-custom-wrapper .label { 
+        display: block; 
+        font-size: 14px; /* User Body Setting: 14 */
+        font-weight: 800; 
+        color: #718096; 
+        letter-spacing: 2px; 
+        text-transform: uppercase;
+    }
+
+    #wp-custom-wrapper .glow-red { 
+        color: var(--neon-red); 
+        text-shadow: 0 0 12px rgba(255, 49, 49, 0.4); 
+        margin: 0; 
+        font-size: 30px; /* User Header Setting: 30 */
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    /* Category Sub-Header */
+    #wp-custom-wrapper .category-strip {
+      background: rgba(255,255,255,0.05);
+      padding: 10px 25px;
+      border: 1px solid var(--border-ops);
+      border-top: none;
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--neon-blue);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #wp-custom-wrapper .field-ledger-container {
+      background: var(--bg-ops);
+      border: 1px solid var(--border-ops);
+      border-top: none;
+      margin-bottom: 20px;
+    }
+
+    #wp-custom-wrapper .field-ledger-container:last-child {
+        border-radius: 0 0 12px 12px;
+    }
+
+    #wp-custom-wrapper .field-table { width: 100%; border-collapse: collapse; }
+    #wp-custom-wrapper th { 
+      text-align: left; 
+      padding: 15px 20px; 
+      font-size: 11px; 
+      text-transform: uppercase; 
+      letter-spacing: 1px; 
+      color: #718096; 
+      border-bottom: 1px solid var(--border-ops);
+      background: rgba(255,255,255,0.01);
+    }
+
+    #wp-custom-wrapper td { 
+        padding: 18px 20px; 
+        font-size: 14px; /* User Body Setting: 14 */
+        border-bottom: 1px solid rgba(255,255,255,0.03); 
+        font-weight: 600; 
+    }
+
+    /* Status Pills */
+    #wp-custom-wrapper .status-pill { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; text-transform: uppercase; display: inline-block; }
+    #wp-custom-wrapper .st-ok { color: var(--neon-blue); border: 1px solid var(--neon-blue); }
+    #wp-custom-wrapper .st-warn { color: var(--neon-orange); border: 1px solid var(--neon-orange); }
+    #wp-custom-wrapper .st-critical { color: var(--neon-red); border: 1px solid var(--neon-red); }
+
+    /* Fert Bars (F2 Red Accent) */
+    #wp-custom-wrapper .fert-bar-bg { width: 80px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+    #wp-custom-wrapper .fert-fill { height: 100%; background: var(--neon-red); box-shadow: 0 0 8px var(--neon-red); }
+
+    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
+
+    @media (max-width: 850px) {
+      #wp-custom-wrapper .field-table thead { display: none; }
+      #wp-custom-wrapper .field-table tr { display: block; border-bottom: 2px solid var(--border-ops); padding: 15px 0; }
+      #wp-custom-wrapper .field-table td { display: flex; justify-content: space-between; align-items: center; border: none; padding: 8px 20px; text-align: right; }
+      #wp-custom-wrapper .field-table td::before { content: attr(data-label); font-size: 10px; font-weight: 900; color: #718096; text-transform: uppercase; margin-right: 15px; }
+      #wp-custom-wrapper .fert-bar-bg { width: 120px; }
+      #wp-custom-wrapper .fs25-field-manager { width: 95%; }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+
+  <script>
+    (function() {
+      const config = { databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" };
+      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25FieldOpsF2'); }
+      const db = firebase.app('fs25FieldOpsF2').database();
+
+      function getGrowthLabel(state) {
+        const s = parseInt(state);
+        if (s === 0) return "CULTIVATED";
+        if (s < 5) return "GROWING";
+        if (s >= 5 && s <= 7) return "READY";
+        if (s === 8) return "WITHERED";
+        return "STUBBLE";
+      }
+
+      db.ref('fs25_live').on('value', (snap) => {
+        const data = snap.val();
+        if (!data || !data.fields) return;
+
+        // Sync Clock
+        const ctTime = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Chicago',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        }).format(new Date());
+        document.getElementById('f2-field-sync-clock').innerText = ctTime;
+
+        const mainMount = document.getElementById('f2-categorized-ledger-mount');
+        mainMount.innerHTML = '';
+
+        const fieldsRaw = Array.isArray(data.fields) ? data.fields : Object.values(data.fields);
+        // Filter for Farm 2 (Raymystro)
+        const farm2Fields = fieldsRaw.filter(f => f.farmId == "2");
+
+        if (farm2Fields.length === 0) {
+          mainMount.innerHTML = '<div style="text-align:center; padding:50px; opacity:0.3; font-size: 14px;">NO OPERATIONAL FIELDS DETECTED FOR F2</div>';
+          return;
+        }
+
+        // --- GROUPING LOGIC ---
+        const groupedFields = farm2Fields.reduce((acc, field) => {
+            const category = (field.fruitType || "Fallow / Prepared").toUpperCase();
+            if (!acc[category]) acc[category] = [];
+            acc[category].push(field);
+            return acc;
+        }, {});
+
+        const sortedCategories = Object.keys(groupedFields).sort();
+
+        sortedCategories.forEach(catName => {
+            const fields = groupedFields[catName];
+            
+            // Create Category Strip
+            const strip = document.createElement('div');
+            strip.className = 'category-strip';
+            strip.innerText = `📁 CATEGORY: ${catName}`;
+            mainMount.appendChild(strip);
+
+            // Create Table Container
+            const tableCont = document.createElement('div');
+            tableCont.className = 'field-ledger-container';
+            
+            let tableHtml = `
+              <table class="field-table">
+                <thead>
+                  <tr>
+                    <th>FIELD</th>
+                    <th>GROWTH</th>
+                    <th>PLOW</th>
+                    <th>HARVEST</th>
+                    <th>LIME</th>
+                    <th>FERT / SLURRY</th>
+                    <th>STONES</th>
+                    <th>WEEDS</th>
+                  </tr>
+                </thead>
+                <tbody>
+            `;
+
+            fields.forEach(f => {
+              const growth = getGrowthLabel(f.growthState);
+              const isReady = growth === "READY";
+              tableHtml += `
+                <tr>
+                  <td data-label="FIELD" style="color:var(--neon-red); font-weight:900;"># ${f.id}</td>
+                  <td data-label="GROWTH"><span class="status-pill ${isReady ? 'st-ok' : 'st-warn'}">${growth}</span></td>
+                  <td data-label="PLOW"><span class="status-pill ${f.isPlowed ? 'st-ok' : 'st-critical'}">${f.isPlowed ? 'DONE' : 'NEEDS PLOW'}</span></td>
+                  <td data-label="HARVEST"><span class="status-pill ${isReady ? 'st-ok' : ''}">${isReady ? 'READY' : '--'}</span></td>
+                  <td data-label="LIME"><span class="status-pill ${f.isLimed ? 'st-ok' : 'st-critical'}">${f.isLimed ? 'OK' : 'NEEDS LIME'}</span></td>
+                  <td data-label="FERT / SLURRY">
+                      <div style="font-size:10px;">LEVEL: ${f.fertilizerLevel || 0}%</div>
+                      <div class="fert-bar-bg"><div class="fert-fill" style="width:${f.fertilizerLevel || 0}%"></div></div>
+                  </td>
+                  <td data-label="STONES"><span class="status-pill ${f.stoneLevel > 0 ? 'st-critical' : 'st-ok'}">${f.stoneLevel > 0 ? 'STONY' : 'CLEAN'}</span></td>
+                  <td data-label="WEEDS"><span class="status-pill ${f.weedLevel > 0 ? 'st-critical' : 'st-ok'}">${f.weedLevel > 0 ? 'WEEDY' : 'CLEAN'}</span></td>
+                </tr>
+              `;
+            });
+
+            tableHtml += `</tbody></table>`;
+            tableCont.innerHTML = tableHtml;
+            mainMount.appendChild(tableCont);
+        });
+      }, (err) => {
+        console.error("Firebase Uplink Error:", err);
+      });
+    })();
+  </script>
+</div>
