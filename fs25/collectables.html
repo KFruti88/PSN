@@ -1,0 +1,236 @@
+<div id="wp-custom-wrapper">
+  <div class="fs25-collectables-dashboard">
+    <!-- Header: 30px Height/Header Sync -->
+    <header class="ops-header">
+      <div class="ops-branding">
+        <span class="label">SATELLITE RECON [FS25]</span>
+        <h2 class="glow-green">COLLECTABLES TRACKER</h2>
+      </div>
+      <div class="ops-sync">
+        <span class="label">TOTAL DISCOVERED</span>
+        <span id="total-progress-percent" class="mono glow-green">0%</span>
+      </div>
+    </header>
+
+    <!-- Global Progress Bar -->
+    <div class="global-progress-bar">
+        <div id="master-progress-fill" class="fill-green" style="width: 0%"></div>
+    </div>
+
+    <!-- Categorized Discovery Grid -->
+    <div id="collectables-grid" class="discovery-grid">
+        <!-- Categories auto-populate here -->
+        <div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">
+            SCANNING FOR HIDDEN SIGNALS...
+        </div>
+    </div>
+
+    <!-- Info Footer -->
+    <footer class="ops-footer">
+      <div class="footer-group">
+        <span class="label">MAP REGION</span>
+        <span id="map-location" style="color: #a0aec0;">RIVERBEND SPRINGS</span>
+      </div>
+      <div class="footer-group right">
+        <span class="label">UPLINK STATUS</span>
+        <span class="mono neon-blue">● SECURE FEED</span>
+      </div>
+    </footer>
+  </div>
+
+  <style>
+    #wp-custom-wrapper {
+      --bg-ops: rgba(10, 11, 13, 0.98);
+      --neon-green: #76b041;
+      --neon-blue: #00f2ff;
+      --neon-orange: #ff5f00;
+      --border-ops: rgba(255, 255, 255, 0.1);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #wp-custom-wrapper .fs25-collectables-dashboard {
+      width: 90%;
+      margin: 50px auto; /* Divi Section Height: 50 */
+      max-width: 1200px;
+      font-family: var(--font);
+      color: #fff;
+    }
+
+    /* Header: Divi Row Height 30px / Header 30px */
+    #wp-custom-wrapper .ops-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-ops);
+      padding: 30px 25px; /* Divi Row Height Setting: 30 */
+      border: 1px solid var(--border-ops);
+      border-radius: 12px 12px 0 0;
+      border-left: 5px solid var(--neon-green);
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    #wp-custom-wrapper .label { 
+        display: block; 
+        font-size: 14px; /* Divi Body Setting: 14 */
+        font-weight: 800; 
+        color: #718096; 
+        letter-spacing: 2px; 
+        text-transform: uppercase;
+    }
+
+    #wp-custom-wrapper .glow-green { 
+        color: var(--neon-green); 
+        text-shadow: 0 0 12px rgba(118, 176, 65, 0.4); 
+        margin: 0; 
+        font-size: 30px; /* Divi Header Setting: 30 */
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    #wp-custom-wrapper .global-progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--border-ops);
+        border-top: none;
+    }
+    #wp-custom-wrapper .fill-green { height: 100%; background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); transition: width 1s ease; }
+
+    /* Discovery Grid */
+    #wp-custom-wrapper .discovery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px; /* Divi Row Height Setting: 30 */
+      margin-top: 30px;
+    }
+
+    #wp-custom-wrapper .category-card {
+      background: var(--bg-ops);
+      border: 1px solid var(--border-ops);
+      border-radius: 12px;
+      padding: 25px;
+      position: relative;
+      overflow: hidden;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    #wp-custom-wrapper .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    #wp-custom-wrapper .cat-title { font-size: 14px; font-weight: 900; color: #fff; text-transform: uppercase; }
+    #wp-custom-wrapper .cat-count { font-size: 18px; font-weight: 900; color: var(--neon-green); }
+
+    /* Visual Slots for Collectables */
+    #wp-custom-wrapper .slot-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    #wp-custom-wrapper .item-slot {
+        width: 12px;
+        height: 12px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 2px;
+    }
+    #wp-custom-wrapper .item-slot.found {
+        background: var(--neon-green);
+        box-shadow: 0 0 5px var(--neon-green);
+        border-color: transparent;
+    }
+
+    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
+    #wp-custom-wrapper .neon-blue { color: var(--neon-blue); }
+
+    /* Footer: Body Text 14px */
+    #wp-custom-wrapper .ops-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px; /* Divi Row Height: 30 */
+      padding: 20px 25px;
+      background: var(--bg-ops);
+      border: 1px solid var(--border-ops);
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 600px) {
+      #wp-custom-wrapper .glow-green { font-size: 24px; }
+      #wp-custom-wrapper .discovery-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+
+  <script>
+    (function() {
+      const config = { databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" };
+      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25Collectables'); }
+      const db = firebase.app('fs25Collectables').database();
+
+      // Definitions for Riverbend Springs Collectables
+      const SCHEMA = [
+          { id: "figs", name: "Farming Figures", total: 25, icon: "🚜" },
+          { id: "coins", name: "Vintage Coins", total: 20, icon: "🪙" },
+          { id: "artifacts", name: "Lost Artifacts", total: 15, icon: "🏺" },
+          { id: "plush", name: "Plush Toys", total: 10, icon: "🧸" }
+      ];
+
+      db.ref('fs25_live').on('value', (snap) => {
+        const data = snap.val();
+        const grid = document.getElementById('collectables-grid');
+        
+        // Mock data logic - in a real scenario, the Sync script would provide found counts
+        // Accessing data.server.collectables or similar
+        const progressData = data?.collectables || { figs: 0, coins: 0, artifacts: 0, plush: 0 };
+        
+        grid.innerHTML = '';
+        let totalFound = 0;
+        let totalPossible = 0;
+
+        SCHEMA.forEach(cat => {
+            const found = progressData[cat.id] || 0;
+            totalFound += found;
+            totalPossible += cat.total;
+
+            const card = document.createElement('div');
+            card.className = 'category-card';
+            
+            let slotHtml = '';
+            for(let i=0; i < cat.total; i++) {
+                slotHtml += `<div class="item-slot ${i < found ? 'found' : ''}"></div>`;
+            }
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="cat-title">${cat.icon} ${cat.name}</span>
+                    <span class="cat-count">${found} / ${cat.total}</span>
+                </div>
+                <div class="slot-container">
+                    ${slotHtml}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Update Global Percentages
+        const percentage = Math.round((totalFound / totalPossible) * 100);
+        document.getElementById('total-progress-percent').innerText = `${percentage}%`;
+        document.getElementById('master-progress-fill').style.width = `${percentage}%`;
+        
+        if (data?.server?.mapName) {
+            document.getElementById('map-location').innerText = data.server.mapName.toUpperCase();
+        }
+
+      }, (err) => {
+        console.error("Firebase Discovery Error:", err);
+      });
+    })();
+  </script>
+</div>
