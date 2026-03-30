@@ -3,7 +3,7 @@
     <header class="map-vitals-nav">
       <div class="vital-branding">
         <span class="label">PRECISION TACTICAL [FS25]</span>
-        <span id="map-name-display" class="value glow-blue">SYNCING...</span>
+        <h1 id="map-name-display" class="glow-blue">SYNCING...</h1>
       </div>
       
       <!-- Smart Legend / Farm Toggles -->
@@ -31,7 +31,7 @@
         <div id="marker-canvas"></div>
       </div>
       
-      <!-- Interaction Overlay (Helps with Panning performance) -->
+      <!-- Interaction Overlay -->
       <div id="pan-overlay"></div>
     </div>
 
@@ -58,18 +58,18 @@
 
     #wp-custom-wrapper .fs25-tactical-ops {
       width: 95%; 
-      margin: 50px auto; /* User Section Height Setting: 50 */
+      margin: 50px auto; /* Divi Section Height: 50 */
       max-width: 1100px;
       font-family: var(--font); 
       color: #fff;
     }
 
-    /* Header & Navigation */
+    /* Header & Navigation: Row Height 30 */
     #wp-custom-wrapper .map-vitals-nav {
       display: flex; 
       justify-content: space-between; 
       align-items: center;
-      padding: 30px 20px; /* User Row Height: 30 */
+      padding: 30px 20px; /* Divi Row Height: 30 */
       background: var(--glass);
       border: 1px solid var(--border); 
       border-radius: 12px 12px 0 0;
@@ -78,8 +78,10 @@
       gap: 15px;
     }
 
-    #wp-custom-wrapper .label { display: block; font-size: 11px; font-weight: 900; color: #718096; letter-spacing: 2px; }
-    #wp-custom-wrapper .value { font-size: 30px; font-weight: 900; text-transform: uppercase; } /* User Header Setting: 30 */
+    /* Labels: Body Size 14 */
+    #wp-custom-wrapper .label { display: block; font-size: 14px; font-weight: 800; color: #718096; letter-spacing: 2px; text-transform: uppercase; }
+    /* Headers: Header Size 30 */
+    #wp-custom-wrapper h1 { font-size: 30px; font-weight: 900; text-transform: uppercase; margin: 0; } 
     #wp-custom-wrapper .glow-blue { color: var(--neon-blue); text-shadow: 0 0 10px rgba(0, 242, 255, 0.5); }
 
     /* Farm Filters */
@@ -104,7 +106,7 @@
       position: relative; width: 100%; aspect-ratio: 1 / 1; 
       background: #000; overflow: hidden; border: 1px solid var(--border);
       cursor: grab;
-      touch-action: none; /* Prevents browser scroll while panning map */
+      touch-action: none; 
     }
     #wp-custom-wrapper .map-main-frame:active { cursor: grabbing; }
 
@@ -152,7 +154,7 @@
       filter: drop-shadow(0 0 5px var(--neon-green));
     }
 
-    /* Smart Tooltip (14px body) */
+    /* Tooltip: Body Size 14 */
     #wp-custom-wrapper .marker .tooltip {
       position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%) translateY(10px);
       background: rgba(0,0,0,0.95); border: 1px solid var(--neon-blue); padding: 12px;
@@ -162,9 +164,9 @@
     }
     #wp-custom-wrapper .marker:hover .tooltip { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
     #wp-custom-wrapper .tt-header { color: var(--neon-blue); font-weight: 900; font-size: 11px; border-bottom: 1px solid var(--border); margin-bottom: 8px; display: block; text-transform: uppercase; }
-    #wp-custom-wrapper .tt-row { display: flex; justify-content: space-between; font-size: 14px; margin-top: 4px; font-weight: 700; } /* User Body Setting: 14 */
+    #wp-custom-wrapper .tt-row { display: flex; justify-content: space-between; font-size: 14px; margin-top: 4px; font-weight: 700; } 
 
-    /* Legend Footer */
+    /* Legend Footer: Body Size 14 */
     #wp-custom-wrapper .map-legend-footer {
       display: flex; justify-content: space-between; align-items: center;
       background: var(--glass); padding: 20px; border-radius: 0 0 12px 12px;
@@ -183,7 +185,7 @@
 
     @media (max-width: 600px) {
       #wp-custom-wrapper .map-vitals-nav { padding: 20px 15px; }
-      #wp-custom-wrapper .value { font-size: 24px; }
+      #wp-custom-wrapper h1 { font-size: 24px; }
       #wp-custom-wrapper .farm-filter-strip { justify-content: center; width: 100%; }
       #wp-custom-wrapper .map-controls { width: 100%; justify-content: center; margin-top: 10px; }
     }
@@ -199,99 +201,53 @@
         databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
       };
       
-      let app;
-      try {
-        if (firebase.apps.length === 0) {
-          app = firebase.initializeApp(config, 'fs25TacticalMaster');
-        } else {
-          app = firebase.apps.find(a => a.name === 'fs25TacticalMaster') || firebase.initializeApp(config, 'fs25TacticalMaster');
-        }
-      } catch (e) {
-        console.error("Firebase Init Error:", e);
-        app = firebase.app('fs25TacticalMaster');
-      }
-      
-      const db = app.database();
+      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25TacticalOpsSmart'); }
+      const db = firebase.app('fs25TacticalOpsSmart').database();
+
       const MAP_SIZE = 2048;
       let activeFarmFilter = 'all';
+
+      // Robust helper for flexible database keys
+      function find(o, ...keys) { 
+        if (!o) return null;
+        for (let k of keys) { if (o[k] !== undefined) return o[k]; } 
+        return null; 
+      }
 
       // --- ZOOM & PAN ENGINE ---
       const viewport = document.getElementById('map-viewport');
       const engine = document.getElementById('map-scaling-engine');
-      
-      let scale = 1;
-      let translateX = 0;
-      let translateY = 0;
-      let isDragging = false;
-      let startX = 0, startY = 0;
+      let scale = 1, translateX = 0, translateY = 0, isDragging = false, startX = 0, startY = 0;
 
       function updateTransform() {
         const vw = viewport?.offsetWidth || 0;
         if (!vw) return;
-
         const limit = (scale - 1) * vw;
         translateX = Math.min(0, Math.max(translateX, -limit));
         translateY = Math.min(0, Math.max(translateY, -limit));
-        
-        if (engine) {
-          engine.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
-        }
+        engine.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
       }
 
-      const getEvPos = (e) => {
-        if (e.pageX !== undefined) return { x: e.pageX, y: e.pageY };
-        if (e.touches && e.touches.length > 0) return { x: e.touches[0].pageX, y: e.touches[0].pageY };
-        return { x: 0, y: 0 };
-      };
+      const getEvPos = (e) => (e.pageX !== undefined) ? { x: e.pageX, y: e.pageY } : { x: e.touches[0].pageX, y: e.touches[0].pageY };
 
-      const handleZoomIn = () => { scale = Math.min(scale + 0.5, 6); updateTransform(); };
-      const handleZoomOut = () => { scale = Math.max(scale - 0.5, 1); updateTransform(); };
-      const handleReset = () => { 
-        scale = 1; translateX = 0; translateY = 0; 
-        activeFarmFilter = 'all';
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        const allBtn = document.querySelector('[data-farm="all"]');
-        if (allBtn) allBtn.classList.add('active');
-        updateTransform(); 
-      };
+      document.getElementById('btn-zoom-in').onclick = () => { scale = Math.min(scale + 0.5, 6); updateTransform(); };
+      document.getElementById('btn-zoom-out').onclick = () => { scale = Math.max(scale - 0.5, 1); updateTransform(); };
+      document.getElementById('btn-zoom-reset').onclick = () => { scale = 1; translateX = 0; translateY = 0; updateTransform(); };
 
-      document.getElementById('btn-zoom-in').onclick = handleZoomIn;
-      document.getElementById('btn-zoom-out').onclick = handleZoomOut;
-      document.getElementById('btn-zoom-reset').onclick = handleReset;
+      viewport.onwheel = (e) => { e.preventDefault(); scale = Math.min(Math.max(scale + (e.deltaY > 0 ? -0.2 : 0.2), 1), 6); updateTransform(); };
 
-      viewport.onwheel = (e) => {
-        e.preventDefault();
-        const delta = e.deltaY > 0 ? -0.2 : 0.2;
-        scale = Math.min(Math.max(scale + delta, 1), 6);
-        updateTransform();
-      };
-
-      const startPan = (e) => {
-        isDragging = true;
-        const pos = getEvPos(e);
-        startX = pos.x - translateX;
-        startY = pos.y - translateY;
-      };
-
-      const movePan = (e) => {
-        if (!isDragging) return;
-        const pos = getEvPos(e);
-        translateX = pos.x - startX;
-        translateY = pos.y - startY;
-        updateTransform();
-      };
-
+      const startPan = (e) => { isDragging = true; const p = getEvPos(e); startX = p.x - translateX; startY = p.y - translateY; };
+      const movePan = (e) => { if (!isDragging) return; const p = getEvPos(e); translateX = p.x - startX; translateY = p.y - startY; updateTransform(); };
       const endPan = () => { isDragging = false; };
 
       viewport.addEventListener('mousedown', startPan);
       window.addEventListener('mousemove', movePan);
       window.addEventListener('mouseup', endPan);
-      
       viewport.addEventListener('touchstart', startPan, { passive: false });
       window.addEventListener('touchmove', movePan, { passive: false });
       window.addEventListener('touchend', endPan);
 
-      // --- DATA HANDLING ---
+      // --- DATA HANDSHAKE ---
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.onclick = () => {
           document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -304,71 +260,71 @@
         const data = snap.val();
         if (!data) return;
 
-        const nameDisplay = document.getElementById('map-name-display');
-        if (nameDisplay) nameDisplay.innerText = (data.server?.mapName || "WORLD").toUpperCase();
+        // 1. Map ID Handshake
+        const overview = find(data, "Server Overview", "server", "server_info") || {};
+        document.getElementById('map-name-display').innerText = (find(overview, "Active Map", "mapName", "map") || "WORLD").toUpperCase();
         
         const canvas = document.getElementById('marker-canvas');
-        if (!canvas) return;
         canvas.innerHTML = '';
 
-        // Render Fleet
-        const vehicles = data.fleet?.vehicles || [];
-        vehicles.forEach(v => {
-          if (!v) return;
-          const farmIdStr = v.farmId?.toString() || "0";
+        // 2. Fleet Handshake
+        const fleetRaw = find(data, "Vehicle Fleet", "fleet_registry", "fleet") || [];
+        const fleet = Array.isArray(fleetRaw) ? fleetRaw : Object.values(fleetRaw);
+
+        fleet.forEach(v => {
+          const farmIdStr = String(find(v, "Owner Farm", "farm_id", "farmId", "Owner_Farm_ID") || "0");
           if (activeFarmFilter !== 'all' && farmIdStr !== activeFarmFilter) return;
 
-          const isPlayer = v.user && v.user !== "";
+          const x = find(v, "pos_x", "x", "pos x");
+          const z = find(v, "pos_z", "z", "pos z");
+          if (x === null) return;
+
+          const vName = find(v, "Vehicle Type", "name", "Vehicle_Type") || "UNIT";
+          const vPlate = find(v, "License Plate", "license", "License_Plate") || "N/A";
+          const vFuel = find(v, "Fuel Remaining", "fuel_pct", "Fuel_Remaining") || "0%";
+          const vDmg = find(v, "Damaged", "damage_pct", "Mechanical_Condition") || "0%";
+          const vUser = find(v, "Operator", "user", "username") || "AI";
+
+          const isPlayer = vUser !== "AI";
           const typeClass = isPlayer ? 'shape-player' : (v.isAttachment ? 'shape-attach' : 'shape-fleet');
           
-          addMarker(v.x, v.z, typeClass, `
-            <span class="tt-header">${v.name || 'Unit'}</span>
-            <div class="tt-row"><span>OPERATOR:</span> <span style="color:var(--neon-orange)">${v.user || 'AI'}</span></div>
-            <div class="tt-row"><span>LICENSE:</span> <span>${v.licensePlate || 'N/A'}</span></div>
-            <div class="tt-row"><span>FARM ID:</span> <span>${farmIdStr}</span></div>
-            <div class="tt-row"><span>FUEL:</span> <span style="color:var(--neon-blue)">${v.fuel || 0}%</span></div>
-            <div class="tt-row"><span>WEAR:</span> <span style="color:var(--neon-green)">${v.damage || 0}%</span></div>
+          addMarker(x, z, typeClass, `
+            <span class="tt-header">${vName}</span>
+            <div class="tt-row"><span>OPERATOR:</span> <span style="color:var(--neon-orange)">${vUser}</span></div>
+            <div class="tt-row"><span>LICENSE:</span> <span>${vPlate}</span></div>
+            <div class="tt-row"><span>FUEL:</span> <span style="color:var(--neon-blue)">${vFuel}</span></div>
+            <div class="tt-row"><span>WEAR:</span> <span style="color:var(--neon-green)">${vDmg}</span></div>
           `, canvas);
         });
 
-        // Render Factories
-        const factories = data.productions || [];
-        factories.forEach(f => {
-          if (!f) return;
-          const farmIdStr = f.farmId?.toString() || "0";
+        // 3. Factory Handshake
+        const prodsRaw = find(data, "productions", "factories", "industrial") || [];
+        const prods = Array.isArray(prodsRaw) ? prodsRaw : Object.values(prodsRaw);
+
+        prods.forEach(f => {
+          const x = find(f, "pos_x", "x");
+          const z = find(f, "pos_z", "z");
+          if (x === null) return;
+
+          const farmIdStr = String(find(f, "farmId", "Owner Farm") || "0");
           if (activeFarmFilter !== 'all' && farmIdStr !== activeFarmFilter) return;
 
-          addMarker(f.x, f.z, 'shape-factory', `
-            <span class="tt-header" style="color:var(--neon-green)">${f.name || 'Factory'}</span>
-            <div class="tt-row"><span>ZONE:</span> <span>INDUSTRIAL</span></div>
-            <div class="tt-row"><span>FARM:</span> <span>${farmIdStr}</span></div>
-            <div class="tt-row"><span>CAPACITY:</span> <span style="color:var(--neon-green)">${f.fillLevel || 0}%</span></div>
+          addMarker(x, z, 'shape-factory', `
+            <span class="tt-header" style="color:var(--neon-green)">${f.name || 'FACTORY'}</span>
+            <div class="tt-row"><span>FARM:</span> <span>FARM ${farmIdStr}</span></div>
+            <div class="tt-row"><span>STATUS:</span> <span style="color:var(--neon-green)">ACTIVE</span></div>
           `, canvas);
         });
-
-        const syncClock = document.getElementById('sync-clock');
-        if (syncClock) {
-          syncClock.innerText = new Date().toLocaleTimeString('en-US', { 
-              timeZone: 'America/Chicago', hour12: false 
-          });
-        }
       });
 
       function addMarker(x, z, cssClass, tooltipHtml, container) {
-        if (x === undefined || z === undefined) return;
-        
         const normX = (Number(x) / MAP_SIZE) + 0.5;
         const normZ = (Number(z) / MAP_SIZE) + 0.5;
-        
         const marker = document.createElement('div');
         marker.className = 'marker';
         marker.style.left = `${normX * 100}%`;
         marker.style.top = `${normZ * 100}%`;
-        
-        marker.innerHTML = `
-            <div class="${cssClass}"></div>
-            <div class="tooltip">${tooltipHtml}</div>
-        `;
+        marker.innerHTML = `<div class="${cssClass}"></div><div class="tooltip">${tooltipHtml}</div>`;
         container.appendChild(marker);
       }
     })();
