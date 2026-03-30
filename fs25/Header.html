@@ -5,7 +5,7 @@
     <header class="uplink-vitals">
       <div class="vitals-group">
         <span class="label">SIGNAL SOURCE</span>
-        <h1 id="srv-name" class="glow-blue">ESTABLISHING...</h1>
+        <h1 id="srv-name" class="glow-blue">CONNECTING...</h1>
       </div>
       <div class="vitals-group center">
         <span class="label">TACTICAL AREA</span>
@@ -13,13 +13,13 @@
       </div>
       <div class="vitals-group right">
         <div class="header-total">
-          <span class="label">TOTAL FUNDS</span>
-          <span id="header-money-val" class="value glow-orange">$0</span>
+          <span class="label">TOTAL FARM FUNDS</span>
+          <span id="header-total-money" class="value glow-orange">$0</span>
         </div>
       </div>
     </header>
 
-    <!-- SMART PERSONNEL ROSTER -->
+    <!-- PERSONNEL ROSTER -->
     <div class="roster-row">
       <div class="roster-header">
         <div class="roster-meta">
@@ -27,29 +27,25 @@
           <div id="player-count-pill" class="count-pill">0 / 6</div>
         </div>
         <div class="world-meta">
-          <span class="label">WORLD CLOCK</span>
-          <div id="in-game-time" class="value-sm mono">--:--</div>
+          <span class="label">SYSTEM HEARTBEAT</span>
+          <div id="real-clock" class="value-sm mono">00:00:00</div>
         </div>
       </div>
       <div id="player-grid" class="player-grid">
         <!-- Players auto-populate here -->
-        <div class="player-slot empty">WAITING FOR UPLINK...</div>
+        <div class="player-slot empty">SEARCHING FOR ACTIVE OPERATORS...</div>
       </div>
     </div>
 
-    <!-- MISSION LOGISTICS -->
+    <!-- DATA LOGISTICS -->
     <footer class="logistics-bar">
       <div class="log-item">
-        <span class="label">MISSION DURATION</span>
-        <span id="play-time" class="value-sm">0h 0m</span>
-      </div>
-      <div class="log-item">
-        <span class="label">UPLINK STATUS</span>
-        <span id="sync-status" class="status-indicator">● STANDBY</span>
+        <span class="label">DATABASE STATUS</span>
+        <span id="sync-status" class="status-indicator">● INITIALIZING</span>
       </div>
       <div class="log-item right">
-        <span class="label">CENTRAL SYNC</span>
-        <span id="real-clock" class="mono">00:00:00</span>
+        <span class="label">LAST UPDATE (CENTRAL)</span>
+        <span id="last-update-time" class="mono" style="font-size: 14px;">00:00:00</span>
       </div>
     </footer>
 
@@ -75,14 +71,14 @@
       user-select: none;
     }
 
-    /* Glossy Header Strip */
+    /* Glossy Header Strip (Row Height 30) */
     #wp-custom-wrapper .uplink-vitals {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: var(--glass);
       background-image: var(--glass-gloss);
-      padding: 30px 25px; /* Divi Row Height Setting: 30 */
+      padding: 30px 25px; /* Divi Row Height: 30 */
       border: 1px solid var(--border);
       border-radius: 16px 16px 4px 4px;
       border-bottom: 2px solid var(--neon-blue);
@@ -91,9 +87,10 @@
       gap: 20px;
     }
 
+    /* Labels (Body Size 14) */
     #wp-custom-wrapper .label { 
       display: block; 
-      font-size: 11px; 
+      font-size: 14px; 
       font-weight: 800; 
       color: #718096; 
       letter-spacing: 2px; 
@@ -101,10 +98,11 @@
       margin-bottom: 5px;
     }
 
+    /* Titles (Header Size 30) */
     #wp-custom-wrapper h1, 
     #wp-custom-wrapper h2,
     #wp-custom-wrapper .header-total .value { 
-      font-size: 30px; /* User Header Setting: 30 */
+      font-size: 30px; 
       margin: 0; 
       font-weight: 900; 
       text-transform: uppercase; 
@@ -146,7 +144,7 @@
 
     #wp-custom-wrapper .player-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 10px;
     }
 
@@ -158,25 +156,15 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 14px; /* User Body Text Setting: 14 */
+      font-size: 14px; /* Body Size 14 */
       font-weight: 600;
-      transition: 0.3s;
     }
 
-    #wp-custom-wrapper .player-slot.active {
-      background: rgba(118, 176, 65, 0.1);
-      border-color: var(--neon-green);
-    }
-
+    #wp-custom-wrapper .player-slot.active { background: rgba(118, 176, 65, 0.1); border-color: var(--neon-green); }
     #wp-custom-wrapper .player-slot.empty { opacity: 0.3; font-style: italic; }
 
     #wp-custom-wrapper .platform-icon {
-      font-size: 10px;
-      background: #333;
-      padding: 2px 5px;
-      border-radius: 4px;
-      color: #aaa;
-      font-weight: 800;
+      font-size: 10px; background: #333; padding: 2px 5px; border-radius: 4px; color: #aaa; font-weight: 800;
     }
 
     /* Logistics Bar */
@@ -191,131 +179,112 @@
       border-top: 1px solid rgba(255,255,255,0.05);
     }
 
-    #wp-custom-wrapper .log-item { display: flex; flex-direction: column; }
-    #wp-custom-wrapper .value-sm { font-size: 14px; font-weight: 700; color: #fff; }
-    #wp-custom-wrapper .right { text-align: right; }
-
     #wp-custom-wrapper .status-indicator {
-      font-size: 12px;
-      font-weight: 900;
-      color: var(--neon-green);
-      animation: pulse 2s infinite;
+      font-size: 12px; font-weight: 900; color: var(--neon-green); animation: pulse 2s infinite;
     }
 
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
-    }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; }
 
-    #wp-custom-wrapper .mono { font-family: 'Courier New', Courier, monospace; letter-spacing: 1px; }
-
-    /* Responsive adjustments */
     @media (max-width: 768px) {
       #wp-custom-wrapper .uplink-vitals { flex-direction: column; text-align: center; }
-      #wp-custom-wrapper .vitals-group.right { order: -1; width: 100%; border-bottom: 1px solid var(--border); padding-bottom: 15px; text-align: center; }
+      #wp-custom-wrapper .vitals-group.right { order: -1; width: 100%; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
       #wp-custom-wrapper .header-total { text-align: center; }
       #wp-custom-wrapper h1, #wp-custom-wrapper h2 { font-size: 24px; }
       #wp-custom-wrapper .player-grid { grid-template-columns: 1fr; }
       #wp-custom-wrapper .logistics-bar { flex-direction: column; gap: 15px; text-align: center; }
-      #wp-custom-wrapper .log-item.right { text-align: center; }
     }
   </style>
 
-  <!-- Firebase Compat Layer -->
   <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
 
   <script>
     (function() {
-      // Firebase Configuration
       const config = { 
         apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
         databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
       };
 
-      const appName = 'fs25HeaderUplink';
-      let app;
-      try {
-        app = firebase.apps.find(a => a.name === appName) || firebase.initializeApp(config, appName);
-      } catch (e) {
-        app = firebase.app(appName);
-      }
-      
-      const db = app.database();
+      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25HeaderUniversal'); }
+      const db = firebase.app('fs25HeaderUniversal').database();
 
-      function formatFSTime(minutes) {
-        if (!minutes) return "00:00";
-        let hours = Math.floor(minutes / 60);
-        let mins = Math.floor(minutes % 60);
-        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+      // SMART HELPER: Tries multiple ways to find the same data
+      function find(obj, ...keys) {
+        if (!obj) return null;
+        for (let k of keys) {
+            if (obj[k] !== undefined) return obj[k];
+        }
+        return null;
       }
 
-      function formatDuration(mins) {
-        if (!mins || mins == "0") return "0h 0m";
-        let h = Math.floor(mins / 60);
-        let m = Math.floor(mins % 60);
-        return `${h}h ${m}m`;
-      }
-
-      // Live Listener for the FS25 Node
       db.ref('fs25_live').on('value', (snap) => {
         const data = snap.val();
         if (!data) return;
 
-        // 1. Update Server Vitals
-        const server = data.server || {};
-        document.getElementById('srv-name').innerText = (server.name || "OFFLINE").toUpperCase();
-        document.getElementById('srv-map').innerText = (server.mapName || "UNKNOWN").toUpperCase();
+        // 1. DYNAMIC SERVER INFO
+        const overview = find(data, "Server Overview", "server_info", "server") || {};
+        document.getElementById('srv-name').innerText = (find(overview, "Server Name", "name", "Server_Name") || "OFFLINE").toUpperCase();
+        document.getElementById('srv-map').innerText = (find(overview, "Active Map", "mapName", "map", "Active_Map") || "SCANNING...").toUpperCase();
+
+        // 2. DYNAMIC MONEY AGGREGATION
+        let totalCash = 0;
+        const farmsNode = find(data, "Farms", "farms", "Farm_Accounts");
         
-        // 2. Update Funds (Total in Header)
-        const money = server.money || 0;
-        document.getElementById('header-money-val').innerText = `$${parseInt(money).toLocaleString()}`;
+        if (farmsNode) {
+            Object.values(farmsNode).forEach(f => {
+                totalCash += parseInt(find(f, "Money", "money", "balance") || 0);
+            });
+        } else {
+            // Fallback if no separate farm nodes exist
+            totalCash = parseInt(find(overview, "Money", "money", "Total Funds") || 0);
+        }
+        document.getElementById('header-total-money').innerText = `$${totalCash.toLocaleString()}`;
 
-        // 3. Update In-Game Environment
-        document.getElementById('in-game-time').innerText = formatFSTime(parseFloat(server.dayTime || 0));
-        document.getElementById('play-time').innerText = formatDuration(parseFloat(server.playTime || 0));
-
-        // 4. Update Personnel Roster (Smart Slots)
+        // 3. DYNAMIC PLAYER MAPPING
         const playerGrid = document.getElementById('player-grid');
         playerGrid.innerHTML = '';
         
-        let activeCount = 0;
-        // Check if player data exists in the node
-        const players = data.players || [];
-        const capacity = server.capacity || 6;
+        const players = find(data, "Online Players", "players", "active_personnel", "active_players") || [];
+        const activeCount = players.length;
 
         players.forEach(p => {
-          if (p && (p.isUsed === true || p.isUsed === "true")) {
-            activeCount++;
+            const name = find(p, "Player Name", "name", "username", "Player_Name") || "Unknown";
+            const device = find(p, "Device", "platform", "On_PC_or_Console") || "PC";
+            const mins = find(p, "Session Minutes", "uptime", "Time_Played_Mins") || 0;
+
             playerGrid.innerHTML += `
               <div class="player-slot active">
                 <span style="color:var(--neon-green)">●</span>
-                <span class="p-name">${p.name}</span>
-                <span class="platform-icon">${p.platform || 'PC'}</span>
-                <span style="margin-left:auto; font-size:10px; opacity:0.6;">${p.uptime || 0}m</span>
+                <span class="p-name">${name.toUpperCase()}</span>
+                <span class="platform-icon">${device}</span>
+                <span style="margin-left:auto; font-size:10px; opacity:0.6;">${mins}m</span>
               </div>
             `;
-          }
         });
 
         // Fill vacant slots up to 6
-        for (let i = activeCount; i < parseInt(capacity); i++) {
+        for (let i = activeCount; i < 6; i++) {
             playerGrid.innerHTML += `<div class="player-slot empty">VACANT SLOT ${i+1}</div>`;
         }
 
-        document.getElementById('player-count-pill').innerText = `${activeCount} / ${capacity}`;
+        document.getElementById('player-count-pill').innerText = `${activeCount} / 6`;
 
-        // Meta Updates
+        // 4. HEARTBEAT & LOGISTICS
         document.getElementById('real-clock').innerText = new Date().toLocaleTimeString('en-US', { 
             timeZone: 'America/Chicago', hour12: false 
         });
-        document.getElementById('sync-status').innerText = "● UPLINK ACTIVE";
-        document.getElementById('sync-status').style.color = "var(--neon-green)";
+        
+        const lastSync = find(data, "Last Update Time", "lastUpdate", "last_heartbeat") || "00:00:00";
+        document.getElementById('last-update-time').innerText = lastSync;
+        
+        const statusInd = document.getElementById('sync-status');
+        statusInd.innerText = "● UPLINK ACTIVE";
+        statusInd.style.color = "var(--neon-green)";
 
       }, (error) => {
         console.error("Firebase Sync Error:", error);
-        document.getElementById('sync-status').innerText = "⚠ UPLINK DISRUPTED";
+        document.getElementById('sync-status').innerText = "⚠ LINK OFFLINE";
         document.getElementById('sync-status').style.color = "var(--neon-orange)";
       });
     })();
