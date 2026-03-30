@@ -1,0 +1,294 @@
+<div id="wp-custom-wrapper">
+  <div class="fs25-pallet-dashboard">
+    <header class="ops-vitals-header">
+      <div class="vital-branding">
+        <span class="label">LOGISTICS UPLINK [FS25]</span>
+        <h2 class="glow-blue">PALLET INVENTORY REPORT</h2>
+      </div>
+      <div class="ops-sync-info">
+        <span class="label">CENTRAL TIME SYNC</span>
+        <span id="pallet-sync-clock" class="mono">00:00:00</span>
+      </div>
+    </header>
+
+    <!-- Dynamic container for Farms 1 through 6 -->
+    <div class="pallet-grid" id="dynamic-logistics-container">
+        <div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">
+            INITIALIZING LOGISTICS SCAN...
+        </div>
+    </div>
+  </div>
+
+  <style>
+    #wp-custom-wrapper {
+      --bg-ops: rgba(15, 18, 22, 0.98);
+      --neon-blue: #00f2ff;
+      --neon-orange: #ff5f00;
+      --neon-red: #ff3131;
+      --neon-green: #76b041;
+      --neon-purple: #bc13fe;
+      --neon-yellow: #f4b400;
+      --border-ops: rgba(255, 255, 255, 0.1);
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #wp-custom-wrapper .fs25-pallet-dashboard {
+      width: 90%; 
+      margin: 50px auto; /* Divi Section Height Setting: 50 */
+      max-width: 1400px;
+      font-family: var(--font);
+      color: #fff;
+      background: transparent;
+    }
+
+    /* Header Section */
+    #wp-custom-wrapper .ops-vitals-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap; 
+      gap: 30px; /* Divi Row Height Setting: 30 */
+      background: var(--bg-ops);
+      padding: 30px 25px; /* Divi Padding Setting: 30 */
+      border: 1px solid var(--border-ops);
+      border-radius: 12px;
+      margin-bottom: 30px; /* Divi Row Height Setting: 30 */
+      border-left: 5px solid var(--neon-blue);
+    }
+    
+    /* User Body Text Setting: 14px */
+    #wp-custom-wrapper .label { 
+      display: block; 
+      font-size: 14px; 
+      font-weight: 800; 
+      color: #718096; 
+      letter-spacing: 2px; 
+      text-transform: uppercase;
+    }
+
+    /* User Header Text Setting: 30px */
+    #wp-custom-wrapper .glow-blue { 
+      color: var(--neon-blue); 
+      text-shadow: 0 0 10px rgba(0, 242, 255, 0.4); 
+      margin: 0; 
+      font-size: 30px; 
+      font-weight: 900; 
+      text-transform: uppercase;
+    }
+
+    /* Logistics Grid - Responsive Columns */
+    #wp-custom-wrapper .pallet-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+      gap: 30px; /* Divi Row Height Setting: 30 */
+    }
+    
+    #wp-custom-wrapper .logistics-column { 
+      background: var(--bg-ops); 
+      border: 1px solid var(--border-ops); 
+      border-radius: 16px; 
+      overflow: hidden; 
+      display: flex;
+      flex-direction: column;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Farm-specific Border Accents */
+    #wp-custom-wrapper .f-border-1 { border-top: 4px solid var(--neon-orange); }
+    #wp-custom-wrapper .f-border-2 { border-top: 4px solid var(--neon-red); }
+    #wp-custom-wrapper .f-border-3 { border-top: 4px solid var(--neon-blue); }
+    #wp-custom-wrapper .f-border-4 { border-top: 4px solid var(--neon-green); }
+    #wp-custom-wrapper .f-border-5 { border-top: 4px solid var(--neon-purple); }
+    #wp-custom-wrapper .f-border-6 { border-top: 4px solid var(--neon-yellow); }
+
+    #wp-custom-wrapper .column-header { 
+      padding: 20px 25px; 
+      background: rgba(255,255,255,0.03); 
+      border-bottom: 1px solid var(--border-ops); 
+    }
+    #wp-custom-wrapper .column-header h3 { 
+      margin: 0; 
+      font-size: 16px; 
+      font-weight: 900; 
+      letter-spacing: 1px; 
+      text-transform: uppercase;
+    }
+
+    /* Pallet Cards */
+    #wp-custom-wrapper .pallet-card {
+      padding: 20px 25px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    #wp-custom-wrapper .pallet-info { display: flex; flex-direction: column; }
+    #wp-custom-wrapper .factory-name { 
+      font-weight: 900; 
+      font-size: 14px; /* User Body Setting: 14 */
+      text-transform: uppercase; 
+      color: #fff; 
+    }
+    #wp-custom-wrapper .pallet-type { 
+      font-size: 11px; 
+      color: #718096; 
+      font-weight: 700; 
+      margin-top: 4px; 
+      text-transform: uppercase;
+    }
+    
+    #wp-custom-wrapper .count-badge {
+      background: rgba(0, 242, 255, 0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 18px;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 75px;
+    }
+
+    /* Dynamic Count Colors based on Farm */
+    #wp-custom-wrapper .f-text-1 { color: var(--neon-orange); text-shadow: 0 0 8px var(--neon-orange); border-color: var(--neon-orange); }
+    #wp-custom-wrapper .f-text-2 { color: var(--neon-red); text-shadow: 0 0 8px var(--neon-red); border-color: var(--neon-red); }
+    #wp-custom-wrapper .f-text-3 { color: var(--neon-blue); text-shadow: 0 0 8px var(--neon-blue); border-color: var(--neon-blue); }
+    #wp-custom-wrapper .f-text-4 { color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); border-color: var(--neon-green); }
+    #wp-custom-wrapper .f-text-5 { color: var(--neon-purple); text-shadow: 0 0 8px var(--neon-purple); border-color: var(--neon-purple); }
+    #wp-custom-wrapper .f-text-6 { color: var(--neon-yellow); text-shadow: 0 0 8px var(--neon-yellow); border-color: var(--neon-yellow); }
+    
+    #wp-custom-wrapper .count-num { 
+      display: block; 
+      font-size: 20px; 
+      font-weight: 900; 
+    }
+    #wp-custom-wrapper .count-label { 
+      font-size: 10px; 
+      font-weight: 900; 
+      color: #718096; 
+      text-transform: uppercase; 
+    }
+
+    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
+
+    @media (max-width: 600px) {
+      #wp-custom-wrapper .ops-vitals-header { padding: 20px; }
+      #wp-custom-wrapper .glow-blue { font-size: 24px; }
+      #wp-custom-wrapper .fs25-pallet-dashboard { width: 95%; } 
+      #wp-custom-wrapper .pallet-card { padding: 15px; }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
+
+  <script>
+    (function() {
+      const config = { 
+        apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
+        databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
+      };
+
+      const appName = 'fs25PalletLogisticsDynamic';
+      let app;
+      try {
+        app = firebase.apps.find(a => a.name === appName) || firebase.initializeApp(config, appName);
+      } catch (e) {
+        app = firebase.app(appName);
+      }
+      
+      const db = app.database();
+
+      const farmBrands = {
+          "1": { name: "WEREWOLF WAREHOUSE", icon: "🐺", color: "1" },
+          "2": { name: "RAYMYSTRO WAREHOUSE", icon: "⚡", color: "2" },
+          "3": { name: "COBALT DEPOT", icon: "💎", color: "3" },
+          "4": { name: "EMERALD STORAGE", icon: "🌿", color: "4" },
+          "5": { name: "PURPLE PEAK LOGISTICS", icon: "🏔️", color: "5" },
+          "6": { name: "GOLDEN VALLEY FREIGHT", icon: "☀️", color: "6" }
+      };
+
+      function cleanName(name) { 
+        return name.replace(/_/g, ' ').replace(/FACTORY/gi, '').trim().toUpperCase(); 
+      }
+
+      db.ref('fs25_live').on('value', (snap) => {
+        const data = snap.val();
+        const container = document.getElementById('dynamic-logistics-container');
+        
+        if (!data || !data.productions) {
+            container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">NO ACTIVE LOGISTICS DATA DETECTED</div>';
+            return;
+        }
+
+        // Sync Clock
+        const ctTime = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/Chicago',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        }).format(new Date());
+        document.getElementById('pallet-sync-clock').innerText = ctTime;
+
+        // Group productions by Farm ID
+        const prodsRaw = data.productions;
+        const prods = Array.isArray(prodsRaw) ? prodsRaw : Object.values(prodsRaw);
+        
+        const farmGroups = {};
+        prods.forEach(p => {
+            if (!p || !p.farmId) return;
+            const fid = p.farmId.toString();
+            if (parseInt(fid) > 6) return;
+
+            if (!farmGroups[fid]) farmGroups[fid] = [];
+            farmGroups[fid].push(p);
+        });
+
+        // Clear and rebuild
+        container.innerHTML = '';
+
+        Object.keys(farmGroups).sort().forEach(fid => {
+            const group = farmGroups[fid];
+            const brand = farmBrands[fid] || { name: `FARM ${fid} LOGISTICS`, icon: "📦", color: fid };
+
+            const section = document.createElement('section');
+            section.className = `logistics-column f-border-${brand.color}`;
+            
+            let html = `
+                <div class="column-header">
+                    <h3>${brand.icon} ${brand.name}</h3>
+                </div>
+                <div class="pallet-list">
+            `;
+
+            group.forEach(p => {
+                const palletCount = p.waitingPallets || p.palletCount || 0;
+                const status = (p.status || 'Active').toUpperCase();
+
+                html += `
+                    <div class="pallet-card">
+                        <div class="pallet-info">
+                            <span class="factory-name">${cleanName(p.name)}</span>
+                            <span class="pallet-type">STATUS: ${status}</span>
+                        </div>
+                        <div class="count-badge f-text-${brand.color}">
+                            <span class="count-num">${palletCount}</span>
+                            <span class="count-label">Units</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            section.innerHTML = html;
+            container.appendChild(section);
+        });
+
+        if (container.innerHTML === '') {
+            container.innerHTML = '<div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">WAITING FOR INDUSTRIAL ACTIVITY...</div>';
+        }
+
+      }, (err) => {
+        console.error("Firebase Logistics Error:", err);
+      });
+    })();
+  </script>
+</div>
