@@ -1,167 +1,193 @@
 <div id="wp-custom-wrapper">
-  <div class="fs25-collectables-dashboard">
-    <!-- Header: 30px Height/Header Sync -->
-    <header class="ops-header">
-      <div class="ops-branding">
+  <div class="fs25-discovery-terminal">
+    
+    <!-- TERMINAL HEADER (Divi Specs: 30px Header Sync) -->
+    <header class="terminal-header">
+      <div class="branding">
         <span class="label">SATELLITE RECON [FS25]</span>
-        <h2 class="glow-green">COLLECTABLES TRACKER</h2>
+        <h1 class="glow-green">COLLECTABLES TRACKER</h1>
       </div>
-      <div class="ops-sync">
-        <span class="label">TOTAL DISCOVERED</span>
-        <span id="total-progress-percent" class="mono glow-green">0%</span>
+      <div class="terminal-meta">
+        <span class="label">DISCOVERY PERCENT</span>
+        <span id="total-progress-percent" class="val glow-green">0%</span>
       </div>
     </header>
 
-    <!-- Global Progress Bar -->
-    <div class="global-progress-bar">
-        <div id="master-progress-fill" class="fill-green" style="width: 0%"></div>
+    <!-- INTEL STRIP (Fills top of body) -->
+    <div class="discovery-intel-bar">
+      <div class="intel-box">
+        <span class="label">TOTAL FOUND</span>
+        <span id="stat-total-found" class="intel-val neon-green">0</span>
+      </div>
+      <div class="intel-box">
+        <span class="label">CURRENT REGION</span>
+        <span id="map-location" class="intel-val neon-blue">SCANNING...</span>
+      </div>
+      <div class="intel-box last">
+        <span class="label">LAST SIGNAL DETECTED</span>
+        <span id="last-discovery-time" class="intel-val mono">--:--:--</span>
+      </div>
     </div>
 
-    <!-- Categorized Discovery Grid -->
-    <div id="collectables-grid" class="discovery-grid">
-        <!-- Categories auto-populate here -->
-        <div style="grid-column: 1/-1; padding:100px; text-align:center; opacity:0.3; font-size: 14px;">
-            SCANNING FOR HIDDEN SIGNALS...
+    <!-- GLOBAL PROGRESS TRACK -->
+    <div class="progress-track-container">
+        <div class="progress-label-row">
+            <span class="label">COMPLETION STATUS</span>
+            <span id="progress-status-text" style="font-size:10px; font-weight:900; color:var(--neon-green);">INITIALIZING SCAN...</span>
+        </div>
+        <div class="master-bar-bg">
+            <div id="master-progress-fill" class="master-bar-fill" style="width: 0%"></div>
         </div>
     </div>
 
-    <!-- Info Footer -->
-    <footer class="ops-footer">
-      <div class="footer-group">
-        <span class="label">MAP REGION</span>
-        <span id="map-location" style="color: #a0aec0;">RIVERBEND SPRINGS</span>
-      </div>
-      <div class="footer-group right">
-        <span class="label">UPLINK STATUS</span>
-        <span class="mono neon-blue">● SECURE FEED</span>
-      </div>
-    </footer>
+    <!-- MAIN OPERATIONS VIEWPORT -->
+    <div class="discovery-viewport">
+      
+      <!-- LEFT: REGIONAL LEDGER (The Body) -->
+      <section class="discovery-ledger">
+        <div class="section-header">
+          <span class="label">SATELLITE TELEMETRY</span>
+          <h3>ASSET CATEGORIES</h3>
+        </div>
+        <div id="collectables-grid" class="discovery-grid">
+            <!-- Populated by script -->
+            <div class="loading-state">SCANNING FOR HIDDEN SIGNALS...</div>
+        </div>
+      </section>
+
+      <!-- RIGHT: MILESTONE SIDEBAR -->
+      <aside class="milestone-sidebar">
+        <div class="section-header">
+          <span class="label">INTEL LOG</span>
+          <h3>PRIORITY TARGETS</h3>
+        </div>
+        
+        <div class="sidebar-block">
+            <span class="label">RECENT RECON</span>
+            <div id="recon-log" class="recon-log">
+                AWAITING COORDINATES...
+            </div>
+        </div>
+
+        <div class="sidebar-block">
+            <span class="label">REWARD STATUS</span>
+            <div class="reward-card">
+                <span style="font-size:11px; color:#718096; display:block; margin-bottom:5px;">NEXT MAJOR PAYOUT</span>
+                <span id="next-milestone-val" class="neon-orange" style="font-weight:900; font-size:16px;">$50,000 BONUS</span>
+            </div>
+        </div>
+      </aside>
+
+    </div>
+
   </div>
 
   <style>
     #wp-custom-wrapper {
-      --bg-ops: rgba(10, 11, 13, 0.98);
+      --bg-terminal: #0a0b0d;
+      --bg-card: rgba(15, 17, 22, 0.95);
       --neon-green: #76b041;
       --neon-blue: #00f2ff;
       --neon-orange: #ff5f00;
-      --border-ops: rgba(255, 255, 255, 0.1);
-      --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --border: rgba(255, 255, 255, 0.08);
+      --font: 'Inter', -apple-system, system-ui, sans-serif;
     }
 
-    #wp-custom-wrapper .fs25-collectables-dashboard {
-      width: 90%;
+    #wp-custom-wrapper .fs25-discovery-terminal {
+      width: 95%;
       margin: 50px auto; /* Divi Section Height: 50 */
-      max-width: 1200px;
+      max-width: 1400px;
       font-family: var(--font);
       color: #fff;
     }
 
-    /* Header: Divi Row Height 30px / Header 30px */
-    #wp-custom-wrapper .ops-header {
+    /* Terminal Header: Row Height 30 / Title 30 */
+    #wp-custom-wrapper .terminal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--bg-ops);
-      padding: 30px 25px; /* Divi Row Height Setting: 30 */
-      border: 1px solid var(--border-ops);
+      background: var(--bg-card);
+      padding: 30px 25px; /* Divi Row Height: 30 */
+      border: 1px solid var(--border);
       border-radius: 12px 12px 0 0;
       border-left: 5px solid var(--neon-green);
-      flex-wrap: wrap;
-      gap: 15px;
     }
 
     #wp-custom-wrapper .label { 
-        display: block; 
-        font-size: 14px; /* Divi Body Setting: 14 */
-        font-weight: 800; 
-        color: #718096; 
-        letter-spacing: 2px; 
-        text-transform: uppercase;
+      display: block; font-size: 14px; font-weight: 800; color: #718096; 
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px;
     }
 
-    #wp-custom-wrapper .glow-green { 
-        color: var(--neon-green); 
-        text-shadow: 0 0 12px rgba(118, 176, 65, 0.4); 
-        margin: 0; 
-        font-size: 30px; /* Divi Header Setting: 30 */
-        font-weight: 900;
-        text-transform: uppercase;
+    #wp-custom-wrapper h1, #wp-custom-wrapper .val { 
+      font-size: 30px; font-weight: 900; margin: 0; text-transform: uppercase;
     }
 
-    #wp-custom-wrapper .global-progress-bar {
-        width: 100%;
-        height: 4px;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid var(--border-ops);
-        border-top: none;
-    }
-    #wp-custom-wrapper .fill-green { height: 100%; background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); transition: width 1s ease; }
-
-    /* Discovery Grid */
-    #wp-custom-wrapper .discovery-grid {
+    /* Intel Bar */
+    #wp-custom-wrapper .discovery-intel-bar {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 30px; /* Divi Row Height Setting: 30 */
-      margin-top: 30px;
+      grid-template-columns: 200px 1fr 250px;
+      background: #000;
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: 15px 0;
     }
+    #wp-custom-wrapper .intel-box { border-right: 1px solid var(--border); padding: 0 25px; text-align: center; }
+    #wp-custom-wrapper .intel-box.last { border-right: none; }
+    #wp-custom-wrapper .intel-val { font-size: 22px; font-weight: 900; display: block; }
 
-    #wp-custom-wrapper .category-card {
-      background: var(--bg-ops);
-      border: 1px solid var(--border-ops);
-      border-radius: 12px;
-      padding: 25px;
-      position: relative;
+    /* Progress Track */
+    #wp-custom-wrapper .progress-track-container { background: var(--bg-card); padding: 20px 25px; border: 1px solid var(--border); border-top: none; border-bottom: none; }
+    #wp-custom-wrapper .progress-label-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    #wp-custom-wrapper .master-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+    #wp-custom-wrapper .master-bar-fill { height: 100%; background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); transition: width 1s ease; }
+
+    /* Layout Viewport */
+    #wp-custom-wrapper .discovery-viewport {
+      display: grid;
+      grid-template-columns: 2.5fr 1fr;
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 0 0 12px 12px;
       overflow: hidden;
-      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    #wp-custom-wrapper .discovery-ledger, #wp-custom-wrapper .milestone-sidebar {
+      background: var(--bg-terminal);
+      padding: 25px;
     }
 
-    #wp-custom-wrapper .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
+    #wp-custom-wrapper .section-header { margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+    #wp-custom-wrapper h3 { font-size: 18px; font-weight: 900; margin: 0; }
 
-    #wp-custom-wrapper .cat-title { font-size: 14px; font-weight: 900; color: #fff; text-transform: uppercase; }
-    #wp-custom-wrapper .cat-count { font-size: 18px; font-weight: 900; color: var(--neon-green); }
-
-    /* Visual Slots for Collectables */
-    #wp-custom-wrapper .slot-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
+    /* Discovery Grid Cards (Body 14px) */
+    #wp-custom-wrapper .discovery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+    #wp-custom-wrapper .cat-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
     }
-    #wp-custom-wrapper .item-slot {
-        width: 12px;
-        height: 12px;
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 2px;
-    }
-    #wp-custom-wrapper .item-slot.found {
-        background: var(--neon-green);
-        box-shadow: 0 0 5px var(--neon-green);
-        border-color: transparent;
-    }
+    #wp-custom-wrapper .cat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    #wp-custom-wrapper .cat-title { font-size: 14px; font-weight: 900; color: var(--neon-blue); text-transform: uppercase; }
+    
+    #wp-custom-wrapper .slot-map { display: flex; flex-wrap: wrap; gap: 5px; }
+    #wp-custom-wrapper .slot { width: 10px; height: 10px; background: rgba(255,255,255,0.05); border-radius: 2px; }
+    #wp-custom-wrapper .slot.found { background: var(--neon-green); box-shadow: 0 0 5px var(--neon-green); }
 
-    #wp-custom-wrapper .mono { font-family: monospace; letter-spacing: 1px; font-size: 14px; }
-    #wp-custom-wrapper .neon-blue { color: var(--neon-blue); }
+    /* Sidebar blocks */
+    #wp-custom-wrapper .sidebar-block { margin-bottom: 30px; }
+    #wp-custom-wrapper .recon-log { font-family: monospace; font-size: 12px; color: var(--neon-blue); line-height: 1.6; }
+    #wp-custom-wrapper .reward-card { background: rgba(255, 95, 0, 0.05); border: 1px solid rgba(255, 95, 0, 0.2); padding: 15px; border-radius: 8px; border-left: 4px solid var(--neon-orange); }
 
-    /* Footer: Body Text 14px */
-    #wp-custom-wrapper .ops-footer {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 30px; /* Divi Row Height: 30 */
-      padding: 20px 25px;
-      background: var(--bg-ops);
-      border: 1px solid var(--border-ops);
-      border-radius: 12px;
-      font-size: 14px;
-    }
+    #wp-custom-wrapper .glow-green { color: var(--neon-green); text-shadow: 0 0 10px rgba(118, 176, 65, 0.4); }
+    #wp-custom-wrapper .mono { font-family: monospace; font-size: 14px; }
+    #wp-custom-wrapper .loading-state { grid-column: 1/-1; padding: 60px; text-align: center; opacity: 0.3; font-style: italic; }
 
-    @media (max-width: 600px) {
-      #wp-custom-wrapper .glow-green { font-size: 24px; }
-      #wp-custom-wrapper .discovery-grid { grid-template-columns: 1fr; }
+    @media (max-width: 950px) {
+      #wp-custom-wrapper .discovery-viewport { grid-template-columns: 1fr; }
+      #wp-custom-wrapper .discovery-intel-bar { grid-template-columns: 1fr 1fr; }
+      #wp-custom-wrapper .discovery-intel-bar .intel-box:nth-child(2) { grid-column: span 2; border-top: 1px solid var(--border); border-right: none; }
+      #wp-custom-wrapper .terminal-header { flex-direction: column; text-align: center; gap: 15px; }
     }
   </style>
 
@@ -170,67 +196,98 @@
 
   <script>
     (function() {
-      const config = { databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" };
-      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25Collectables'); }
-      const db = firebase.app('fs25Collectables').database();
+      const config = { 
+        apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
+        databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
+      };
+      if (!firebase.apps.length) { firebase.initializeApp(config, 'fs25DiscoveryTerminal'); }
+      const db = firebase.app('fs25DiscoveryTerminal').database();
 
-      // Definitions for Riverbend Springs Collectables
-      const SCHEMA = [
+      // SMART MAP DATA SCHEMAS
+      const MAP_DATA = {
+        "RIVERBEND SPRINGS": [
           { id: "figs", name: "Farming Figures", total: 25, icon: "🚜" },
           { id: "coins", name: "Vintage Coins", total: 20, icon: "🪙" },
           { id: "artifacts", name: "Lost Artifacts", total: 15, icon: "🏺" },
           { id: "plush", name: "Plush Toys", total: 10, icon: "🧸" }
-      ];
+        ],
+        "HOSHI-NO-OKA": [
+          { id: "statues", name: "Lucky Cats", total: 30, icon: "🐱" },
+          { id: "scrolls", name: "Ancient Scrolls", total: 20, icon: "📜" }
+        ]
+      };
+
+      const DEFAULT_SCHEMA = [{ id: "general", name: "Regional Collectables", total: 100, icon: "📦" }];
+
+      let lastDiscoveryDigest = "";
 
       db.ref('fs25_live').on('value', (snap) => {
         const data = snap.val();
+        if (!data) return;
+
+        // 1. Identify Map & Load Schema
+        const overview = data["Server Overview"] || {};
+        const mapName = (overview["Active Map"] || "RIVERBEND SPRINGS").toUpperCase();
+        const schema = MAP_DATA[mapName] || DEFAULT_SCHEMA;
+
+        // 2. Elements
         const grid = document.getElementById('collectables-grid');
+        const recon = document.getElementById('recon-log');
+        const progressData = data?.collectables || {};
         
-        // Mock data logic - in a real scenario, the Sync script would provide found counts
-        // Accessing data.server.collectables or similar
-        const progressData = data?.collectables || { figs: 0, coins: 0, artifacts: 0, plush: 0 };
-        
+        // Change Detection
+        const currentDigest = JSON.stringify(progressData) + mapName;
+        if (currentDigest !== lastDiscoveryDigest && lastDiscoveryDigest !== "") {
+            document.getElementById('last-discovery-time').innerText = new Date().toLocaleTimeString('en-US', { hour12: false });
+        }
+        lastDiscoveryDigest = currentDigest;
+
         grid.innerHTML = '';
+        recon.innerHTML = '';
         let totalFound = 0;
         let totalPossible = 0;
 
-        SCHEMA.forEach(cat => {
-            const found = progressData[cat.id] || 0;
+        // 3. Process Schema
+        schema.forEach(cat => {
+            const found = parseInt(progressData[cat.id] || 0);
             totalFound += found;
             totalPossible += cat.total;
 
             const card = document.createElement('div');
-            card.className = 'category-card';
+            card.className = 'cat-card';
             
             let slotHtml = '';
             for(let i=0; i < cat.total; i++) {
-                slotHtml += `<div class="item-slot ${i < found ? 'found' : ''}"></div>`;
+                slotHtml += `<div class="slot ${i < found ? 'found' : ''}"></div>`;
             }
 
             card.innerHTML = `
-                <div class="card-header">
+                <div class="cat-header">
                     <span class="cat-title">${cat.icon} ${cat.name}</span>
-                    <span class="cat-count">${found} / ${cat.total}</span>
+                    <span style="font-weight:900; font-size:12px;">${found} / ${cat.total}</span>
                 </div>
-                <div class="slot-container">
-                    ${slotHtml}
-                </div>
+                <div class="slot-map">${slotHtml}</div>
             `;
             grid.appendChild(card);
+            
+            recon.innerHTML += `${cat.name.split(' ')[0].toUpperCase()} RECON: ${found} CONFIRMED<br>`;
         });
 
-        // Update Global Percentages
-        const percentage = Math.round((totalFound / totalPossible) * 100);
-        document.getElementById('total-progress-percent').innerText = `${percentage}%`;
-        document.getElementById('master-progress-fill').style.width = `${percentage}%`;
-        
-        if (data?.server?.mapName) {
-            document.getElementById('map-location').innerText = data.server.mapName.toUpperCase();
+        // 4. Check for Empty Maps
+        if (totalPossible === 100 && totalFound === 0 && !MAP_DATA[mapName]) {
+             grid.innerHTML = '<div class="loading-state">NO COLLECTABLE SIGNALS DETECTED IN THIS REGION.</div>';
+             recon.innerHTML = 'SECTOR CLEAR.';
         }
 
-      }, (err) => {
-        console.error("Firebase Discovery Error:", err);
-      });
+        // 5. UI Updates
+        const percentage = totalPossible > 0 ? Math.round((totalFound / totalPossible) * 100) : 0;
+        document.getElementById('total-progress-percent').innerText = `${percentage}%`;
+        document.getElementById('master-progress-fill').style.width = `${percentage}%`;
+        document.getElementById('stat-total-found').innerText = totalFound;
+        document.getElementById('map-location').innerText = mapName;
+        document.getElementById('progress-status-text').innerText = percentage === 100 ? "REGIONAL RECON COMPLETE" : "SCANNING SECTORS...";
+
+      }, (err) => console.error("Discovery Sync Error:", err));
     })();
   </script>
 </div>
