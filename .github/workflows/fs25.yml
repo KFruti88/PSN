@@ -12,22 +12,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Create Local Workspace
-        run: mkdir -p ./server_data
+      - name: Install LFTP
+        run: sudo apt-get install -y lftp
 
-      - name: 🛰️ Sync G-Portal Files (Custom Port)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.GPORTAL_HOST }}
-          username: ${{ secrets.GPORTAL_USER }}
-          password: ${{ secrets.GPORTAL_PWD }}
-          port: 50441
-          protocol: ftp
-          server-dir: /profile/
-          local-dir: ./server_data/
-          # This tells it to fetch files from the server to GitHub
-          dry-run: false
-          dangerous-clean-slate: false
+      - name: 🛰️ Force Sync from G-Portal
+        run: |
+          mkdir -p ./server_data
+          lftp -c "set ftp:ssl-allow no; open -u ${{ secrets.GPORTAL_USER }},${{ secrets.GPORTAL_PWD }} -p 50441 ${{ secrets.GPORTAL_HOST }}; mirror --verbose /profile/ ./server_data/"
 
       - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
