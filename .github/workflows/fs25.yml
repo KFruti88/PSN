@@ -18,11 +18,11 @@ jobs:
       - name: FTP Pull from G-Portal
         uses: sebastianpopp/git-ftp-action@releases/v3
         with:
-          url: "ftp://${{ secrets.GPORTAL_HOST }}"
+          # We are putting the folder directly in the URL without a trailing slash
+          url: "ftp://${{ secrets.GPORTAL_HOST }}/profile"
           user: ${{ secrets.GPORTAL_USER }}
           password: ${{ secrets.GPORTAL_PWD }}
           syncroot: ./server_data/
-          options: "-R /profile/"
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
