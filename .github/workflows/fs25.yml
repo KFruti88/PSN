@@ -15,18 +15,21 @@ jobs:
       - name: Create Local Workspace
         run: mkdir -p ./server_data
 
-      - name: FTP Pull from G-Portal
-        uses: sebastianpopp/git-ftp-action@releases/v3
+      - name: 🛰️ Sync G-Portal Files (Custom Port)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          # Keep the URL as just the IP
-          url: "ftp://${{ secrets.GPORTAL_HOST }}"
-          user: ${{ secrets.GPORTAL_USER }}
+          server: ${{ secrets.GPORTAL_HOST }}
+          username: ${{ secrets.GPORTAL_USER }}
           password: ${{ secrets.GPORTAL_PWD }}
-          syncroot: ./server_data/
-          # This specific format tells the tool to change directory to /profile/
-          options: "--remote-root /profile/"
+          port: 50441
+          protocol: ftp
+          server-dir: /profile/
+          local-dir: ./server_data/
+          # This tells it to fetch files from the server to GitHub
+          dry-run: false
+          dangerous-clean-slate: false
 
-      - name: Deploy to Firebase Hosting
+      - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
