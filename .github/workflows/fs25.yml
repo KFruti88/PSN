@@ -1,0 +1,38 @@
+name: G-Portal to Firebase Sync
+
+on:
+  schedule:
+    - cron: '0 * * * *' # This runs it every hour. 
+  workflow_dispatch:   # This adds a "Run now" button for manual testing.
+
+jobs:
+  update_data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Get XML from G-Portal
+        uses: sebastianpopp/git-ftp-action@releases/v3
+        with:
+          url: "ftp://${{ secrets.GPORTAL_HOST }}"
+          user: ${{ secrets.GPORTAL_USER }}
+          password: ${{ secrets.GPORTAL_PWD }}
+          # Change "logs/" to the folder where your XMLs live on G-Portal
+          options: "--syncroot ./logs/" 
+
+      - name: Commit XML to GitHub
+        run: |
+          git config --global user.name "G-Portal Bot"
+          git config --global user.email "bot@github.com"
+          git add .
+          git commit -m "Synced latest XML from G-Portal" || echo "No changes"
+          git push
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}'
+          projectId: psn-fs22-overlay # I saw this in your screenshot!
+          channelId: live
