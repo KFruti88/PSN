@@ -19,11 +19,12 @@ jobs:
       - name: 🛰️ FTP Pull from G-Portal
         uses: sebastianpopp/git-ftp-action@releases/v3
         with:
-          url: "ftp://${{ secrets.GPORTAL_HOST }}"
+          # Adding /profile/ to the end of the URL tells the robot exactly where to look
+          url: "ftp://${{ secrets.GPORTAL_HOST }}/profile/"
           user: ${{ secrets.GPORTAL_USER }}
           password: ${{ secrets.GPORTAL_PWD }}
-          # -R /profile/ ensures we grab every savegame and the stats XML
-          options: "--syncroot ./server_data/ -R /profile/" 
+          # This is the 'basket' where the files land in GitHub
+          syncroot: ./server_data/
 
       - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
