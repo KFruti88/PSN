@@ -15,16 +15,15 @@ jobs:
       - name: Install LFTP
         run: sudo apt-get install -y lftp
 
-      - name: 🛰️ Direct File Pull
+      - name: 🛰️ Sync XML Files Only
         run: |
-          mkdir -p ./server_data/savegame1
-          # The '|| true' at the end of each line prevents the whole script from crashing if one file isn't found
+          mkdir -p ./server_data
+          # --include-glob *.xml tells it to only touch XML files
+          # --ignore-time stops it from re-downloading things that haven't changed
+          # --parallel=5 makes it download faster
           lftp -c "set ftp:ssl-allow no; 
           open -u ${{ secrets.GPORTAL_USER }},${{ secrets.GPORTAL_PWD }} -p 50441 ${{ secrets.GPORTAL_HOST }}; 
-          get /profile/savegame1/vehicles.xml -o ./server_data/savegame1/vehicles.xml || true;
-          get /profile/savegame1/careerSavegame.xml -o ./server_data/savegame1/careerSavegame.xml || true;
-          get /profile/savegame1/farms.xml -o ./server_data/savegame1/farms.xml || true;
-          get /profile/dedicated_server/dedicatedServerStats.xml -o ./server_data/dedicated-server-stats.xml || true"
+          mirror --verbose --include-glob *.xml --parallel=5 / ./server_data/" || echo "Sync completed with some skips."
 
       - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
