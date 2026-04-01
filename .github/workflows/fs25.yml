@@ -15,10 +15,12 @@ jobs:
       - name: Install LFTP
         run: sudo apt-get install -y lftp
 
-      - name: 🛰️ Force Sync from G-Portal
+      - name: 🛰️ Force Sync XML Files
         run: |
           mkdir -p ./server_data
-          lftp -c "set ftp:ssl-allow no; open -u ${{ secrets.GPORTAL_USER }},${{ secrets.GPORTAL_PWD }} -p 50441 ${{ secrets.GPORTAL_HOST }}; mirror --verbose /profile/ ./server_data/"
+          lftp -c "set ftp:ssl-allow no; 
+          open -u ${{ secrets.GPORTAL_USER }},${{ secrets.GPORTAL_PWD }} -p 50441 ${{ secrets.GPORTAL_HOST }}; 
+          mirror --verbose --include-glob *.xml --exclude-glob savegameBackup/ /profile/ ./server_data/"
 
       - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -27,3 +29,4 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}'
           projectId: psn-fs22-overlay
           channelId: live
+          entryPoint: .
