@@ -2,31 +2,29 @@ name: G-Portal to Firebase Universal Sync
 
 on:
   schedule:
-    # Runs every 16 minutes to stay 1 minute behind the 15-min autosave
     - cron: '*/16 * * * *' 
-  workflow_dispatch: # Allows you to click "Run workflow" manually for testing
+  workflow_dispatch: 
 
 jobs:
   sync_and_deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: 📂 Checkout Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: 📁 Create Local Workspace
+      - name: Create Local Workspace
         run: mkdir -p ./server_data
 
-      - name: 🛰️ FTP Pull from G-Portal
+      - name: FTP Pull from G-Portal
         uses: sebastianpopp/git-ftp-action@releases/v3
         with:
-          # Adding /profile/ to the end of the URL tells the robot exactly where to look
-          url: "ftp://${{ secrets.GPORTAL_HOST }}/profile/"
+          url: "ftp://${{ secrets.GPORTAL_HOST }}"
           user: ${{ secrets.GPORTAL_USER }}
           password: ${{ secrets.GPORTAL_PWD }}
-          # This is the 'basket' where the files land in GitHub
           syncroot: ./server_data/
+          options: "-R /profile/"
 
-      - name: 🚀 Deploy to Firebase Hosting
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
