@@ -15,18 +15,13 @@ jobs:
       - name: Install LFTP
         run: sudo apt-get install -y lftp
 
-      - name: 🛰️ Force Sync XML Files
+      - name: 🛰️ Force Sync Live Savegame
         run: |
           mkdir -p ./server_data
           lftp -c "set ftp:ssl-allow no; 
           open -u ${{ secrets.GPORTAL_USER }},${{ secrets.GPORTAL_PWD }} -p 50441 ${{ secrets.GPORTAL_HOST }}; 
-          mirror --verbose \
-          --include-glob *.xml \
-          --exclude-glob dedicated_server/ \
-          --exclude-glob savegameBackup/ \
-          --exclude-glob screenshots/ \
-          --exclude-glob shader_cache/ \
-          /profile/ ./server_data/"
+          mirror --verbose --include-glob *.xml /profile/savegame1/ ./server_data/savegame1/;
+          get /profile/dedicated_server/gameStats.xml -o ./server_data/dedicated-server-stats.xml"
 
       - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
