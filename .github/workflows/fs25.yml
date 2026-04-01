@@ -20,7 +20,14 @@ jobs:
           mkdir -p ./server_data
           lftp -c "set ftp:ssl-allow no; 
           open -u ${{ secrets.GPORTAL_USER }},${{ secrets.GPORTAL_PWD }} -p 50441 ${{ secrets.GPORTAL_HOST }}; 
-          mirror --verbose --include-glob *.xml --exclude-glob savegameBackup/ /profile/ ./server_data/"
+          mirror --verbose --include-glob *.xml \
+          --exclude-glob dedicated_server/ \
+          --exclude-glob screenshots/ \
+          --exclude-glob shader_cache/ \
+          --exclude-glob modSettings/ \
+          --exclude-glob mods/ \
+          --exclude-glob pdlc/ \
+          /profile/ ./server_data/"
 
       - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
