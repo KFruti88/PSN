@@ -18,12 +18,15 @@ jobs:
       - name: 🛰️ Sync XML Files Only
         run: |
           mkdir -p ./server_data
-          # --include-glob *.xml tells it to only touch XML files
-          # --ignore-time stops it from re-downloading things that haven't changed
-          # --parallel=5 makes it download faster
           lftp -c "set ftp:ssl-allow no; 
           open -u ${{ secrets.GPORTAL_USER }},${{ secrets.GPORTAL_PWD }} -p 50441 ${{ secrets.GPORTAL_HOST }}; 
-          mirror --verbose --include-glob *.xml --parallel=5 / ./server_data/" || echo "Sync completed with some skips."
+          mirror --verbose --include-glob *.xml \
+          --exclude-glob mods/ \
+          --exclude-glob pdlc/ \
+          --exclude-glob screenshots/ \
+          --exclude-glob shader_cache/ \
+          --exclude-glob dedicated_server/temp/ \
+          --parallel=5 / ./server_data/" || echo "Sync finished with skips."
 
       - name: 🚀 Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -32,4 +35,5 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}'
           projectId: psn-fs22-overlay
           channelId: live
-          entryPoint: .
+          # This tells the robot to look inside the fs22 folder for the firebase.json
+          entryPoint: ./fs22
