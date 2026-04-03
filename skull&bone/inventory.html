@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Werewolf Command | Master Inventory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+        :root {
+            --snb-amber: #f59e0b;
+            --snb-gold: #fbbf24;
+            --snb-glass: rgba(15, 23, 42, 0.9);
+            --bg-slate: #1e293b;
+        }
+
+        body {
+            background-color: var(--bg-slate);
+            min-height: 100vh;
+            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #wp-custom-wrapper {
+            width: 98%;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+
+        .snb-main-shell {
+            width: 100%;
+            border-radius: 3.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 1) 100%);
+            box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+        }
+
+        /* User Preferences: 30px Header / 14px Body */
+        h1, .header-title {
+            font-size: 30px !important;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+            color: var(--snb-amber);
+            line-height: 1;
+        }
+
+        .body-text, p, td, select, input {
+            font-size: 14px !important;
+        }
+
+        .fs-heavy-glass {
+            background: var(--snb-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+        }
+
+        /* Wiki-Style Tables */
+        .fandom-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0,0,0,0.2);
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+
+        .fandom-table th {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            text-align: left;
+            text-transform: uppercase;
+            font-weight: 900;
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .fandom-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            vertical-align: middle;
+        }
+
+        .wiki-row:hover { background: rgba(245, 158, 11, 0.05); }
+
+        .check-toggle {
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .is-owned { color: var(--snb-amber); }
+        .is-not-owned { color: rgba(255,255,255,0.1); }
+
+        .qty-input {
+            width: 70px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px;
+            color: var(--snb-gold);
+            text-align: center;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .btn-tab {
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 10px 20px;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .btn-tab.active {
+            background: var(--snb-amber);
+            color: white;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+        .edit-input-econ {
+            background: transparent;
+            border: none;
+            color: var(--snb-gold);
+            font-weight: 900;
+            text-align: center;
+            outline: none;
+            width: 100%;
+        }
+
+        .registry-btn {
+            width: 100%;
+            text-align: left;
+            padding: 12px;
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+        .registry-btn.active {
+            border-color: var(--snb-amber);
+            background: rgba(245, 158, 11, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+<div id="wp-custom-wrapper">
+    <div class="snb-main-shell mx-auto">
+        
+        <!-- HEADER -->
+        <header class="flex flex-col lg:flex-row justify-between items-center mb-10 gap-6">
+            <div class="flex items-center gap-4">
+                <i data-lucide="anchor" class="text-amber-500 h-10 w-10"></i>
+                <h1 class="header-title">Werewolf Command</h1>
+            </div>
+
+            <!-- ECONOMY HUB -->
+            <div class="flex flex-wrap gap-4 bg-slate-900/60 p-3 rounded-2xl border border-white/10">
+                <div class="flex flex-col items-center px-4 border-r border-white/10 min-w-[100px]">
+                    <span class="text-[9px] font-black uppercase text-white/30 mb-1">Silver</span>
+                    <input type="text" id="econ-silver" onchange="updateEcon('silver', this.value)" class="edit-input-econ">
+                </div>
+                <div class="flex flex-col items-center px-4 border-r border-white/10 min-w-[100px]">
+                    <span class="text-[9px] font-black uppercase text-white/30 mb-1">Pieces of 8</span>
+                    <input type="text" id="econ-po8" onchange="updateEcon('po8', this.value)" class="edit-input-econ">
+                </div>
+                <div class="flex flex-col items-center px-4 border-r border-white/10 min-w-[100px]">
+                    <span class="text-[9px] font-black uppercase text-white/30 mb-1">Sovereigns</span>
+                    <input type="text" id="econ-gold" onchange="updateEcon('gold', this.value)" class="edit-input-econ">
+                </div>
+                <div class="flex flex-col items-center px-4 min-w-[60px]">
+                    <span class="text-[9px] font-black uppercase text-white/30 mb-1">Marks</span>
+                    <input type="text" id="econ-marks" onchange="updateEcon('marks', this.value)" class="edit-input-econ">
+                </div>
+            </div>
+
+            <nav class="flex gap-2 bg-slate-900/40 p-1 rounded-xl">
+                <button onclick="setTab('inventory')" id="nav-inventory" class="btn-tab active">Inventory Sheet</button>
+                <button onclick="setTab('fleet')" id="nav-fleet" class="btn-tab">Fleet Manager</button>
+            </nav>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <div id="tab-content" class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
+            <!-- Content will be rendered here immediately -->
+        </div>
+
+        <footer class="mt-20 border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <span id="sync-dot" class="h-2 w-2 rounded-full bg-slate-600"></span>
+                <span id="sync-status" class="text-[10px] font-black uppercase tracking-widest text-white/40">Gainesville Standby</span>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Werewolf Master Protocol v12.1</p>
+        </footer>
+    </div>
+</div>
+
+<script>
+    // --- SAFE ENVIRONMENT SETUP ---
+    let firebaseConfig = {};
+    try {
+        firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+    } catch (e) { console.warn("Firebase config missing - Using Safe Mode"); }
+
+    const app = (firebaseConfig.apiKey) ? firebase.initializeApp(firebaseConfig) : null;
+    const db = app ? app.firestore() : null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'werewolf-snb';
+    const token = "boaL8gV7HsXY2SWYCsuXkNQbzvsPZH7H151iHzZv";
+
+    // --- DATA ASSETS ---
+    const CHECK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="19" height="18" viewBox="0 0 19 18" fill="currentColor"><path d="M9.95044 0C14.921 0 18.9504 4.02944 18.9504 9C18.9504 13.9706 14.921 18 9.95044 18C4.97988 18 0.950439 13.9706 0.950439 9C0.950439 4.02944 4.97988 0 9.95044 0ZM9.95044 2C6.08445 2 2.95044 5.13401 2.95044 9C2.95044 12.866 6.08445 16 9.95044 16C13.8164 16 16.9504 12.866 16.9504 9C16.9504 5.13401 13.8164 2 9.95044 2ZM12.2434 6.29297C12.6343 5.90205 13.2665 5.90222 13.6575 6.29297C14.0485 6.68397 14.0485 7.31603 13.6575 7.70703L9.65747 11.707C9.46247 11.902 9.20644 12 8.95044 12C8.69452 11.9999 8.43834 11.902 8.24341 11.707L6.24341 9.70703C5.85266 9.31601 5.85249 8.68389 6.24341 8.29297C6.63433 7.90205 7.26645 7.90222 7.65747 8.29297L8.95044 9.58594L12.2434 6.29297Z"></path></svg>`;
+
+    // --- APPLICATION STATE ---
+    let state = {
+        activeTab: 'inventory',
+        activeShipName: 'Barque',
+        economy: { silver: "6M", po8: "15,400", gold: "450", marks: "12" },
+        userInventory: { 'Barque': { owned: true, qty: 1 } }, 
+        shipBuilds: { 'Barque': { level: 11, slots: {} } },
+        master: { ships: [], weapons: [], furniture: [] }
+    };
+
+    // --- CORE LOGIC ---
+
+    async function init() {
+        // Render UI with basic state immediately to prevent blank screen
+        renderUI();
+
+        // 1. Fetch from GitHub
+        await fetchMasterData();
+
+        // 2. Auth & Cloud Sync
+        if (app) {
+            try {
+                await app.auth().signInWithCustomToken(token);
+                updateStatus('Command Authenticated', 'bg-amber-500');
+
+                const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('snb-state').doc('master_v8');
+                
+                docRef.onSnapshot(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        state.economy = data.economy || state.economy;
+                        state.userInventory = data.userInventory || state.userInventory;
+                        state.shipBuilds = data.shipBuilds || state.shipBuilds;
+                        state.activeShipName = data.activeShipName || state.activeShipName;
+                        renderUI();
+                        updateStatus('Cloud Active', 'bg-green-500');
+                    } else {
+                        docRef.set({
+                            economy: state.economy,
+                            userInventory: state.userInventory,
+                            shipBuilds: state.shipBuilds,
+                            activeShipName: state.activeShipName
+                        });
+                    }
+                });
+            } catch (e) {
+                console.error("Cloud Error:", e);
+                updateStatus('Database Offline', 'bg-red-500');
+            }
+        } else {
+            updateStatus('Testing Mode (No Cloud)', 'bg-slate-500');
+        }
+    }
+
+    async function fetchMasterData() {
+        const root = 'https://raw.githubusercontent.com/SkullAndBonesTools/SkullAndBonesData/main/data/';
+        try {
+            const [s, w, f] = await Promise.all([
+                fetch(root + 'ships.json').then(r => r.json()),
+                fetch(root + 'weapons.json').then(r => r.json()),
+                fetch(root + 'furniture.json').then(r => r.json())
+            ]);
+            state.master = { ships: s, weapons: w, furniture: f };
+            renderUI();
+        } catch (e) { 
+            console.error("GitHub Sync Error"); 
+            updateStatus('GitHub Sync Error', 'bg-red-500');
+        }
+    }
+
+    async function push() {
+        if (!db) return;
+        const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('snb-state').doc('master_v8');
+        await docRef.set({
+            economy: state.economy,
+            userInventory: state.userInventory,
+            shipBuilds: state.shipBuilds,
+            activeShipName: state.activeShipName
+        }, { merge: true });
+    }
+
+    // --- ACTIONS ---
+
+    window.toggleOwned = (name) => {
+        if (!state.userInventory[name]) state.userInventory[name] = { owned: false, qty: 0 };
+        state.userInventory[name].owned = !state.userInventory[name].owned;
+        push();
+        renderUI();
+    };
+
+    window.updateQty = (name, val) => {
+        if (!state.userInventory[name]) state.userInventory[name] = { owned: false, qty: 0 };
+        state.userInventory[name].qty = val;
+        push();
+    };
+
+    window.updateEcon = (k, v) => { state.economy[k] = v; push(); };
+
+    window.setTab = (t) => {
+        state.activeTab = t;
+        document.querySelectorAll('.btn-tab').forEach(b => b.classList.toggle('active', b.id === `nav-${t}`));
+        renderUI();
+    };
+
+    window.updateSlot = (slot, val) => {
+        if (!state.shipBuilds[state.activeShipName]) state.shipBuilds[state.activeShipName] = { level: 1, slots: {} };
+        state.shipBuilds[state.activeShipName].slots[slot] = val;
+        push();
+    };
+
+    window.updateShipLevel = (delta) => {
+        const ship = state.shipBuilds[state.activeShipName];
+        if (ship) {
+            ship.level = Math.max(1, (ship.level || 1) + delta);
+            push();
+            renderUI();
+        }
+    };
+
+    // --- UI RENDERING ---
+
+    function renderUI() {
+        const container = document.getElementById('tab-content');
+        if (!container) return;
+
+        document.getElementById('econ-silver').value = state.economy.silver;
+        document.getElementById('econ-po8').value = state.economy.po8;
+        document.getElementById('econ-gold').value = state.economy.gold;
+        document.getElementById('econ-marks').value = state.economy.marks;
+
+        if (state.activeTab === 'inventory') renderInventory(container);
+        else renderFleet(container);
+
+        lucide.createIcons();
+    }
+
+    function renderInventory(container) {
+        const cats = [
+            { label: 'Ships', data: state.master.ships, color: 'text-amber-500' },
+            { label: 'Weapons', data: state.master.weapons, color: 'text-blue-400' },
+            { label: 'Furniture', data: state.master.furniture, color: 'text-emerald-400' }
+        ];
+
+        container.innerHTML = `
+            <div class="col-span-12 fs-heavy-glass p-8 space-y-8 animate-in fade-in">
+                <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                    <h2 class="header-title">Master Inventory</h2>
+                    <p class="text-[11px] font-black text-white/20 uppercase tracking-widest">Mark Owned • Set Quantities</p>
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    ${cats.map(cat => `
+                        <div class="space-y-4">
+                            <h3 class="text-[12px] font-black uppercase tracking-widest border-l-4 border-current px-3 ${cat.color}">${cat.label}</h3>
+                            <div class="max-h-[550px] overflow-y-auto custom-scroll pr-2">
+                                <table class="fandom-table">
+                                    <thead>
+                                        <tr><th class="w-10">Own</th><th>Name</th><th class="w-20">Qty</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        ${cat.data.length ? cat.data.map(item => {
+                                            const entry = state.userInventory[item.name] || { owned: false, qty: 0 };
+                                            return `
+                                                <tr class="wiki-row">
+                                                    <td><div onclick="toggleOwned('${item.name}')" class="check-toggle ${entry.owned ? 'is-owned' : 'is-not-owned'}">${CHECK_SVG}</div></td>
+                                                    <td class="font-bold text-white/90">${item.name}</td>
+                                                    <td><input type="number" value="${entry.qty}" onchange="updateQty('${item.name}', this.value)" class="qty-input"></td>
+                                                </tr>
+                                            `;
+                                        }).join('') : '<tr><td colspan="3" class="text-center p-10 opacity-20">Connecting to GitHub Library...</td></tr>'}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    function renderFleet(container) {
+        const ownedShips = state.master.ships.filter(s => state.userInventory[s.name]?.owned);
+        const ship = state.shipBuilds[state.activeShipName] || { level: 1, slots: {} };
+
+        container.innerHTML = `
+            <aside class="lg:col-span-3 space-y-4">
+                <div class="fs-heavy-glass p-6">
+                    <h2 class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-4">Deployed Vessels</h2>
+                    ${ownedShips.length ? ownedShips.map(s => `
+                        <button onclick="state.activeShipName='${s.name}'; renderUI();" class="registry-btn ${state.activeShipName === s.name ? 'active text-white' : 'text-white/40'}">
+                            <div class="font-bold text-[14px]">${s.name}</div>
+                            <div class="text-[9px] uppercase font-black opacity-50">Combat Ready</div>
+                        </button>
+                    `).join('') : '<div class="text-center p-8 opacity-20 text-[10px] font-black uppercase">Check ships in the Inventory tab to start building.</div>'}
+                </div>
+            </aside>
+
+            <section class="lg:col-span-9 fs-heavy-glass p-8">
+                <div class="flex justify-between items-start border-b border-white/5 pb-8 mb-8">
+                    <div>
+                        <h2 class="text-5xl font-black italic uppercase tracking-tighter">${state.activeShipName}</h2>
+                        <div class="flex items-center gap-4 mt-4">
+                             <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-black text-white/30 uppercase">Vessel Rank</span>
+                                <button onclick="updateShipLevel(-1)" class="h-6 w-6 bg-white/5 rounded">-</button>
+                                <span class="font-bold text-amber-500">${ship.level || 1}</span>
+                                <button onclick="updateShipLevel(1)" class="h-6 w-6 bg-white/5 rounded">+</button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${['Bow', 'Port', 'Starboard', 'Stern', 'Auxiliary', 'Armor', 'Furniture 1', 'Furniture 2', 'Furniture 3'].map(slot => {
+                        const current = ship.slots ? ship.slots[slot] : '';
+                        const items = slot.includes('Furniture') ? state.master.furniture : state.master.weapons;
+                        const ownedOptions = items.filter(i => state.userInventory[i.name]?.owned);
+
+                        return `
+                            <div class="p-4 rounded-2xl bg-black/20 border border-white/5">
+                                <span class="text-[9px] font-black text-white/20 uppercase tracking-widest block mb-2">${slot} Slot</span>
+                                <select onchange="updateSlot('${slot}', this.value)" class="bg-transparent text-white font-bold body-text outline-none w-full border-none cursor-pointer">
+                                    <option value="">-- NO GEAR ASSIGNED --</option>
+                                    ${ownedOptions.map(o => `<option value="${o.name}" ${current === o.name ? 'selected' : ''}>${o.name}</option>`).join('')}
+                                </select>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </section>
+        `;
+    }
+
+    function updateStatus(txt, cls) {
+        const dot = document.getElementById('sync-dot');
+        const status = document.getElementById('sync-status');
+        if(dot && status) {
+            dot.className = `h-2 w-2 rounded-full ${cls} ${cls.includes('green') ? 'animate-pulse' : ''}`;
+            status.innerText = txt;
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
