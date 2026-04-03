@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Werewolf Command | Firebase Core</title>
+    <title>Werewolf Command | Firebase Fixed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -27,7 +27,7 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            font-size: 14px !important; /* Divi Preference: 14px */
+            font-size: 14px !important; /* User Preference: 14px */
         }
 
         #wp-custom-wrapper {
@@ -46,7 +46,7 @@
             min-height: 90vh;
         }
 
-        /* Divi Preference: 30px Header */
+        /* User Preference: 30px Header */
         h1, .header-title {
             font-size: 30px !important;
             font-weight: 900;
@@ -228,7 +228,7 @@
 
         <!-- MAIN VIEWPORT -->
         <div id="tab-content" class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
-            <!-- Syncing Logic handles this -->
+            <!-- Syncing logic renders this -->
         </div>
 
         <footer class="mt-20 border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -236,13 +236,13 @@
                 <span id="sync-dot" class="h-2 w-2 rounded-full bg-slate-600"></span>
                 <span id="sync-status" class="text-[10px] font-black uppercase tracking-widest text-white/40">Gainesville Standby</span>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Werewolf Master Protocol v29.0 • Firebase Integrated</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Werewolf Master Protocol v31.0 • Firebase Integrated</p>
         </footer>
     </div>
 </div>
 
 <script>
-    // --- FIREBASE CORE CONFIGURATION ---
+    // --- FIREBASE PROJECT: ANGLER-SQUAD-TRACKER ---
     const config = {
         apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
         authDomain: "angler-squad-tracker.firebaseapp.com",
@@ -254,19 +254,21 @@
 
     const app = firebase.initializeApp(config);
     const db = app.firestore();
-    const trackerId = "cotw-master"; // Target existing folder structure
-    const subLabel = "skull-and-bone"; // Dedicated sub-collection
+    
+    // Exact path from your screenshots
+    const trackerId = "cotw-master"; 
+    const subLabel = "skull-and-bone"; 
 
     const CHECK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="19" height="18" viewBox="0 0 19 18" fill="currentColor"><path d="M9.95044 0C14.921 0 18.9504 4.02944 18.9504 9C18.9504 13.9706 14.921 18 9.95044 18C4.97988 18 0.950439 13.9706 0.950439 9C0.950439 4.02944 4.97988 0 9.95044 0ZM9.95044 2C6.08445 2 2.95044 5.13401 2.95044 9C2.95044 12.866 6.08445 16 9.95044 16C13.8164 16 16.9504 12.866 16.9504 9C16.9504 5.13401 13.8164 2 9.95044 2ZM12.2434 6.29297C12.6343 5.90205 13.2665 5.90222 13.6575 6.29297C14.0485 6.68397 14.0485 7.31603 13.6575 7.70703L9.65747 11.707C9.46247 11.902 9.20644 12 8.95044 12C8.69452 11.9999 8.43834 11.902 8.24341 11.707L6.24341 9.70703C5.85266 9.31601 5.85249 8.68389 6.24341 8.29297C6.63433 7.90205 7.26645 7.90222 7.65747 8.29297L8.95044 9.58594L12.2434 6.29297Z"></path></svg>`;
 
-    // --- MASTER LIBRARY (Embedded to prevent 404s) ---
+    // --- MASTER LIBRARY (Hard-coded to prevent GitHub 404s) ---
     const MASTER_RESOURCES = {
-        "Ships": ["Barque", "Padewakang", "Hulk", "Brigantine", "Sambuk", "Snow", "Cutter", "Sloop", "Bedar", "Gan-ru", "Barge"],
+        "Ships": ["Barque", "Padewakang", "Hulk", "Brigantine", "Sambuk", "Snow", "Cutter", "Sloop", "Bedar", "Barge"],
         "Ultimates": ["Twin-Winch Ballista", "Leopold III", "Zamzama III", "Ouroboros", "Black Prince", "Blue Specter", "Dardanelles Gun", "Eye of Heaven", "Endless Requiem"],
-        "Weapons": ["Naga's Call", "The Rotmouth", "Fire Bombard III", "Rahma's Legacy", "Basilisk III", "Long Gun V", "Scurlock's Chasers", "Termites III", "Culverin V"],
+        "Weapons": ["Naga's Call", "The Rotmouth", "Fire Bombard III", "Rahma's Legacy", "Basilisk III", "Long Gun V", "Scurlock's Chasers", "Culverin V", "Demi-cannon V"],
         "Armor": ["Royal Custodian", "Iron Cap", "Layered Scales", "Wailing Ward", "Calippo's Wall", "Bastion"],
         "Furniture": ["Scrapper Station", "Compagnie Screens", "Bombard Menuiserie I", "Hubac Tuning Rack", "Float Collars", "Water Tank", "Iron Capstan", "Mortar Works"],
-        "Materials": ["Magnetite Ingot", "Roselle Cloth", "Greenheart Plank", "Zinc Ingot", "Steel Ingot", "Screw Mechanism", "Cogwheel", "Precision Drilling Bit", "Abaka", "Teak", "Acacia"],
+        "Materials": ["Magnetite Ingot", "Roselle Cloth", "Greenheart Plank", "Zinc Ingot", "Steel Ingot", "Screw Mechanism", "Cogwheel", "Precision Drilling Bit", "Abaka", "Teak"],
         "Commodities": ["Gold Skull Rum", "Silver Snuff", "Black Lotus Opium", "Ginseng", "Cannon Powder", "Firearms", "Jade", "Porcelain", "Ivory", "Cloves"],
         "Provisions": ["Grilled Ndizi", "Grilled Bread", "Grilled Fish", "Godrogodro", "Otak-otak", "Ron'akoho", "Water Barrel", "Raw Chicken", "Flour"]
     };
@@ -280,7 +282,7 @@
         shipBuilds: {}
     };
 
-    // --- FIREBASE LOGIC ---
+    // --- FIREBASE CORE LOGIC ---
 
     async function init() {
         renderUI(); // Render immediate copy
@@ -289,7 +291,7 @@
             await firebase.auth().signInAnonymously();
             updateStatus('Syncing Cloud...', 'bg-amber-500');
 
-            // Targeted Path: artifacts/cotw-master/public/data/skull-and-bone/master
+            // Explicit Path Fix: artifacts/cotw-master/public/data/skull-and-bone/master
             const docRef = db.collection('artifacts').doc(trackerId).collection('public').doc('data').collection(subLabel).doc('master');
             
             docRef.onSnapshot(doc => {
@@ -299,27 +301,31 @@
                     renderUI();
                     updateStatus('Cloud Active', 'bg-green-500');
                 } else {
-                    docRef.set(state);
-                    updateStatus('Cloud Seeded', 'bg-blue-500');
+                    docRef.set(state); // Seed initial data to cloud
+                    updateStatus('Cloud Created', 'bg-blue-500');
                 }
             }, (err) => {
-                console.error("Snapshot Error", err);
+                console.error("Save Error:", err);
                 updateStatus('Sync Error', 'bg-red-500');
             });
         } catch (e) {
-            console.error("Auth Error", e);
+            console.error("Auth Error:", e);
             updateStatus('Local Mode', 'bg-slate-600');
         }
     }
 
     async function push() {
+        if (!firebase.auth().currentUser) return;
+        
         updateStatus('Saving...', 'bg-amber-500');
         const docRef = db.collection('artifacts').doc(trackerId).collection('public').doc('data').collection(subLabel).doc('master');
+        
         try {
-            await docRef.set(state, { merge: true });
+            const dataToPush = JSON.parse(JSON.stringify(state)); 
+            await docRef.set(dataToPush, { merge: true });
             updateStatus('Cloud Active', 'bg-green-500');
         } catch (e) {
-            console.error("Save failed", e);
+            console.error("Firebase Save Failed", e);
             updateStatus('Save Failed', 'bg-red-500');
         }
     }
@@ -353,7 +359,7 @@
         }
         state.shipBuilds[state.activeShipName].slots[slot] = val;
         push();
-        renderUI();
+        renderUI(); 
     };
 
     window.setShipRankManual = (val) => {
@@ -374,17 +380,22 @@
         renderUI();
     };
 
-    // --- UI RENDERING ENGINE ---
+    // --- RENDERING ---
 
     function renderUI() {
         const container = document.getElementById('tab-content');
         if (!container) return;
 
-        // Header sync
-        document.getElementById('econ-silver').value = state.economy.silver;
-        document.getElementById('econ-po8').value = state.economy.po8;
-        document.getElementById('econ-gold').value = state.economy.gold;
-        document.getElementById('econ-marks').value = state.economy.marks;
+        // Sync header values
+        const silverInput = document.getElementById('econ-silver');
+        const po8Input = document.getElementById('econ-po8');
+        const goldInput = document.getElementById('econ-gold');
+        const marksInput = document.getElementById('econ-marks');
+        
+        if (silverInput) silverInput.value = state.economy.silver;
+        if (po8Input) po8Input.value = state.economy.po8;
+        if (goldInput) goldInput.value = state.economy.gold;
+        if (marksInput) marksInput.value = state.economy.marks;
 
         if (state.activeTab === 'inventory') renderInventory(container);
         else renderFleet(container);
@@ -441,7 +452,7 @@
                             <div class="font-bold text-[14px]">${s}</div>
                             <div class="text-[9px] uppercase font-black opacity-50">Operational Vessel</div>
                         </button>
-                    `).join('') : '<div class="text-center p-8 opacity-20 text-[10px] font-black uppercase">Check "Own" on ships in Inventory tab first.</div>'}
+                    `).join('') : '<div class="text-center p-8 opacity-20 text-[10px] font-black uppercase">Check "Own" on ships in Inventory tab to see them here.</div>'}
                 </div>
             </aside>
 
@@ -490,7 +501,7 @@
         const dot = document.getElementById('sync-dot');
         const status = document.getElementById('sync-status');
         if(dot && status) {
-            dot.className = `h-2 w-2 rounded-full ${cls}`;
+            dot.className = `h-2 w-2 rounded-full ${cls} ${cls.includes('amber') ? 'animate-pulse' : ''}`;
             status.innerText = txt;
         }
     }
