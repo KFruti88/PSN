@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Werewolf Command | Master Inventory</title>
+    <title>Werewolf Command | Master Inventory & Fleet</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -16,7 +16,7 @@
         :root {
             --snb-amber: #f59e0b;
             --snb-gold: #fbbf24;
-            --snb-glass: rgba(15, 23, 42, 0.9);
+            --snb-glass: rgba(15, 23, 42, 0.95);
             --bg-slate: #0f172a;
             --snb-ultimate: #a855f7;
         }
@@ -27,7 +27,7 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            font-size: 14px !important; /* Global Body Preference */
+            font-size: 14px !important; /* User preference: 14px Body */
         }
 
         #wp-custom-wrapper {
@@ -43,10 +43,10 @@
             background: linear-gradient(180deg, rgba(15, 23, 42, 0.98) 0%, rgba(15, 23, 42, 1) 100%);
             box-shadow: 0 40px 80px -15px rgba(0, 0, 0, 0.5);
             padding: 30px;
-            min-height: 85vh;
+            min-height: 90vh;
         }
 
-        /* Global Header Preference: 30px */
+        /* User Preference: 30px Header */
         h1, .header-title {
             font-size: 30px !important;
             font-weight: 900;
@@ -63,6 +63,7 @@
             border-radius: 2rem;
         }
 
+        /* Fandom Wiki Table Styles */
         .fandom-table {
             width: 100%;
             border-collapse: collapse;
@@ -74,7 +75,7 @@
 
         .fandom-table th {
             background: rgba(255,255,255,0.05);
-            padding: 10px;
+            padding: 12px;
             text-align: left;
             text-transform: uppercase;
             font-weight: 900;
@@ -102,10 +103,10 @@
             justify-content: center;
         }
         .is-owned { color: var(--snb-amber); }
-        .is-not-owned { color: rgba(255,255,255,0.1); }
+        .is-not-owned { color: rgba(255,255,255,0.05); }
 
         .qty-input {
-            width: 70px;
+            width: 85px;
             background: rgba(0,0,0,0.4);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 4px;
@@ -117,12 +118,12 @@
         }
 
         .rank-input {
-            width: 60px;
+            width: 70px;
             background: rgba(0,0,0,0.3);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 8px;
             color: var(--snb-amber);
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 900;
             text-align: center;
             outline: none;
@@ -154,7 +155,7 @@
             text-align: center;
             outline: none;
             width: 100%;
-            font-size: 16px;
+            font-size: 18px;
         }
 
         .custom-scroll::-webkit-scrollbar { width: 5px; }
@@ -179,13 +180,16 @@
             background: rgba(0,0,0,0.4);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 0.5rem;
-            padding: 8px;
+            padding: 10px;
             color: white;
             font-weight: bold;
             width: 100%;
             outline: none;
             cursor: pointer;
         }
+
+        .ultimate-row { border-left: 3px solid var(--snb-ultimate) !important; }
+        .ultimate-text { color: var(--snb-ultimate) !important; font-weight: 900 !important; }
     </style>
 </head>
 <body>
@@ -202,15 +206,15 @@
 
             <!-- ECONOMY HUB -->
             <div class="flex flex-wrap gap-4 bg-slate-900/60 p-3 rounded-2xl border border-white/10">
-                <div class="flex flex-col items-center px-4 border-r border-white/10 min-w-[110px]">
-                    <span class="text-[9px] font-black uppercase text-white/30 mb-1 tracking-widest">Silver</span>
+                <div class="flex flex-col items-center px-4 border-r border-white/10 min-w-[120px]">
+                    <span class="text-[9px] font-black uppercase text-white/30 mb-1 tracking-widest">Silver Total</span>
                     <input type="text" id="econ-silver" onchange="updateEcon('silver', this.value)" class="edit-input-econ" placeholder="0">
                 </div>
-                <div class="flex flex-col items-center px-4 border-r border-white/10 min-w-[110px]">
+                <div class="flex flex-col items-center px-4 border-r border-white/10 min-w-[120px]">
                     <span class="text-[9px] font-black uppercase text-white/30 mb-1 tracking-widest">Pieces of 8</span>
                     <input type="text" id="econ-po8" onchange="updateEcon('po8', this.value)" class="edit-input-econ" placeholder="0">
                 </div>
-                <div class="flex flex-col items-center px-4 border-r border-white/10 min-w-[110px]">
+                <div class="flex flex-col items-center px-4 border-r border-white/10 min-w-[120px]">
                     <span class="text-[9px] font-black uppercase text-white/30 mb-1 tracking-widest">Sovereigns</span>
                     <input type="text" id="econ-gold" onchange="updateEcon('gold', this.value)" class="edit-input-econ" placeholder="0">
                 </div>
@@ -228,21 +232,21 @@
 
         <!-- MAIN VIEWPORT -->
         <div id="tab-content" class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
-            <!-- Content will be rendered here immediately -->
+            <!-- Loading indicator removed - rendering logic is now synchronous to prevent blanks -->
         </div>
 
         <footer class="mt-20 border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
                 <span id="sync-dot" class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
-                <span id="sync-status" class="text-[10px] font-black uppercase tracking-widest text-white/40">Gainesville Active</span>
+                <span id="sync-status" class="text-[10px] font-black uppercase tracking-widest text-white/40">Gainesville Online</span>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Werewolf Master Protocol v24.0 • Zero-Failure Logic</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Werewolf Master Protocol v25.0 • Fail-Safe Library Locked</p>
         </footer>
     </div>
 </div>
 
 <script>
-    // --- FIREBASE & SAFE ENV ---
+    // --- FIREBASE FALLBACK ---
     let db = null;
     let appId = 'werewolf-snb';
     const token = "boaL8gV7HsXY2SWYCsuXkNQbzvsPZH7H151iHzZv";
@@ -254,20 +258,20 @@
             db = app.firestore();
             appId = typeof __app_id !== 'undefined' ? __app_id : 'werewolf-snb';
         }
-    } catch (e) { console.warn("Firebase config missing - working in Local Mode"); }
+    } catch (e) { console.warn("Cloud Sync Disabled - Safe Mode"); }
 
     const CHECK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="19" height="18" viewBox="0 0 19 18" fill="currentColor"><path d="M9.95044 0C14.921 0 18.9504 4.02944 18.9504 9C18.9504 13.9706 14.921 18 9.95044 18C4.97988 18 0.950439 13.9706 0.950439 9C0.950439 4.02944 4.97988 0 9.95044 0ZM9.95044 2C6.08445 2 2.95044 5.13401 2.95044 9C2.95044 12.866 6.08445 16 9.95044 16C13.8164 16 16.9504 12.866 16.9504 9C16.9504 5.13401 13.8164 2 9.95044 2ZM12.2434 6.29297C12.6343 5.90205 13.2665 5.90222 13.6575 6.29297C14.0485 6.68397 14.0485 7.31603 13.6575 7.70703L9.65747 11.707C9.46247 11.902 9.20644 12 8.95044 12C8.69452 11.9999 8.43834 11.902 8.24341 11.707L6.24341 9.70703C5.85266 9.31601 5.85249 8.68389 6.24341 8.29297C6.63433 7.90205 7.26645 7.90222 7.65747 8.29297L8.95044 9.58594L12.2434 6.29297Z"></path></svg>`;
 
-    // --- HARD-CODED MASTER DATA (From Wiki & Repository) ---
+    // --- HARD-CODED MASTER DATA (From Wiki & Repository - Prevents 404 Blanks) ---
     const MASTER_RESOURCES = {
-        "Ships": ["Barque", "Padewakang", "Hulk", "Brigantine", "Sambuk", "Snow", "Cutter", "Sloop", "Bedar", "Barge"],
-        "Ultimates": ["Twin-Winch Ballista", "Leopold III", "Zamzama III", "Ouroboros", "Black Prince", "Blue Specter", "Dardanelles Gun", "Endless Requiem", "Eye of Heaven"],
-        "Weapons": ["Naga's Call", "The Rotmouth", "Fire Bombard III", "Rahma's Legacy", "Basilisk III", "Long Gun V", "Scurlock's Chasers", "Culverin V", "Demi-cannon V"],
+        "Ships": ["Barque", "Padewakang", "Hulk", "Brigantine", "Sambuk", "Snow", "Cutter", "Sloop", "Bedar", "Gan-ru", "Barge"],
+        "Ultimates": ["Twin-Winch Ballista", "Leopold III", "Zamzama III", "Ouroboros", "Black Prince", "Blue Specter", "Dardanelles Gun", "Eye of Heaven", "Endless Requiem"],
+        "Weapons": ["Naga's Call", "The Rotmouth", "Fire Bombard III", "Rahma's Legacy", "Basilisk III", "Long Gun V", "Scurlock's Chasers", "Culverin V", "Demi-cannon V", "Bucaneer III"],
         "Armor": ["Royal Custodian", "Iron Cap", "Layered Scales", "Wailing Ward", "Calippo's Wall", "Bastion"],
         "Furniture": ["Scrapper Station", "Compagnie Screens", "Bombard Menuiserie I", "Hubac Tuning Rack", "Float Collars", "Water Tank", "Iron Capstan", "Mortar Works"],
         "Materials": ["Magnetite Ingot", "Roselle Cloth", "Greenheart Plank", "Zinc Ingot", "Steel Ingot", "Screw Mechanism", "Cogwheel", "Precision Drilling Bit", "Abaka", "Teak", "Acacia"],
-        "Commodities": ["Gold Skull Rum", "Silver Snuff", "Black Lotus Opium", "Ginseng", "Cannon Powder", "Jade", "Ivory", "Cloves", "Nutmeg"],
-        "Provisions": ["Grilled Ndizi", "Grilled Bread", "Grilled Fish", "Godrogodro", "Otak-otak", "Water Barrel", "Raw Chicken", "Flour"]
+        "Commodities": ["Gold Skull Rum", "Silver Snuff", "Black Lotus Opium", "Ginseng", "Cannon Powder", "Firearms", "Jade", "Porcelain", "Ivory", "Cloves", "Nutmeg"],
+        "Provisions": ["Grilled Ndizi", "Grilled Bread", "Grilled Fish", "Godrogodro", "Otak-otak", "Ron'akoho", "Water Barrel", "Raw Chicken", "Flour"]
     };
 
     // --- APPLICATION STATE ---
@@ -279,32 +283,27 @@
         shipBuilds: { 'Barque': { level: 11, slots: {} } }
     };
 
-    // --- CORE ENGINE ---
+    // --- CORE LOGIC ---
 
     async function init() {
-        renderUI(); // Render immediate copy
+        renderUI(); // Render immediate data
 
         if (db) {
             try {
                 await firebase.auth().signInWithCustomToken(token);
                 updateStatus('Cloud Connected', 'bg-green-500');
-
-                const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('snb-state').doc('master_final_v30');
+                const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('snb-state').doc('master_final_v40');
                 docRef.onSnapshot(doc => {
-                    if (doc.exists) {
-                        state = { ...state, ...doc.data() };
-                        renderUI();
-                    } else {
-                        docRef.set(state);
-                    }
+                    if (doc.exists) { state = { ...state, ...doc.data() }; renderUI(); }
+                    else { docRef.set(state); }
                 });
-            } catch (e) { updateStatus('Auth Error', 'bg-red-500'); }
+            } catch (e) { updateStatus('Local Mode Active', 'bg-slate-500'); }
         }
     }
 
     async function push() {
         if (!db) return;
-        const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('snb-state').doc('master_final_v30');
+        const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('snb-state').doc('master_final_v40');
         await docRef.set(state, { merge: true });
     }
 
@@ -357,7 +356,7 @@
         const container = document.getElementById('tab-content');
         if (!container) return;
 
-        // Header sync
+        // Sync header
         document.getElementById('econ-silver').value = state.economy.silver;
         document.getElementById('econ-po8').value = state.economy.po8;
         document.getElementById('econ-gold').value = state.economy.gold;
@@ -371,27 +370,27 @@
 
     function renderInventory(container) {
         container.innerHTML = `
-            <div class="col-span-12 fs-heavy-glass p-8 space-y-8 animate-in fade-in">
+            <div class="col-span-12 fs-heavy-glass p-8 space-y-10 animate-in fade-in">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/5 pb-6">
                     <div>
-                        <h2 class="header-title">Master Inventory Sheet</h2>
-                        <p class="text-white/30 text-[11px] font-black uppercase tracking-widest mt-1">Check "Own" to equip in Fleet Manager</p>
+                        <h2 class="header-title">Warehouse Inventory Protocol</h2>
+                        <p class="text-white/30 text-[11px] font-black uppercase tracking-widest mt-1">Check "Own" to make gear available in the Fleet Manager</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     ${Object.entries(MASTER_RESOURCES).map(([cat, items]) => `
                         <div class="space-y-4">
-                            <h3 class="text-[11px] font-black uppercase tracking-widest px-3 border-l-4 border-amber-500">${cat}</h3>
+                            <h3 class="text-[11px] font-black uppercase tracking-widest px-3 border-l-4 border-current ${cat === 'Ultimates' ? 'border-purple-500 text-purple-400' : 'border-amber-500 text-amber-500'}">${cat}</h3>
                             <div class="max-h-[500px] overflow-y-auto custom-scroll pr-2">
                                 <table class="fandom-table">
-                                    <thead><tr><th class="w-10">Own</th><th>Name</th><th class="w-16">Qty</th></tr></thead>
+                                    <thead><tr><th class="w-10">Own</th><th>Name</th><th class="w-20">Qty</th></tr></thead>
                                     <tbody>
                                         ${items.map(item => {
                                             const entry = state.userInventory[item] || { owned: false, qty: 0 };
-                                            return `<tr class="wiki-row">
+                                            return `<tr class="wiki-row ${cat === 'Ultimates' ? 'ultimate-row' : ''}">
                                                 <td><div onclick="toggleOwned('${item}')" class="check-toggle ${entry.owned ? 'is-owned' : 'is-not-owned'}">${CHECK_SVG}</div></td>
-                                                <td class="font-bold text-white/90">${item}</td>
+                                                <td class="font-bold text-white/90 ${cat === 'Ultimates' ? 'ultimate-text' : ''}">${item}</td>
                                                 <td><input type="text" value="${entry.qty}" onchange="updateQty('${item}', this.value)" class="qty-input"></td>
                                             </tr>`;
                                         }).join('')}
@@ -406,15 +405,15 @@
     }
 
     function renderFleet(container) {
-        // Fix: Ensure we check based on keys in the state.userInventory
-        const ownedShipNames = MASTER_RESOURCES.Ships.filter(s => state.userInventory[s]?.owned);
+        // Logic fix: Correctly filter owned ships from the master list
+        const ownedShips = MASTER_RESOURCES.Ships.filter(s => state.userInventory[s]?.owned);
         const build = state.shipBuilds[state.activeShipName] || { level: 1, slots: {} };
 
         container.innerHTML = `
             <aside class="lg:col-span-3 space-y-4">
                 <div class="fs-heavy-glass p-6">
-                    <h2 class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-4">Deployed Vessel Registry</h2>
-                    ${ownedShipNames.length ? ownedShipNames.map(s => `
+                    <h2 class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-4">Registry</h2>
+                    ${ownedShips.length ? ownedShips.map(s => `
                         <button onclick="state.activeShipName='${s}'; renderUI();" class="registry-btn ${state.activeShipName === s ? 'active text-white' : 'text-white/40'}">
                             <div class="font-bold text-[14px]">${s}</div>
                             <div class="text-[9px] uppercase font-black opacity-50">Operational</div>
@@ -440,7 +439,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     ${['Bow', 'Port', 'Starboard', 'Stern', 'Auxiliary', 'Armor', 'Furniture 1', 'Furniture 2', 'Furniture 3', 'Furniture 4', 'Furniture 5'].map(slot => {
-                        const current = build.slots ? build.slots[slot] : '';
+                        const currentVal = build.slots ? build.slots[slot] : '';
                         
                         let pool = ['Weapons', 'Ultimates'];
                         if (slot.includes('Furniture')) pool = ['Furniture', 'Ultimates'];
@@ -455,7 +454,7 @@
                             <span class="text-[9px] font-black text-white/30 uppercase tracking-widest block mb-2">${slot.replace('_',' ')} Attachment</span>
                             <select onchange="updateSlot('${slot}', this.value)" class="build-select body-text">
                                 <option value="">-- SELECT FROM OWNED --</option>
-                                ${options.map(o => `<option value="${o}" ${current === o ? 'selected' : ''}>${o}</option>`).join('')}
+                                ${options.map(o => `<option value="${o}" ${currentVal === o ? 'selected' : ''}>${o}</option>`).join('')}
                             </select>
                         </div>`;
                     }).join('')}
