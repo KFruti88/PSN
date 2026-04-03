@@ -27,7 +27,7 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            font-size: 14px !important; /* User Preference: 14px Body */
+            font-size: 14px !important; /* Global Body Preference */
         }
 
         #wp-custom-wrapper {
@@ -46,7 +46,7 @@
             min-height: 90vh;
         }
 
-        /* User Preference: 30px Header */
+        /* Global Header Preference: 30px */
         h1, .header-title {
             font-size: 30px !important;
             font-weight: 900;
@@ -228,7 +228,7 @@
 
         <!-- MAIN VIEWPORT -->
         <div id="tab-content" class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
-            <!-- Rendered by JS -->
+            <!-- Initial content before sync -->
         </div>
 
         <footer class="mt-20 border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -236,29 +236,30 @@
                 <span id="sync-dot" class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>
                 <span id="sync-status" class="text-[10px] font-black uppercase tracking-widest text-white/40">Gainesville Online</span>
             </div>
-            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Werewolf Master Protocol v27.0 • Inventory Locked</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">Werewolf Master Protocol v28.0 • Firebase Integrated</p>
         </footer>
     </div>
 </div>
 
 <script>
-    // --- FIREBASE FALLBACK ---
-    let db = null;
-    let appId = 'werewolf-snb';
-    const token = "boaL8gV7HsXY2SWYCsuXkNQbzvsPZH7H151iHzZv";
+    // --- FIREBASE CONFIGURATION (ANGLER-SQUAD-TRACKER) ---
+    const config = {
+        apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+        authDomain: "angler-squad-tracker.firebaseapp.com",
+        projectId: "angler-squad-tracker",
+        storageBucket: "angler-squad-tracker.firebasestorage.app",
+        messagingSenderId: "325679067980",
+        appId: "1:325679067980:web:57edbad70fe12b988355e9"
+    };
 
-    try {
-        if (typeof __firebase_config !== 'undefined') {
-            const config = JSON.parse(__firebase_config);
-            const app = firebase.initializeApp(config);
-            db = app.firestore();
-            appId = typeof __app_id !== 'undefined' ? __app_id : 'werewolf-snb';
-        }
-    } catch (e) { console.warn("Cloud Sync Disabled - Environment Variables Missing"); }
+    const app = firebase.initializeApp(config);
+    const db = app.firestore();
+    const appId = "angler-squad-tracker";
+    const collectionName = "skull-and-bone";
 
     const CHECK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="19" height="18" viewBox="0 0 19 18" fill="currentColor"><path d="M9.95044 0C14.921 0 18.9504 4.02944 18.9504 9C18.9504 13.9706 14.921 18 9.95044 18C4.97988 18 0.950439 13.9706 0.950439 9C0.950439 4.02944 4.97988 0 9.95044 0ZM9.95044 2C6.08445 2 2.95044 5.13401 2.95044 9C2.95044 12.866 6.08445 16 9.95044 16C13.8164 16 16.9504 12.866 16.9504 9C16.9504 5.13401 13.8164 2 9.95044 2ZM12.2434 6.29297C12.6343 5.90205 13.2665 5.90222 13.6575 6.29297C14.0485 6.68397 14.0485 7.31603 13.6575 7.70703L9.65747 11.707C9.46247 11.902 9.20644 12 8.95044 12C8.69452 11.9999 8.43834 11.902 8.24341 11.707L6.24341 9.70703C5.85266 9.31601 5.85249 8.68389 6.24341 8.29297C6.63433 7.90205 7.26645 7.90222 7.65747 8.29297L8.95044 9.58594L12.2434 6.29297Z"></path></svg>`;
 
-    // --- HARD-CODED MASTER DATA (From Wiki & Repository - Prevents 404 Blanks) ---
+    // --- MANUALLY EMBEDDED MASTER DATA (Ensures it works even if empty in cloud) ---
     const MASTER_RESOURCES = {
         "Ships": ["Barque", "Padewakang", "Hulk", "Brigantine", "Sambuk", "Snow", "Cutter", "Sloop", "Bedar", "Gan-ru", "Barge"],
         "Ultimates": ["Twin-Winch Ballista", "Leopold III", "Zamzama III", "Ouroboros", "Black Prince", "Blue Specter", "Dardanelles Gun", "Eye of Heaven", "Endless Requiem"],
@@ -275,31 +276,38 @@
         activeTab: 'inventory',
         activeShipName: 'Barque',
         economy: { silver: "6,000,000", po8: "15,400", gold: "450", marks: "12" },
-        userInventory: { 'Barque': { owned: true, qty: 1 } }, 
+        userInventory: { 'Barque': { owned: true, qty: 1 }, "Naga's Call": { owned: true, qty: 1 } }, 
         shipBuilds: { 'Barque': { level: 11, slots: {} } }
     };
 
     // --- INITIALIZATION ---
 
     async function init() {
-        renderUI(); // Render immediate local copy
+        renderUI(); // Initial local render
 
-        if (db) {
-            try {
-                await firebase.auth().signInWithCustomToken(token);
-                updateStatus('Cloud Authenticated', 'bg-green-500');
-                const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('snb-state').doc('master_final_v27');
-                docRef.onSnapshot(doc => {
-                    if (doc.exists) { state = { ...state, ...doc.data() }; renderUI(); }
-                    else { docRef.set(state); }
-                });
-            } catch (e) { updateStatus('Local Testing Mode', 'bg-slate-500'); }
+        try {
+            await firebase.auth().signInAnonymously();
+            updateStatus('Sync Active', 'bg-green-500');
+
+            // Rule 1 Path: /artifacts/{appId}/public/data/{collectionName}/master
+            const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection(collectionName).doc('master');
+            
+            docRef.onSnapshot(doc => {
+                if (doc.exists) {
+                    state = { ...state, ...doc.data() };
+                    renderUI();
+                } else {
+                    docRef.set(state); // Seed initial data to cloud
+                }
+            });
+        } catch (e) {
+            console.error("Firebase Auth Error", e);
+            updateStatus('Local Mode', 'bg-slate-500');
         }
     }
 
     async function push() {
-        if (!db) return;
-        const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('snb-state').doc('master_final_v27');
+        const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection(collectionName).doc('master');
         await docRef.set(state, { merge: true });
     }
 
@@ -369,12 +377,12 @@
             <div class="col-span-12 fs-heavy-glass p-8 space-y-10 animate-in fade-in">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/5 pb-6">
                     <div>
-                        <h2 class="header-title">Warehouse Inventory Protocol</h2>
-                        <p class="text-white/30 text-[11px] font-black uppercase tracking-widest mt-1">Check "Own" to equip in Fleet Manager • Manual Qty Entry</p>
+                        <h2 class="header-title">Warehouse Inventory Sheet</h2>
+                        <p class="text-white/30 text-[11px] font-black uppercase tracking-widest mt-1">Check "Own" to unlock items in Fleet Manager • Type warehouse quantities directly</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     ${Object.entries(MASTER_RESOURCES).map(([cat, items]) => `
                         <div class="space-y-4">
                             <h3 class="text-[11px] font-black uppercase tracking-widest px-3 border-l-4 border-current ${cat === 'Ultimates' ? 'border-purple-500 text-purple-400' : 'border-amber-500 text-amber-500'}">${cat}</h3>
@@ -401,7 +409,6 @@
     }
 
     function renderFleet(container) {
-        // Correctly find ships that the user actually checked as "owned"
         const ownedShipsList = MASTER_RESOURCES.Ships.filter(s => state.userInventory[s]?.owned);
         const build = state.shipBuilds[state.activeShipName] || { level: 1, slots: {} };
 
@@ -412,7 +419,7 @@
                     ${ownedShipsList.length ? ownedShipsList.map(s => `
                         <button onclick="state.activeShipName='${s}'; renderUI();" class="registry-btn ${state.activeShipName === s ? 'active text-white' : 'text-white/40'}">
                             <div class="font-bold text-[14px]">${s}</div>
-                            <div class="text-[9px] uppercase font-black opacity-50">Operational</div>
+                            <div class="text-[9px] uppercase font-black opacity-50">Operational Vessel</div>
                         </button>
                     `).join('') : '<div class="text-center p-8 opacity-20 text-[10px] font-black uppercase">Check "Own" on ships in Inventory tab to see them here.</div>'}
                 </div>
@@ -423,7 +430,7 @@
                     <div>
                         <h2 class="text-5xl font-black italic uppercase tracking-tighter leading-none">${state.activeShipName}</h2>
                         <div class="mt-6 flex items-center gap-4">
-                            <span class="text-[10px] font-black text-white/30 uppercase tracking-widest">Ship Rank</span>
+                            <span class="text-[10px] font-black text-white/30 uppercase tracking-widest">Vessel Rank</span>
                             <div class="flex items-center gap-2 bg-slate-900/50 p-1 rounded-lg">
                                 <button onclick="updateShipLevel(-1)" class="h-8 w-8 bg-slate-800 rounded hover:bg-slate-700">-</button>
                                 <input type="text" value="${build.level || 1}" onchange="setShipRankManual(this.value)" class="rank-input">
