@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Werewolf Command | Fleet Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        :root {
+            --bg-dark: #020617;
+            --panel-dark: #0f172a;
+            --amber-primary: #d97706;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #e2e8f0;
+            font-size: 14px; 
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        h1, .header-text {
+            font-size: 30px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d97706; }
+
+        .tab-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-active {
+            background-color: var(--amber-primary);
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(120, 53, 15, 0.4);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card:hover {
+            border-color: rgba(217, 119, 6, 0.4);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        /* Tooltip Arrow */
+        .tooltip-arrow {
+            width: 0; 
+            height: 0; 
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid rgba(217, 119, 6, 0.8);
+            position: absolute;
+            top: -8px;
+            left: 20px;
+        }
+    </style>
+</head>
+<body class="selection:bg-amber-500/30">
+
+    <header class="bg-slate-900/90 border-b border-amber-900/30 p-4 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto flex justify-between items-center px-2 lg:px-4">
+            <div class="flex items-center gap-3">
+                <i data-lucide="anchor" class="text-amber-500 h-8 w-8"></i>
+                <h1 class="header-text text-amber-50 leading-none">Werewolf Command</h1>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div id="sync-container" class="hidden md:flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-full border border-slate-800">
+                    <div id="sync-indicator" class="h-2 w-2 bg-amber-500 rounded-full animate-pulse"></div>
+                    <span id="sync-label" class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Connecting...</span>
+                </div>
+
+                <nav id="main-nav" class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button onclick="switchTab('fleet')" id="nav-fleet" class="tab-btn px-4 py-2 rounded-lg text-[12px] font-bold uppercase tab-active">Fleet</button>
+                    <button onclick="switchTab('logbook')" id="nav-logbook" class="tab-btn px-4 py-2 rounded-lg text-[12px] font-bold uppercase text-slate-500">Logbook</button>
+                    <button onclick="switchTab('vault')" id="nav-vault" class="tab-btn px-4 py-2 rounded-lg text-[12px] font-bold uppercase text-slate-500">Vault</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main id="app-viewport" class="max-w-7xl mx-auto p-4 md:p-6 mt-4">
+    </main>
+
+    <footer class="mt-12 p-12 border-t border-slate-900 bg-slate-950 text-center">
+        <p class="text-slate-600 text-[10px] tracking-[0.4em] uppercase font-black leading-none mb-3">
+            Gainesville Station • Werewolf Command • Synced 2026
+        </p>
+        <div class="flex justify-center gap-4 opacity-30 grayscale hover:grayscale-0 transition-all">
+            <img src="https://www.ubisoft.com/favicon.ico" class="h-4" alt="Ubi">
+            <span class="text-[9px] uppercase tracking-widest text-slate-500">Data Source: SnB Tools Master Database</span>
+        </div>
+    </footer>
+
+    <script>
+        const DATA_API = {
+            weapons: 'https://raw.githubusercontent.com/SkullAndBonesTools/SkullAndBonesData/main/data/weapons.json',
+            furniture: 'https://raw.githubusercontent.com/SkullAndBonesTools/SkullAndBonesData/main/data/furniture.json'
+        };
+
+        const USER_PROFILE = {
+            rank: "KINGPIN - 21",
+            silver: "6,000,000",
+            shipsSunk: 802,
+            discovery: 206,
+            timePlayed: "46h",
+            topSpeed: "24.78 kts",
+            referrals: 1,
+            server: "Gainesville_Main_1"
+        };
+
+        const SHIP_MANIFEST = [
+            {
+                id: 'guardian-barque',
+                name: 'Guardian',
+                class: 'Barque',
+                rank: 11,
+                role: 'Guardian Healer',
+                passive: 'Restores hull health over time and to nearby allies.',
+                loadout: [
+                    { slot: 'bow', name: "Naga's Call", reason: "Standard high-velocity culverin for consistent fire damage and long-range engagement." },
+                    { slot: 'port', name: "Endless Requiem", reason: "Primary burst weapon. These torpedoes punish slow-moving targets and high-rank enemies." },
+                    { slot: 'starboard', name: "The Rotmouth", reason: "Poison DOT keeps damage high during evasive maneuvers and slows enemy health regeneration." },
+                    { slot: 'stern', name: "Naga's Call", reason: "Rear coverage for fire damage to discourage pursuers." },
+                    { slot: 'aux', name: "Eye of Heaven", reason: "Essential mortar for lightning damage. Perfect for tracking targets from a safe distance." }
+                ],
+                furniture: [
+                    { slot: 1, name: "Scrapper Station", type: "Major", reason: "Essential sustain for solo or group play. Heals 8000 hull every time you hit a crew attack." },
+                    { slot: 2, name: "Compagnie Screens", type: "Minor", reason: "Crucial survival mod. Reduces incoming AOE damage by 20%, keeping you afloat to heal others." },
+                    { slot: 3, name: "Bombard Menuiserie I", type: "Minor", reason: "Direct buff to your healer role. Increases all repair weapon output by 5%." },
+                    { slot: 4, name: "Hubac Tuning Rack", type: "Minor", reason: "Synergy piece for the Endless Requiem. Boosts torpedo range significantly for safe sniping." },
+                    { slot: 5, name: "Float Collars", type: "Minor", reason: "Utility placeholder. Increases buoy health/duration; useful if swapping to Little Grace later." }
+                ],
+                armor: "Black Prince"
+            }
+        ];
+
+        const SHIP_MASTERY = [
+            { name: 'Hulk', dmg: '20M', time: '6h 50m', icon: '🏗️', role: 'Defender', color: 'text-blue-400' },
+            { name: 'Padewakang', dmg: '10M', time: '8h 40m', icon: '💣', role: 'Dealer', color: 'text-red-400' },
+            { name: 'Barque', dmg: '10M', time: '4h 57m', icon: '🛡️', role: 'Guardian', color: 'text-green-400' }
+        ];
+
+        let masterDb = { weapons: [], furniture: [], synced: false };
+        let activeTab = 'fleet';
+
+        async function initSync() {
+            const indicator = document.getElementById('sync-indicator');
+            const label = document.getElementById('sync-label');
+
+            try {
+                const [wRes, fRes] = await Promise.all([
+                    fetch(DATA_API.weapons),
+                    fetch(DATA_API.furniture)
+                ]);
+                
+                masterDb.weapons = await wRes.json();
+                masterDb.furniture = await fRes.json();
+                masterDb.synced = true;
+
+                indicator.classList.remove('bg-amber-500', 'animate-pulse');
+                indicator.classList.add('bg-green-500');
+                indicator.style.boxShadow = '0 0 10px rgba(34, 197, 94, 0.6)';
+                label.innerText = 'Database Live';
+                label.classList.remove('text-slate-500');
+                label.classList.add('text-green-400');
+
+                if(activeTab === 'fleet') renderFleet();
+            } catch (err) {
+                indicator.classList.remove('animate-pulse');
+                indicator.classList.add('bg-red-500');
+                label.innerText = 'Sync Failed';
+                label.classList.add('text-red-500');
+            }
+        }
+
+        function switchTab(id) {
+            activeTab = id;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('text-slate-500');
+            });
+            document.getElementById(`nav-${id}`).classList.add('tab-active');
+            document.getElementById(`nav-${id}`).classList.remove('text-slate-500');
+
+            if (id === 'fleet') renderFleet();
+            if (id === 'logbook') renderLogbook();
+            if (id === 'vault') renderVault();
+
+            lucide.createIcons();
+        }
+
+        function renderFleet() {
+            const ship = SHIP_MANIFEST[0];
+            const viewport = document.getElementById('app-viewport');
+            
+            viewport.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in">
+                    <aside class="lg:col-span-3 space-y-4">
+                        <h2 class="text-[12px] font-bold text-slate-500 uppercase tracking-widest px-2 leading-none">Ship Registry</h2>
+                        <div class="w-full p-4 rounded-2xl border bg-amber-900/10 border-amber-500/30 shadow-inner">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 rounded-lg bg-amber-500 text-slate-900"><i data-lucide="ship" size="20"></i></div>
+                                <div>
+                                    <div class="font-bold text-[14px] leading-tight">${ship.name}</div>
+                                    <div class="text-[11px] opacity-60">Level ${ship.rank} ${ship.class}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <section class="lg:col-span-9 space-y-6">
+                        <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden">
+                            <div class="mb-8 relative z-10">
+                                <div class="flex items-center gap-2 text-amber-500 mb-1">
+                                    <i data-lucide="zap" size="14" class="fill-amber-500"></i>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest">${ship.role} Build</span>
+                                </div>
+                                <h2 class="text-[42px] font-black text-white uppercase tracking-tighter leading-none">${ship.name}</h2>
+                                <p class="text-slate-400 max-w-md mt-3 text-[14px] italic border-l-2 border-amber-600/30 pl-4">"${ship.passive}"</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 relative z-10">
+                                ${ship.loadout.map(item => {
+                                    const master = masterDb.weapons.find(w => w.name === item.name) || { power: '91+' };
+                                    return `
+                                        <div class="relative group">
+                                            <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-2xl group-hover:border-amber-500/50 transition-all cursor-help">
+                                                <div class="text-[9px] uppercase font-bold text-slate-500 mb-3 flex justify-between items-center opacity-70">
+                                                    <span>${item.slot}</span>
+                                                    <i data-lucide="crosshair" size="12" class="text-amber-500/20 group-hover:text-amber-500"></i>
+                                                </div>
+                                                <div class="text-2xl mb-2">${item.name.includes('Eye') ? '⚡' : item.name.includes('Requiem') ? '🚀' : '⚔️'}</div>
+                                                <div class="font-bold text-white text-[13px] truncate">${item.name}</div>
+                                                <div class="text-[10px] text-slate-500 font-mono mt-1 uppercase">PWR ${master.power}</div>
+                                            </div>
+                                            <!-- Tooltip -->
+                                            <div class="absolute z-[100] left-0 bottom-full mb-3 w-48 p-3 bg-slate-950 border border-amber-500/50 rounded-xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all">
+                                                <div class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Tactical Reason</div>
+                                                <div class="text-[11px] text-slate-300 leading-relaxed font-medium">${item.reason}</div>
+                                                <div class="tooltip-arrow"></div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800">
+                                <h3 class="text-[12px] font-bold text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-2 leading-none">
+                                    <i data-lucide="settings" size="16"></i> Equipped Furniture
+                                </h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    ${ship.furniture.map(f => {
+                                        return `
+                                            <div class="relative group">
+                                                <div class="p-3 rounded-xl bg-slate-950/60 border border-slate-800 hover:border-slate-700 transition-all cursor-help">
+                                                    <div class="flex items-center gap-3">
+                                                        <span class="text-xl p-2 bg-slate-900 rounded-lg">
+                                                            ${f.name.includes('Collars') ? '🎈' : f.name.includes('Screens') ? '🛡️' : '⚙️'}
+                                                        </span>
+                                                        <div class="overflow-hidden">
+                                                            <div class="text-[9px] font-bold text-amber-600 uppercase">Slot ${f.slot}</div>
+                                                            <div class="text-[13px] font-bold text-white truncate">${f.name}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <!-- Tooltip -->
+                                                <div class="absolute z-[100] left-0 bottom-full mb-3 w-48 p-3 bg-slate-950 border border-amber-500/50 rounded-xl shadow-2xl opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 transition-all">
+                                                    <div class="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-1">Strategy Note</div>
+                                                    <div class="text-[11px] text-slate-300 leading-relaxed font-medium">${f.reason}</div>
+                                                    <div class="tooltip-arrow"></div>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+                            <div class="bg-slate-900 rounded-3xl p-6 border border-slate-800 flex flex-col justify-center items-center text-center">
+                                <div class="text-5xl mb-4 drop-shadow-lg">🏰</div>
+                                <h3 class="text-white font-black uppercase text-xl leading-none mb-2">${ship.armor}</h3>
+                                <div class="text-amber-500 font-mono text-sm font-bold uppercase tracking-widest">Defense Rating: 400</div>
+                                <div class="h-1.5 w-full max-w-[200px] bg-slate-800 rounded-full overflow-hidden mt-4">
+                                    <div class="h-full bg-amber-500" style="width: 92%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            `;
+        }
+
+        function renderLogbook() {
+            const viewport = document.getElementById('app-viewport');
+            viewport.innerHTML = `
+                <div class="space-y-6 animate-fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-br from-amber-600 to-amber-900 p-8 rounded-3xl shadow-xl flex items-center gap-6">
+                            <div class="h-16 w-16 bg-white/20 rounded-2xl flex items-center justify-center border border-white/30 backdrop-blur-md">
+                                <i data-lucide="trophy" size="32" class="text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-white/60 text-[11px] font-black uppercase mb-1">Current Standing</div>
+                                <h2 class="text-[34px] font-black text-white uppercase tracking-tighter leading-none text-[30px]">${USER_PROFILE.rank}</h2>
+                                <div class="h-1 w-full bg-black/20 rounded-full mt-3 overflow-hidden">
+                                    <div class="h-full bg-white" style="width: 75%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 p-8 rounded-3xl flex flex-col justify-center">
+                            <div class="flex justify-between items-center mb-4 text-[12px] font-black uppercase tracking-widest text-slate-500">
+                                <span class="flex items-center gap-2"><i data-lucide="users" size="16"></i> Friend Referrals</span>
+                                <span class="text-amber-500">${USER_PROFILE.referrals} / 4</span>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2">
+                                ${[1,2,3,4].map(i => `<div class="h-2 rounded-full ${i <= USER_PROFILE.referrals ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-slate-800'}"></div>`).join('')}
+                            </div>
+                            <p class="text-[14px] text-slate-400 mt-4 leading-relaxed italic">"Fishers of Men Ship Set Unlocked. Next: Wings of Chaos Firework."</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        ${[
+                            { l: 'Ships Sunk', v: USER_PROFILE.shipsSunk, i: 'target', c: 'text-red-400' },
+                            { l: 'Settlements', v: USER_PROFILE.discovery, i: 'map', c: 'text-green-400' },
+                            { l: 'Time Played', v: USER_PROFILE.timePlayed, i: 'clock', c: 'text-blue-400' },
+                            { l: 'Top Speed', v: USER_PROFILE.topSpeed, i: 'gauge', c: 'text-amber-400' },
+                            { l: 'Silver Stash', v: USER_PROFILE.silver, i: 'coins', c: 'text-yellow-500' }
+                        ].map(s => `
+                            <div class="bg-slate-900/50 border border-slate-800 p-6 rounded-2xl text-center stat-card transition-all">
+                                <i data-lucide="${s.i}" size="20" class="${s.c} mx-auto mb-3"></i>
+                                <div class="text-white text-[18px] font-black leading-none">${s.v}</div>
+                                <div class="text-slate-500 text-[10px] uppercase font-bold tracking-widest mt-2">${s.l}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-xl">
+                        <h3 class="text-[14px] font-black text-white uppercase tracking-widest mb-8 flex items-center gap-3 leading-none">
+                            <i data-lucide="bar-chart-4" size="18" class="text-amber-500"></i> Lifetime Ship Mastery
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            ${SHIP_MASTERY.map(ship => `
+                                <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-3xl">${ship.icon}</span>
+                                        <div>
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <div class="text-[14px] font-black text-white uppercase leading-none">${ship.name}</div>
+                                                <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-900 ${ship.color} border border-current font-black uppercase tracking-tighter">${ship.role}</span>
+                                            </div>
+                                            <div class="text-[10px] text-slate-600 font-bold uppercase tracking-widest">Mastery Max</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-amber-500 font-mono text-[14px] font-black">${ship.dmg} DMG</div>
+                                        <div class="text-[10px] text-slate-500 uppercase font-bold tracking-widest">${ship.time}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderVault() {
+            const viewport = document.getElementById('app-viewport');
+            viewport.innerHTML = `
+                <div class="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-xl animate-fade-in">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
+                        <div>
+                            <h2 class="text-[30px] font-black text-white uppercase tracking-tighter leading-none mb-2">Warehouse Manifest</h2>
+                            <p class="text-[14px] text-slate-500 italic">Tracking acquired wealth and smuggler assets.</p>
+                        </div>
+                        <div class="bg-slate-950 px-8 py-5 rounded-3xl border border-amber-900/20 text-center">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 leading-none">Available Silver</div>
+                            <div class="text-[32px] font-black text-amber-500 leading-none">${USER_PROFILE.silver}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        ${[
+                            { n: 'Gold Skull Rum', q: 450, i: '🥃' },
+                            { n: 'Black Lotus Opium', q: 220, i: '🌸' },
+                            { n: 'Torsion Springs', q: 12, i: '⚙️' },
+                            { n: 'Plate Glass', q: 35, i: '💎' }
+                        ].map(item => `
+                            <div class="bg-slate-950 p-5 rounded-2xl border border-slate-800 flex items-center justify-between group hover:border-slate-600 transition-all">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">${item.i}</span>
+                                    <div class="text-[13px] font-bold text-white leading-tight">${item.n}</div>
+                                </div>
+                                <div class="text-amber-500 font-black text-[18px] leading-none">${item.q}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.onload = () => {
+            initSync();
+            switchTab('fleet');
+        };
+    </script>
+</body>
+</html>
