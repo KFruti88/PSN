@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>COTW Master Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" type="module"></script>
+
+    <style>
+        :root {
+            /* Personalized Divi Mobile Settings */
+            --divi-section-height: 50px;
+            --divi-row-height: 30px;
+            --divi-body-size: 14px;
+            --divi-header-size: 30px;
+            
+            --hunter-color: #ff8800;
+            --hunter-glow: rgba(255, 136, 0, 0.6);
+            --jd-green: #367c2b;
+            --jd-yellow: #ffde00;
+        }
+
+        #wp-custom-wrapper {
+            position: relative;
+            min-height: 100vh;
+            background: #000 !important;
+            background-image: url('https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcT3dYeigVN9JM6P5hkETzKliq0fNz3BaYM2z3uVAbCBamfOzCRs') !important;
+            background-size: cover !important;
+            background-position: center !important;
+            background-attachment: fixed !important;
+            color: #ffffff;
+            font-family: ui-sans-serif, system-ui, sans-serif;
+            padding: var(--divi-section-height) 0;
+            display: flex;
+            justify-content: center;
+            overflow-x: hidden;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            box-sizing: border-box !important;
+        }
+
+        #wp-custom-wrapper.theme-werewolf { --hunter-color: #ff8800; --hunter-glow: rgba(255, 136, 0, 0.6); }
+        #wp-custom-wrapper.theme-ray { --hunter-color: #ef4444; --hunter-glow: rgba(239, 68, 68, 0.6); }
+        #wp-custom-wrapper.theme-tj { --hunter-color: #a855f7; --hunter-glow: rgba(168, 85, 247, 0.6); }
+
+        #wp-custom-wrapper .background-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(0, 15, 0, 0.85), rgba(0, 0, 0, 0.98));
+            z-index: 1;
+        }
+
+        #wp-custom-wrapper .tracker-container { 
+            position: relative; 
+            z-index: 2; 
+            width: 98%; 
+            max-width: 2560px; 
+            margin: 0 auto; 
+        }
+
+        #wp-custom-wrapper .profile-header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(15, 23, 42, 0.95); padding: 15px 25px; border-radius: 1.2rem;
+            border: 3px solid var(--hunter-color); margin-bottom: var(--divi-row-height); backdrop-filter: blur(15px);
+            box-shadow: 0 0 20px var(--hunter-glow);
+        }
+
+        #wp-custom-wrapper .hunter-glow { font-size: 1.5rem; font-weight: 900; color: var(--hunter-color); text-shadow: 0 0 15px var(--hunter-glow); }
+
+        #wp-custom-wrapper .profile-btn {
+            background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.1);
+            color: white; padding: 10px 18px; border-radius: 0.8rem; font-weight: 900; cursor: pointer; transition: 0.3s;
+            touch-action: manipulation;
+        }
+
+        #wp-custom-wrapper .jd-yellow-text {
+            color: var(--jd-yellow) !important;
+            text-shadow: 0 0 10px rgba(255, 222, 0, 0.5);
+        }
+
+        #wp-custom-wrapper .rank-grid { display: flex; flex-direction: row; justify-content: center; gap: 12px; flex-wrap: nowrap; width: 100%; }
+
+        #wp-custom-wrapper .rank-item {
+            background: rgba(15, 23, 42, 0.95); border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 1rem; padding: 12px; min-width: 110px; flex: 1; max-width: 180px;
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        #wp-custom-wrapper .rank-controls button { 
+            background: rgba(0,0,0,0.5); border: 1px solid var(--hunter-color); 
+            color: var(--hunter-color); border-radius: 4px; width: 28px; height: 28px; 
+            cursor: pointer; font-weight: 900; touch-action: manipulation;
+        }
+
+        #wp-custom-wrapper .main-header {
+            background: rgba(2, 6, 23, 0.85); padding: 40px; border-radius: 2rem;
+            border: 3px solid var(--hunter-color); box-shadow: 0 0 50px var(--hunter-glow);
+            text-align: center; margin-bottom: var(--divi-section-height);
+        }
+
+        #wp-custom-wrapper .bar-bg { background: #000; height: 20px; border-radius: 10px; border: 1px solid #334155; margin-bottom: 20px; overflow: hidden; }
+        #wp-custom-wrapper .bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--hunter-color), #fff); transition: width 1.2s; }
+
+        #wp-custom-wrapper .category-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            cursor: pointer; border-left: 10px solid var(--hunter-color); 
+            padding: 15px 25px; background: rgba(15, 23, 42, 0.9);
+            border-radius: 1rem; transition: 0.3s; margin-bottom: 10px;
+        }
+        #wp-custom-wrapper .category-header:hover { background: rgba(30, 41, 59, 0.95); }
+        #wp-custom-wrapper .section-collapsed .section-content { display: none; }
+        #wp-custom-wrapper .category-arrow { transition: transform 0.3s ease; }
+        #wp-custom-wrapper .section-collapsed .category-arrow { transform: rotate(-90deg); }
+
+        #wp-custom-wrapper .trophy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+
+        #wp-custom-wrapper .trophy-card {
+            background: rgba(30, 41, 59, 0.95); border: 2px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem; padding: 20px; display: flex; flex-direction: column;
+            justify-content: space-between; transition: all 0.4s ease;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        #wp-custom-wrapper .trophy-card.completed { border-color: #22c55e; animation: pulse-green-glow 2s infinite; }
+
+        #mission-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(12px); z-index: 10000; display: none;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        #mission-modal {
+            background: rgba(15, 23, 42, 0.98); border: 3px solid var(--hunter-color);
+            box-shadow: 0 0 60px var(--hunter-glow); border-radius: 2rem;
+            width: 100%; max-width: 500px; padding: 30px; position: relative;
+            max-height: 85vh; overflow-y: auto;
+        }
+
+        @keyframes pulse-green-glow {
+            0% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); }
+            50% { box-shadow: 0 0 35px rgba(34, 197, 94, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); }
+        }
+
+        @media (max-width: 768px) {
+            #wp-custom-wrapper .profile-header { flex-direction: column; gap: 15px; text-align: center; padding: 15px; }
+            #wp-custom-wrapper .rank-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            #wp-custom-wrapper .rank-item { min-width: 0; width: 100%; max-width: none; padding: 10px; justify-content: center; }
+            #wp-custom-wrapper .trophy-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; }
+            #wp-custom-wrapper .trophy-card { aspect-ratio: 1 / 1 !important; padding: 10px !important; border-width: 1.5px; }
+            #wp-custom-wrapper h3 { font-size: 0.6rem !important; }
+            body { font-size: var(--divi-body-size); }
+            h1 { font-size: var(--divi-header-size) !important; }
+        }
+
+        .tracker-footer { margin-top: 50px; text-align: center; padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .tracker-footer a { color: var(--hunter-color); text-decoration: none; font-weight: 800; }
+    </style>
+</head>
+<body>
+
+<div id="wp-custom-wrapper" class="theme-werewolf">
+    <div class="background-overlay"></div>
+
+    <div id="mission-modal-overlay" onclick="window.appState.closeModal(event)">
+        <div id="mission-modal" onclick="event.stopPropagation()">
+            <div id="modal-content"></div>
+            <button class="mt-8 w-full bg-white/5 border border-white/10 py-4 rounded-xl font-black uppercase text-xs tracking-[0.2em]" onclick="window.appState.closeModal(event)">Close Missions</button>
+        </div>
+    </div>
+    
+    <div class="tracker-container">
+        <div class="profile-header">
+            <div class="active-hunter">
+                <span class="label text-[10px] uppercase tracking-widest opacity-50 block mb-1">Master Console:</span>
+                <span id="hunter-name" class="hunter-glow uppercase">Werewolf3788</span>
+            </div>
+            <div class="profile-actions flex gap-2">
+                <button class="profile-btn btn-werewolf" data-action="switch" data-hunter="Werewolf3788">Werewolf</button>
+                <button class="profile-btn btn-ray" data-action="switch" data-hunter="Raymystyro">Ray</button>
+                <button class="profile-btn btn-tj" data-action="switch" data-hunter="terrdog420">TJ</button>
+            </div>
+        </div>
+
+        <header class="main-header" id="game-header">
+            <div class="animal-rank-container">
+                <h2 class="text-[10px] font-black uppercase tracking-[0.4em] mb-4 opacity-40 text-center">Animal Rank (Legacy Master Sync)</h2>
+                <div class="rank-grid" id="global-rank-grid">
+                    <div class="rank-item">
+                        <span class="rank-emoji text-2xl">👑</span><span class="text-[8px] md:text-[10px] font-bold text-white">G.O.</span>
+                        <div class="rank-controls flex justify-between w-full mt-2">
+                            <button data-action="rank" data-tier="greatone" data-delta="-1">-</button>
+                            <span id="rank-val-greatone" class="jd-yellow-text font-bold">0</span>
+                            <button data-action="rank" data-tier="greatone" data-delta="1">+</button>
+                        </div>
+                    </div>
+                    <div class="rank-item">
+                        <span class="rank-emoji text-2xl">💎</span><span class="text-[8px] md:text-[10px] font-bold text-white">Diamond</span>
+                        <div class="rank-controls flex justify-between w-full mt-2">
+                            <button data-action="rank" data-tier="diamond" data-delta="-1">-</button>
+                            <span id="rank-val-diamond" class="jd-yellow-text font-bold">0</span>
+                            <button data-action="rank" data-tier="diamond" data-delta="1">+</button>
+                        </div>
+                    </div>
+                    <div class="rank-item">
+                        <span class="rank-emoji text-2xl">🥇</span><span class="text-[8px] md:text-[10px] font-bold text-white">Gold</span>
+                        <div class="rank-controls flex justify-between w-full mt-2">
+                            <button data-action="rank" data-tier="gold" data-delta="-1">-</button>
+                            <span id="rank-val-gold" class="jd-yellow-text font-bold">0</span>
+                            <button data-action="rank" data-tier="gold" data-delta="1">+</button>
+                        </div>
+                    </div>
+                    <div class="rank-item">
+                        <span class="rank-emoji text-2xl">🥈</span><span class="text-[8px] md:text-[10px] font-bold text-white">Silver</span>
+                        <div class="rank-controls flex justify-between w-full mt-2">
+                            <button data-action="rank" data-tier="silver" data-delta="-1">-</button>
+                            <span id="rank-val-silver" class="jd-yellow-text font-bold">0</span>
+                            <button data-action="rank" data-tier="silver" data-delta="1">+</button>
+                        </div>
+                    </div>
+                    <div class="rank-item">
+                        <span class="rank-emoji text-2xl">🥉</span><span class="text-[8px] md:text-[10px] font-bold text-white">Bronze</span>
+                        <div class="rank-controls flex justify-between w-full mt-2">
+                            <button data-action="rank" data-tier="bronze" data-delta="-1">-</button>
+                            <span id="rank-val-bronze" class="jd-yellow-text font-bold">0</span>
+                            <button data-action="rank" data-tier="bronze" data-delta="1">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-px bg-white/10 my-8"></div>
+
+            <h1 id="game-title" class="italic uppercase tracking-widest text-lg md:text-3xl font-black">theHunter: Call of the Wild</h1>
+            
+            <div class="progress-container mt-6">
+                <div class="progress-label mb-2">
+                    <span id="percent-text" class="text-[10px] md:text-xs font-black uppercase tracking-widest jd-yellow-text">Global Progress 0%</span>
+                </div>
+                <div class="bar-bg">
+                    <div id="overall-bar" class="bar-fill"></div>
+                </div>
+                
+                <div class="nav-selector-wrapper mt-4">
+                    <select id="reserve-selector" class="bg-black/50 border border-white/20 rounded-lg p-2 text-[10px] uppercase font-bold w-full md:w-64 outline-none">
+                        <option value="">-- Jump to Reserve --</option>
+                    </select>
+                </div>
+                <p id="stat-line" class="font-mono text-[8px] md:text-[9px] uppercase tracking-[0.2em] mt-4 opacity-50">Master Registry: 115 Active Entries</p>
+            </div>
+        </header>
+
+        <div id="section-container"></div>
+
+        <footer class="tracker-footer">
+            <p class="text-[10px]">Support the hunt: <a href="https://www.amazon.com/gp/goldbox?tag=ourflorafb-20" target="_blank">Today's Deals</a> | <a href="https://www.amazon.com/s?k=hunting&tag=psngaming-20" target="_blank">Hunting Gear</a></p>
+            <p class="mt-4 text-[9px] opacity-40 uppercase font-black tracking-widest">Werewolf3788 • Master Sync v10.4</p>
+        </footer>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+(function() {
+    const firebaseConfig = {
+        apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
+        authDomain: "angler-squad-tracker.firebaseapp.com",
+        projectId: "angler-squad-tracker",
+        storageBucket: "angler-squad-tracker.firebasestorage.app",
+        messagingSenderId: "325679067980",
+        appId: "1:325679067980:web:57edbad70fe12b988355e9"
+    };
+
+    const MASTER_ID = 'cotw-master';
+    const LEGACY_ID = 'cotw-trophy-display';
+    const ICONS = { GAME: "https://img.psnprofiles.com/trophy/s/6622/ab71d597-4a98-4891-9f93-5e26fbd42d03.png", ARC: "https://img.psnprofiles.com/trophy/s/6622/716af6c9-1cf7-4d32-b567-7c06503e9be6.png", PHOTO: "https://img.psnprofiles.com/trophy/s/6622/926946c4-009b-4da6-b01b-2773be793e61.png", MARK: "https://img.psnprofiles.com/trophy/s/6622/0c34b625-1c04-4343-bf57-606cad61b625.png" };
+
+    const missionSet = (n=5) => Array.from({length:n}, (_,i) => ({name:`Mission ${i+1}`,done:false}));
+
+    // FULL 115 TROPHY MANIFEST
+    const fullRegistry = [
+        // Base Game (49)
+        { id: 'plat_cotw', cat: 'Base Game', name: 'theHunter', rank: 'platinum', current: 0, goal: 1, type: 'toggle' },
+        { id: 'the_mile', cat: 'Base Game', name: 'The Mile', rank: 'bronze', current: 0, goal: 1, type: 'numeric' },
+        { id: 'scand_mile', cat: 'Base Game', name: 'Scandinavian Mile', rank: 'bronze', current: 0, goal: 6.2, type: 'numeric' },
+        { id: 'marathon', cat: 'Base Game', name: 'The Marathon', rank: 'silver', current: 0, goal: 26.2, type: 'numeric' },
+        { id: 'ultra', cat: 'Base Game', name: 'The Ultramarathon', rank: 'gold', current: 0, goal: 100, type: 'numeric' },
+        { id: 'jager', cat: 'Base Game', name: 'Jäger Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'sommer', cat: 'Base Game', name: 'Sommer Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'bhandari', cat: 'Base Game', name: 'Bhandari Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'fleischer', cat: 'Base Game', name: 'Fleischer Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'tressler', cat: 'Base Game', name: 'Tressler Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'hope', cat: 'Base Game', name: 'Hope Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'trampfine', cat: 'Base Game', name: 'Trampfine Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'vualez', cat: 'Base Game', name: 'Vualez Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'connors', cat: 'Base Game', name: 'Connors Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'beatty', cat: 'Base Game', name: 'Beatty Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'hir_master', cat: 'Base Game', name: 'Hirschfelden Master', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'lay_master', cat: 'Base Game', name: 'Layton Lake Master', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'novice_m', cat: 'Base Game', name: 'Novice Marksman', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'skilled_m', cat: 'Base Game', name: 'Skilled Marksman', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'expert_m', cat: 'Base Game', name: 'Expert Marksman', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'legend_m', cat: 'Base Game', name: 'Legendary Marksman', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'moby_deer', cat: 'Base Game', name: 'Moby Deer', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'hero_h', cat: 'Base Game', name: 'Hero of Hirschfelden', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'lord_l', cat: 'Base Game', name: 'Lord of the Lakes', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'stay_target', cat: 'Base Game', name: 'Stay On Target', rank: 'bronze', current: 0, goal: 50, type: 'numeric' },
+        { id: 'persist', cat: 'Base Game', name: 'Persistence Is Futile', rank: 'silver', current: 0, goal: 100, type: 'numeric' },
+        { id: 'belief', cat: 'Base Game', name: 'Seeing Is Believing', rank: 'bronze', current: 0, goal: 10, type: 'numeric' },
+        { id: 'stalker', cat: 'Base Game', name: 'Stalker', rank: 'silver', current: 0, goal: 100, type: 'numeric' },
+        { id: 'jack', cat: 'Base Game', name: 'Jack Of All Trades', rank: 'gold', current: 0, goal: 4, type: 'numeric' },
+        { id: 'blind', cat: 'Base Game', name: 'Blind Shot', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'leave_no', cat: 'Base Game', name: 'Leave No Animal Behind', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'calls_wild', cat: 'Base Game', name: 'Call Of The Wild', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'insomniac', cat: 'Base Game', name: 'Insomniac', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'scarecrow', cat: 'Base Game', name: 'Scarecrow', rank: 'bronze', current: 0, goal: 1000, type: 'numeric' },
+        { id: 'globetrot', cat: 'Base Game', name: 'Globetrotter', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'up_close', cat: 'Base Game', name: 'Up Close And Personal', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'paparazzi', cat: 'Base Game', name: 'Wildlife Paparazzi', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'potty', cat: 'Base Game', name: 'Potty Humor', rank: 'bronze', current: 0, goal: 100, type: 'numeric' },
+        { id: 'make_count', cat: 'Base Game', name: 'Make It Count', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'diamonds_ever', cat: 'Base Game', name: 'Diamonds Are Forever', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'goldmember', cat: 'Base Game', name: 'Goldmember', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'silverlining', cat: 'Base Game', name: 'Silver Lining', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'itsomething', cat: 'Base Game', name: "It's Something", rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'bucket_list', cat: 'Base Game', name: 'Bucket List', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'eavesdrop', cat: 'Base Game', name: 'Eavesdropping', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'nerves_steel', cat: 'Base Game', name: 'Nerves Of Steel', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'old_fashioned', cat: 'Base Game', name: 'The Old Fashioned Way', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'head_shoulders', cat: 'Base Game', name: 'Head/Shoulders/Knees/Toes', rank: 'silver', current: 0, goal: 3, type: 'numeric' },
+        { id: 'not_zombie', cat: 'Base Game', name: 'Not A Zombie Game', rank: 'silver', current: 0, goal: 10, type: 'numeric' },
+
+        // Medved-Taiga (12)
+        { id: 'med_park_arc', cat: 'DLC: Medved-Taiga', name: 'Medved Master', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'med_anatoly', cat: 'DLC: Medved-Taiga', name: 'Anatoly Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'med_columbus', cat: 'DLC: Medved-Taiga', name: 'Columbus Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'med_pushkin', cat: 'DLC: Medved-Taiga', name: 'Dimi Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: missionSet(4) },
+        { id: 'med_georgy', cat: 'DLC: Medved-Taiga', name: 'Georgy Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: missionSet(4) },
+        { id: 'med_katerina', cat: 'DLC: Medved-Taiga', name: 'Katerina Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: missionSet(4) },
+        { id: 'med_svetlana', cat: 'DLC: Medved-Taiga', name: 'Svetlana Arc', rank: 'gold', current: 0, goal: 4, type: 'checklist', subItems: missionSet(4) },
+        { id: 'med_apex', cat: 'DLC: Medved-Taiga', name: 'Apex Hunter', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'med_sheds', cat: 'DLC: Medved-Taiga', name: 'Shed Hunter', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'med_paleo', cat: 'DLC: Medved-Taiga', name: 'Paleontology', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'med_critic', cat: 'DLC: Medved-Taiga', name: 'Art Critic', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'med_pilgrim', cat: 'DLC: Medved-Taiga', name: 'Pilgrim', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+
+        // Vurhonga Savanna (12)
+        { id: 'vur_arc', cat: 'DLC: Vurhonga Savanna', name: 'Savanna Master', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'vur_warden', cat: 'DLC: Vurhonga Savanna', name: 'Warden Arc', rank: 'gold', current: 0, goal: 10, type: 'checklist', subItems: missionSet(10) },
+        { id: 'vur_mboweni', cat: 'DLC: Vurhonga Savanna', name: 'Mboweni Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'vur_ospreay', cat: 'DLC: Vurhonga Savanna', name: 'Ospreay Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'vur_maritz', cat: 'DLC: Vurhonga Savanna', name: 'Maritz Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'vur_brother', cat: 'DLC: Vurhonga Savanna', name: 'Brother Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'vur_senior', cat: 'DLC: Vurhonga Savanna', name: 'Senior Warden', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'vur_njabulo', cat: 'DLC: Vurhonga Savanna', name: 'Njabulo Sorrow', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'vur_kudu', cat: 'DLC: Vurhonga Savanna', name: 'Camouflage', rank: 'gold', current: 0, goal: 50, type: 'numeric' },
+        { id: 'vur_widow', cat: 'DLC: Vurhonga Savanna', name: 'Widowmaker Match', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'vur_spring', cat: 'DLC: Vurhonga Savanna', name: 'Springbok City', rank: 'silver', current: 0, goal: 25, type: 'numeric' },
+        { id: 'vur_lion', cat: 'DLC: Vurhonga Savanna', name: 'Lion Hunter', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+
+        // Parque Fernando (11)
+        { id: 'par_vicente', cat: 'DLC: Parque Fernando', name: 'Vicente Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_chinita', cat: 'DLC: Parque Fernando', name: 'Cabrera Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_matmat', cat: 'DLC: Parque Fernando', name: 'Mateo Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_luna', cat: 'DLC: Parque Fernando', name: 'Luna Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_juliana', cat: 'DLC: Parque Fernando', name: 'Juliana Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'par_ave_maria', cat: 'DLC: Parque Fernando', name: 'Ave María!', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'par_milanesa', cat: 'DLC: Parque Fernando', name: 'Truth in Milanesa', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'par_mark', cat: 'DLC: Parque Fernando', name: 'Hitting the Mark', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'par_targets', cat: 'DLC: Parque Fernando', name: "Carolina's Hits", rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'par_collection', cat: 'DLC: Parque Fernando', name: 'Collection', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'par_world_class', cat: 'DLC: Parque Fernando', name: 'World Class Reserve', rank: 'gold', current: 0, goal: 7, type: 'numeric' },
+
+        // Yukon Valley (10)
+        { id: 'yuk_yukon_arc', cat: 'DLC: Yukon Valley', name: 'Yukon Arc', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'yuk_murray', cat: 'DLC: Yukon Valley', name: 'Murray Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'yuk_freeman', cat: 'DLC: Yukon Valley', name: 'Freeman Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'yuk_johnson', cat: 'DLC: Yukon Valley', name: 'Johnson Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'yuk_pepper', cat: 'DLC: Yukon Valley', name: 'Pepper Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'yuk_bev', cat: 'DLC: Yukon Valley', name: 'Bev Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'yuk_spark', cat: 'DLC: Yukon Valley', name: 'Spark/Blaze/Ashes', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'yuk_sourdough', cat: 'DLC: Yukon Valley', name: 'Closer to Sourdough', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'yuk_grizzly', cat: 'DLC: Yukon Valley', name: 'Grizzled Veteran', rank: 'bronze', current: 0, goal: 1, type: 'toggle' },
+        { id: 'yuk_ghost', cat: 'DLC: Yukon Valley', name: 'The Ghost', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+
+        // Cuatro Colinas (11)
+        { id: 'cua_master', cat: 'DLC: Cuatro Colinas', name: 'Cuatro Arc', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'cua_faith', cat: 'DLC: Cuatro Colinas', name: 'Faith Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'cua_hubris', cat: 'DLC: Cuatro Colinas', name: 'Hubris Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'cua_tradition', cat: 'DLC: Cuatro Colinas', name: 'Tradition Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'cua_commit', cat: 'DLC: Cuatro Colinas', name: 'Commitment Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'cua_rebirth', cat: 'DLC: Cuatro Colinas', name: 'Rebirth Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'cua_opport', cat: 'DLC: Cuatro Colinas', name: 'Opportunism Arc', rank: 'gold', current: 0, goal: 5, type: 'checklist', subItems: missionSet(5) },
+        { id: 'cua_carpet', cat: 'DLC: Cuatro Colinas', name: 'Reddish Carpet', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'cua_shady', cat: 'DLC: Cuatro Colinas', name: 'Shady Dealings', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'cua_justice', cat: 'DLC: Cuatro Colinas', name: 'Justice is Served', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'cua_slam', cat: 'DLC: Cuatro Colinas', name: 'Slam of Glory', rank: 'gold', current: 0, goal: 4, type: 'numeric' },
+
+        // Silver Ridge Peaks (10)
+        { id: 'srp_turkeys', cat: 'DLC: Silver Ridge', name: 'Gobble Gobble', rank: 'silver', current: 0, goal: 50, type: 'numeric' },
+        { id: 'srp_badname', cat: 'DLC: Silver Ridge', name: 'Bad Name', rank: 'gold', current: 0, goal: 10, type: 'numeric' },
+        { id: 'srp_thanks', cat: 'DLC: Silver Ridge', name: 'Thanksgiving!', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'srp_ruled', cat: 'DLC: Silver Ridge', name: 'When they ruled', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'srp_heavy', cat: 'DLC: Silver Ridge', name: 'Heavy Weight', rank: 'gold', current: 0, goal: 1, type: 'toggle' },
+        { id: 'srp_reaction', cat: 'DLC: Silver Ridge', name: 'Reaction', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'srp_bearme', cat: 'DLC: Silver Ridge', name: 'Bear with Me', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'srp_sabotage', cat: 'DLC: Silver Ridge', name: 'Sabotage', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'srp_peace', cat: 'DLC: Silver Ridge', name: 'Bear... Her!', rank: 'silver', current: 0, goal: 1, type: 'toggle' },
+        { id: 'srp_ascent', cat: 'DLC: Silver Ridge', name: 'Ascended', rank: 'silver', current: 0, goal: 1, type: 'toggle' }
+    ];
+
+    const appState = {
+        activeHunter: 'Werewolf3788',
+        hunterData: JSON.parse(JSON.stringify(fullRegistry)),
+        animalRankData: { bronze: 0, silver: 0, gold: 0, diamond: 0, greatone: 0 },
+        auth: null, db: null,
+        unsubscribeMaster: null, unsubscribeLegacy: null,
+        collapsedSections: {},
+
+        init: async function() {
+            const saved = localStorage.getItem('cotw_master_active_id');
+            if (saved) this.activeHunter = saved;
+            this.render();
+
+            try {
+                const appInstance = initializeApp(firebaseConfig, 'COTW-Master-App');
+                this.auth = getAuth(appInstance);
+                this.db = getFirestore(appInstance);
+                await signInAnonymously(this.auth);
+                onAuthStateChanged(this.auth, (user) => { if (user) this.loadHunter(this.activeHunter); });
+                this.bindGlobalActions();
+            } catch (err) { console.error(err); }
+        },
+
+        loadHunter: function(name) {
+            if (!this.db || !this.auth.currentUser) return;
+            this.activeHunter = name;
+            localStorage.setItem('cotw_master_active_id', name);
+            document.getElementById('hunter-name').innerText = name;
+            document.getElementById('wp-custom-wrapper').className = `theme-${name === 'Werewolf3788' ? 'werewolf' : name === 'Raymystyro' ? 'ray' : 'tj'}`;
+
+            const masterRef = doc(this.db, 'artifacts', MASTER_ID, 'public', 'data', 'userTrophies', name);
+            if (this.unsubscribeMaster) this.unsubscribeMaster();
+            this.unsubscribeMaster = onSnapshot(masterRef, (snap) => {
+                if (snap.exists()) {
+                    const cloud = snap.data().trophies || [];
+                    this.hunterData = JSON.parse(JSON.stringify(fullRegistry)).map(dt => {
+                        const found = cloud.find(it => it.id === dt.id);
+                        if (found) {
+                            dt.current = found.current || 0;
+                            if (dt.type === 'checklist' && found.subItems) {
+                                dt.subItems = dt.subItems.map((si, idx) => { if (found.subItems[idx]) si.done = found.subItems[idx].done; return si; });
+                            }
+                        }
+                        return dt;
+                    });
+                    this.render();
+                }
+            });
+
+            const legacyRef = doc(this.db, 'artifacts', LEGACY_ID, 'public', 'data', 'userTrophies', name);
+            if (this.unsubscribeLegacy) this.unsubscribeLegacy();
+            this.unsubscribeLegacy = onSnapshot(legacyRef, (snap) => {
+                if (snap.exists()) { this.animalRankData = snap.data(); this.updateAnimalRankUI(); }
+            });
+        },
+
+        updateAnimalRankUI: function() {
+            ['bronze', 'silver', 'gold', 'diamond', 'greatone'].forEach(tier => {
+                const el = document.getElementById(`rank-val-${tier}`);
+                if (el) el.innerText = this.animalRankData[tier] || 0;
+            });
+        },
+
+        bindGlobalActions: function() {
+            const handler = (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                const action = btn.getAttribute('data-action');
+                if (action === 'switch') this.switchHunter(btn.getAttribute('data-hunter'));
+                if (action === 'rank') this.adjRank(btn.getAttribute('data-tier'), parseInt(btn.getAttribute('data-delta')));
+                if (action === 'adj') this.adj(parseInt(btn.getAttribute('data-idx')), parseFloat(btn.getAttribute('data-delta')));
+                if (action === 'tog') this.tog(parseInt(btn.getAttribute('data-idx')));
+                if (action === 'drop') this.openModal(btn.getAttribute('data-id'));
+                if (action === 'sub') this.sub(parseInt(btn.getAttribute('data-idx')), parseInt(btn.getAttribute('data-sidx')));
+                if (action === 'toggle-sec') this.toggleSection(btn.getAttribute('data-sid'));
+            };
+            document.addEventListener('click', handler);
+        },
+
+        openModal: function(id) {
+            const t = this.hunterData.find(it => it.id === id);
+            const gidx = this.hunterData.findIndex(it => it.id === id);
+            const overlay = document.getElementById('mission-modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `
+                <h2 class="text-2xl font-black uppercase tracking-widest jd-yellow-text mb-1">${t.name}</h2>
+                <p class="text-[9px] uppercase font-black opacity-40 mb-6 tracking-widest text-white">Master Arc Registration</p>
+                <div class="flex flex-col gap-3">
+                    ${(t.subItems||[]).map((s,si) => `
+                        <div class="flex justify-between items-center bg-black/40 p-4 rounded-2xl border border-white/5 shadow-inner">
+                            <span class="text-[11px] font-black uppercase ${s.done ? 'text-green-500' : 'text-white/60'}">${s.name}</span>
+                            <button data-action="sub" data-idx="${gidx}" data-sidx="${si}" class="px-6 py-2 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${s.done ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'bg-white/5 text-white/40 border border-white/10'}">
+                                ${s.done ? 'DONE' : 'PENDING'}
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            overlay.style.display = 'flex';
+        },
+
+        closeModal: function() {
+            document.getElementById('mission-modal-overlay').style.display = 'none';
+        },
+
+        adjRank: async function(tier, delta) {
+            this.animalRankData[tier] = Math.max(0, (this.animalRankData[tier] || 0) + delta);
+            this.updateAnimalRankUI();
+            const legacyRef = doc(this.db, 'artifacts', LEGACY_ID, 'public', 'data', 'userTrophies', this.activeHunter);
+            await setDoc(legacyRef, this.animalRankData, { merge: true });
+        },
+
+        toggleSection: function(sid) {
+            const el = document.getElementById(sid);
+            el.classList.toggle('section-collapsed');
+            this.collapsedSections[sid] = el.classList.contains('section-collapsed');
+        },
+
+        switchHunter: function(n) { this.loadHunter(n); },
+        sync: async function() {
+            const masterRef = doc(this.db, 'artifacts', MASTER_ID, 'public', 'data', 'userTrophies', this.activeHunter);
+            await setDoc(masterRef, { trophies: this.hunterData }, { merge: true });
+        },
+
+        getIcon: (t) => {
+            const n = t.name.toLowerCase();
+            if (n.includes('master') || n.includes('arc')) return ICONS.ARC;
+            if (n.includes('photo')) return ICONS.PHOTO;
+            return ICONS.GAME;
+        },
+
+        render: function() {
+            const container = document.getElementById('section-container');
+            const selector = document.getElementById('reserve-selector');
+            if (!container) return;
+
+            container.innerHTML = '';
+            const categories = [...new Set(this.hunterData.map(t => t.cat))];
+            
+            if (selector.options.length <= 1) {
+                categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = 'section-' + cat.replace(/[^a-z0-9]/gi, '');
+                    opt.innerText = cat; selector.appendChild(opt);
+                });
+                selector.onchange = (e) => {
+                    const sid = e.target.value;
+                    const el = document.getElementById(sid);
+                    if (el) { el.classList.remove('section-collapsed'); el.scrollIntoView({ behavior: 'smooth' }); }
+                };
+            }
+
+            let globalMet = 0, globalTotal = 0;
+
+            categories.forEach(cat => {
+                const items = this.hunterData.filter(t => t.cat === cat);
+                let catMet = 0;
+                items.forEach(t => { if (t.current >= t.goal) catMet++; globalTotal++; if (t.current >= t.goal) globalMet++; });
+                
+                const catPercent = Math.round((catMet / items.length) * 100);
+                const sid = 'section-' + cat.replace(/[^a-z0-9]/gi, '');
+                const isCollapsed = this.collapsedSections[sid] !== false;
+
+                const section = document.createElement('div');
+                section.className = `category-section ${isCollapsed ? 'section-collapsed' : ''}`;
+                section.id = sid;
+                section.innerHTML = `
+                    <div class="category-header" data-action="toggle-sec" data-sid="${sid}">
+                        <div class="flex flex-col">
+                            <h2 class="category-title uppercase font-black italic tracking-wider text-white">${cat}</h2>
+                            <span class="text-[8px] jd-yellow-text uppercase font-black tracking-widest">${catMet}/${items.length} Registered</span>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-20 md:w-32 h-2 bg-black/50 rounded-full border border-white/10 overflow-hidden relative">
+                                <div class="h-full bg-[var(--hunter-color)] shadow-[0_0_10px_var(--hunter-glow)] transition-all duration-700" style="width: ${catPercent}%"></div>
+                            </div>
+                            <span class="category-arrow text-xs text-white">▼</span>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="trophy-grid pt-2" id="grid-${sid}"></div>
+                    </div>
+                `;
+                container.appendChild(section);
+
+                const grid = document.getElementById(`grid-${sid}`);
+                items.forEach(t => {
+                    const gidx = this.hunterData.findIndex(hd => hd.id === t.id);
+                    const done = t.current >= t.goal;
+                    const pct = Math.min(100, Math.round((t.current / t.goal) * 100));
+                    let status = done ? "status-green completed" : pct >= 70 ? "status-green" : pct >= 30 ? "status-yellow" : "status-red";
+
+                    let ctrl = t.type === 'numeric' ? 
+                        `<div class="controls flex items-center justify-between bg-black/40 p-1 md:p-2 rounded-lg md:rounded-xl border border-white/10">
+                            <button class="btn w-6 h-6 md:w-8 md:h-8 rounded bg-white/5 text-white" data-action="adj" data-idx="${gidx}" data-delta="-1">-</button>
+                            <span class="status-display font-black text-[9px] md:text-xs text-white">${t.current}/${t.goal}</span>
+                            <button class="btn w-6 h-6 md:w-8 md:h-8 rounded bg-white/5 text-white" data-action="adj" data-idx="${gidx}" data-delta="1">+</button>
+                        </div>` :
+                        t.type === 'checklist' ?
+                        `<button class="dropdown-trigger w-full bg-black/40 py-2 rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-widest text-white" data-action="drop" data-id="${t.id}">Missions</button>` :
+                        `<button class="toggle-btn w-full bg-black/40 py-2 md:py-3 rounded-lg md:rounded-xl border border-white/10 text-[8px] md:text-[10px] font-black uppercase text-white" data-action="tog" data-idx="${gidx}">${done?'DONE':'MARK'}</button>`;
+
+                    const card = document.createElement('div');
+                    card.className = `trophy-card ${status}`;
+                    card.innerHTML = `
+                        <div class="flex flex-col gap-1 h-full">
+                            <div class="flex justify-between items-start">
+                                <img src="${this.getIcon(t)}" class="w-6 h-6 md:w-8 md:h-8 rounded bg-black/40">
+                                <span class="text-[10px] md:text-[12px] font-black italic jd-yellow-text">${pct}%</span>
+                            </div>
+                            <h3 class="text-[8px] md:text-[10px] font-black uppercase leading-tight line-clamp-2 text-white">${t.name}</h3>
+                            <div class="mt-auto">${ctrl}</div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            });
+
+            const gp = globalTotal > 0 ? Math.round((globalMet / globalTotal) * 100) : 0;
+            const ob = document.getElementById('overall-bar');
+            if (ob) ob.style.width = gp + '%';
+            const pt = document.getElementById('percent-text');
+            if (pt) pt.innerText = `Global Master Registry Progress ${gp}%`;
+            
+            const overlay = document.getElementById('mission-modal-overlay');
+            if(overlay.style.display === 'flex') {
+                const openTitle = overlay.querySelector('h2').innerText;
+                const t = this.hunterData.find(it => it.name === openTitle);
+                if(t) this.openModal(t.id);
+            }
+        },
+
+        adj: function(i, d) { this.hunterData[i].current = Math.max(0, parseFloat((this.hunterData[i].current + d).toFixed(2))); this.render(); this.sync(); },
+        tog: function(i) { this.hunterData[i].current = this.hunterData[i].current === 0 ? 1 : 0; this.render(); this.sync(); },
+        sub: function(i, si) { 
+            this.hunterData[i].subItems[si].done = !this.hunterData[i].subItems[si].done;
+            this.hunterData[i].current = this.hunterData[i].subItems.filter(s => s.done).length;
+            this.render(); this.sync();
+        }
+    };
+
+    window.appState = appState;
+    appState.init();
+})();
+</script>
+</body>
+</html>
