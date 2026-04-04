@@ -11,6 +11,7 @@
             --neon-orange: #ff5f00;
             --bg: #0a0b0d;
             --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
         }
         body {
             background: var(--bg);
@@ -21,28 +22,29 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-size: 14px;
+            font-size: 14px; /* Divi Body Setting: 14 */
         }
         .bridge-card {
             width: 90%;
             max-width: 600px;
             background: var(--glass);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 50px 30px;
+            padding: 50px 30px; /* Divi Section/Row Settings: 50/30 */
             text-align: center;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             backdrop-filter: blur(10px);
         }
         h1 {
-            font-size: 30px;
+            font-size: 30px; /* Divi Header Setting: 30 */
             color: var(--neon-blue);
             margin: 0 0 10px 0;
             text-transform: uppercase;
             letter-spacing: 2px;
+            font-weight: 900;
         }
         .status-box {
-            margin-top: 30px;
+            margin-top: 30px; /* Divi Row Setting: 30 */
             padding: 25px;
             background: #000;
             border-radius: 12px;
@@ -51,18 +53,20 @@
             box-shadow: inset 0 0 20px rgba(0,255,0,0.05);
         }
         .log-line {
-            margin: 8px 0;
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            margin: 10px 0;
+            font-family: 'JetBrains Mono', monospace;
             font-size: 12px;
             display: flex;
             justify-content: space-between;
         }
-        .label { color: #718096; text-transform: uppercase; font-size: 10px; font-weight: 800; }
+        .label { color: #718096; text-transform: uppercase; font-size: 10px; font-weight: 800; letter-spacing: 1px; }
         .pulse { animation: pulse-green 2s infinite; }
         @keyframes pulse-green {
             0%, 100% { color: var(--neon-green); opacity: 1; }
             50% { color: var(--neon-green); opacity: 0.5; }
         }
+        .status-ready { color: var(--neon-blue); font-weight: 800; }
+        .status-error { color: var(--neon-red); font-weight: 800; }
     </style>
 </head>
 <body>
@@ -70,35 +74,39 @@
 <div class="bridge-card">
     <span class="label" style="color: var(--neon-orange)">618 Crew Precision Uplink</span>
     <h1>FS25 Master Sync</h1>
-    <p style="color: #718096; margin-bottom: 30px;">Maintain this connection for live website telemetry.</p>
+    <p style="color: #718096; margin-bottom: 30px;">Maintain this browser tab for live website telemetry.</p>
     
     <div class="status-box">
         <div class="log-line">
             <span class="label">System State</span>
-            <span id="bridge-status" class="pulse">● INITIALIZING UPLINK...</span>
+            <span id="bridge-status" class="pulse">● INITIALIZING...</span>
         </div>
         <div class="log-line">
-            <span class="label">Target Node</span>
-            <span style="color:var(--neon-blue)">fs25_live</span>
+            <span class="label">Target Database</span>
+            <span class="status-ready">psn-fs22-overlay</span>
         </div>
         <div class="log-line">
             <span class="label">Last Heartbeat</span>
             <span id="last-sync-time">--:--:--</span>
         </div>
         <div class="log-line">
-            <span class="label">Data Cycles</span>
-            <span id="sync-count" style="color: var(--neon-orange)">0</span>
+            <span class="label">Uplink Cycles</span>
+            <span id="sync-count" style="color: var(--neon-orange); font-weight: 900;">0</span>
         </div>
     </div>
     
-    <p style="font-size: 10px; color: #444; margin-top: 25px; letter-spacing: 1px;">ENCRYPTED FIREBASE CHANNEL ACTIVE</p>
+    <p style="font-size: 10px; color: #444; margin-top: 25px; letter-spacing: 1px; text-transform: uppercase;">
+        Secure Firebase Channel Active
+    </p>
 </div>
 
+<!-- Firebase Compat Layer -->
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-database-compat.js"></script>
 
 <script>
 (function() {
+    // 1. CONFIGURATION
     const config = { 
         apiKey: "20DTaxhv1O3BsSiCJ5s58GGd0PAjp6DWAqIjsj6R",
         databaseURL: "https://psn-fs22-overlay-default-rtdb.firebaseio.com" 
@@ -107,7 +115,9 @@
     const db = firebase.database();
 
     const AUTH = "jeRZKn2jNdgJNqqs";
-    const BASE = "http://207.244.243.68:8500/feed/";
+    const IP = "207.244.243.68";
+    const PORT = "11243";
+    const BASE = `http://${IP}:8500/feed/`;
     const PROXY = "https://corsproxy.io/?url=";
 
     const FEEDS = {
@@ -119,6 +129,7 @@
 
     let syncCount = 0;
 
+    // Helper: Calculate session/playtime
     function formatDuration(mins) {
         let h = Math.floor(mins / 60);
         let m = Math.floor(mins % 60);
@@ -127,8 +138,9 @@
 
     async function performMasterSync() {
         try {
-            document.getElementById('bridge-status').innerText = "● AGGREGATING FEEDS...";
+            document.getElementById('bridge-status').innerText = "● FETCHING G-PORTAL DATA...";
             
+            // 2. FETCH ALL DATA SIMULTANEOUSLY
             const [statsRes, careerRes, vehRes, ecoRes] = await Promise.all([
                 fetch(PROXY + encodeURIComponent(FEEDS.stats)).then(r => r.text()),
                 fetch(PROXY + encodeURIComponent(FEEDS.career)).then(r => r.text()),
@@ -137,83 +149,83 @@
             ]);
 
             const parser = new DOMParser();
+
+            // 3. PARSE SERVER STATS
             const sXml = parser.parseFromString(statsRes, "text/xml");
             const sNode = sXml.getElementsByTagName("Server")[0];
             const pNodes = sXml.getElementsByTagName("Player");
             const mNodes = sXml.getElementsByTagName("Mod");
             
+            // 4. PARSE CAREER SAVE (Financials)
             const money = (careerRes.match(/<money>(\d+)<\/money>/) || [0, 0])[1];
-            const dayTime = (careerRes.match(/<dayTime>([\d.]+)<\/dayTime>/) || [0, 0])[1];
-            const playTime = (careerRes.match(/<playTime>([\d.]+)<\/playTime>/) || [0, 0])[1];
+            const slots = (careerRes.match(/<slotSystem slotUsage="(\d+)"/) || [0, 0])[1];
             const mapName = (careerRes.match(/mapName="([^"]+)"/) || [0, "Riverbend Springs"])[1];
 
+            // 5. PARSE VEHICLE FLEET
             const vXml = parser.parseFromString(vehRes, "text/xml");
             const vNodes = vXml.getElementsByTagName("vehicle");
-            const vehicleFleet = [];
-            
-            for(let v of vNodes) {
-                if(!v.getAttribute("x")) continue;
-                vehicleFleet.push({
-                    name: v.getAttribute("name"),
-                    category: v.getAttribute("category"),
-                    x: parseFloat(v.getAttribute("x")),
-                    z: parseFloat(v.getAttribute("z")),
-                    fuel: Math.round(parseFloat(v.getAttribute("fuelLevel") || 0)),
-                    damage: Math.round(parseFloat(v.getAttribute("wear") || 0) * 100),
-                    farmId: v.getAttribute("farmId"),
-                    user: v.getAttribute("user") || "AI"
-                });
-            }
-
-            const eXml = parser.parseFromString(ecoRes, "text/xml");
-            const ecoNodes = eXml.getElementsByTagName("stats");
-            const economyData = Array.from(ecoNodes).map(item => ({
-                name: item.getAttribute("name") || "Unknown",
-                price: Math.round(parseFloat(item.getAttribute("price") || 0))
+            const vehicleFleet = Array.from(vNodes).map(v => ({
+                "Vehicle Type": v.getAttribute("filename")?.split('/').pop().replace('.xml', '').toUpperCase(),
+                "License Plate": v.getAttribute("license") || "N/A",
+                "Fuel Remaining": Math.round(parseFloat(v.getAttribute("fuelLevel") || 100)) + "%",
+                "Damaged": Math.round(parseFloat(v.getAttribute("wear") || 0) * 100) + "%",
+                "Owner Farm": v.getAttribute("farmId") || "1",
+                "x": v.getAttribute("x"),
+                "z": v.getAttribute("z")
             }));
 
-            const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/Chicago' });
+            // 6. PARSE ECONOMY
+            const eXml = parser.parseFromString(ecoRes, "text/xml");
+            const ecoNodes = eXml.getElementsByTagName("stats");
+            const market = {};
+            Array.from(ecoNodes).forEach(item => {
+                const name = item.getAttribute("name");
+                if (name) {
+                    market[name] = { "Current Price": "$" + Math.round(parseFloat(item.getAttribute("price") || 0)) };
+                }
+            });
+
+            // 7. BUILD CONSOLIDATED PAYLOAD
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
             
             const payload = {
-                server: {
+                "Server Overview": {
                     name: sNode ? sNode.getAttribute("name") : "lonewolf and werewolf 618",
                     mapName: mapName,
-                    version: sNode ? sNode.getAttribute("version") : "1.0.0.0",
-                    money: parseInt(money),
-                    dayTime: parseFloat(dayTime),
-                    playTime: formatDuration(parseFloat(playTime)),
                     numPlayers: sNode ? parseInt(sNode.getAttribute("numPlayers")) : 0,
                     capacity: 6,
-                    mapSize: parseInt(sNode ? sNode.getAttribute("mapSize") || 2048 : 2048)
+                    money: parseInt(money),
+                    slotsUsed: parseInt(slots),
+                    isOnline: true
                 },
-                players: Array.from(pNodes).map(p => ({
-                    name: p.textContent,
-                    isUsed: p.getAttribute("isUsed") === "true",
-                    isAdmin: p.getAttribute("isAdmin") === "true",
-                    uptime: parseInt(p.getAttribute("uptime") || 0),
-                    platform: p.getAttribute("platform") || "PC"
+                "Online Players": Array.from(pNodes).filter(p => p.getAttribute("isUsed") === "true").map(p => ({
+                    "Player Name": p.textContent,
+                    "Device": p.getAttribute("platform") || "PC",
+                    "Session Minutes": parseInt(p.getAttribute("uptime") || 0)
                 })),
-                fleet: {
-                    vehicles: vehicleFleet
-                },
-                economy: economyData,
-                mods: Array.from(mNodes).map(m => m.textContent),
-                lastUpdate: timestamp
+                "Vehicle Fleet": vehicleFleet,
+                "Market Prices": market,
+                "mods": Array.from(mNodes).map(m => m.textContent),
+                "Last Update Time": timestamp
             };
 
-            await db.ref('fs25_live').set(payload);
+            // 8. UPLINK TO FIREBASE
+            await db.ref('fs25_live').update(payload);
 
             syncCount++;
             document.getElementById('sync-count').innerText = syncCount;
-            document.getElementById('last-sync-time').innerText = new Date().toLocaleTimeString();
+            document.getElementById('last-sync-time').innerText = timestamp;
             document.getElementById('bridge-status').innerText = "● UPLINK STABLE";
+            document.getElementById('bridge-status').className = "status-ready";
 
         } catch (err) {
             console.error("Master Sync Failure:", err);
             document.getElementById('bridge-status').innerText = "⚠ SYNC ERROR - RETRYING...";
+            document.getElementById('bridge-status').className = "status-error";
         }
     }
 
+    // Run every 30 seconds
     performMasterSync();
     setInterval(performMasterSync, 30000);
 })();
