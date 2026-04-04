@@ -58,6 +58,7 @@
             border-radius: 2.2rem;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 0 15px -5px var(--fs22-op-color);
+            position: relative;
         }
 
         #wp-custom-wrapper .fs22-earned-glow {
@@ -65,11 +66,29 @@
             background: color-mix(in srgb, var(--fs22-op-color) 12%, rgba(10, 12, 14, 0.98)) !important;
         }
 
+        #wp-custom-wrapper .pct-indicator {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 1rem;
+            font-weight: 900;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            letter-spacing: 0.05em;
+            z-index: 20;
+        }
+
+        #wp-custom-wrapper .fs22-earned-glow .pct-indicator {
+            color: var(--fs22-op-color);
+            opacity: 0.8;
+        }
+
         #wp-custom-wrapper .fs22-btn {
             cursor: pointer !important;
             pointer-events: auto !important;
             position: relative;
-            z-index: 50 !important; /* Bumped up for Divi */
+            z-index: 50 !important;
             transition: all 0.2s ease;
         }
 
@@ -165,7 +184,8 @@
     const MANIFEST = [
         { id: "road_trip", title: "Road Trip", goal: 100, isInc: true, rarity: "Silver" },
         { id: "plot_thickens", title: "The plot thickens", goal: 100, isInc: true, rarity: "Very Rare" },
-        { id: "helper_a", title: "Helper A", goal: 100, isInc: true, step: 2, rarity: "Very Rare" }, 
+        // UPDATED HELPER A: Goal is 50 contracts. Step is 1.
+        { id: "helper_a", title: "Helper A", goal: 50, isInc: true, step: 1, rarity: "Very Rare" }, 
         { id: "long_haul", title: "Long haul", goal: 50, isInc: true, rarity: "Very Rare" },
         { id: "thoroughbred", title: "Thoroughbred!", goal: 100, isInc: true, rarity: "Very Rare" },
         { id: "vehicle_fleet", title: "Vehicle fleet", goal: 60, isInc: true, rarity: "Rare" },
@@ -218,7 +238,6 @@
 
     const getProfileRef = (userId) => db.collection('artifacts').doc(appId).collection('public').doc('data').collection('userTrophies').doc(userId);
 
-    // Internal Global Accessors for Divi
     window.selectFsUser = (id) => { 
         currentSel = SQUAD.find(u => u.id === id); 
         renderShell(); 
@@ -330,6 +349,7 @@
 
         const platCard = `
             <div class="fs-card-glass p-8 relative flex flex-col justify-between mobile-1-1 shadow-2xl ${isPlatEarned ? 'fs22-earned-glow' : 'opacity-40'}">
+                <div class="pct-indicator">${platPct}%</div>
                 <div class="text-left w-full">
                     <span class="rarity-tag" style="${getRarityStyle('Platinum')}">Platinum</span>
                     <h3 class="text-2xl font-black italic uppercase text-white mt-5 leading-tight">Completed all tasks</h3>
@@ -347,8 +367,23 @@
             const d = pData[t.id] || { count: 0, isEarned: false };
             const hwColor = HW_COLORS[currentPlatform];
             
+            // Percentage Logic
+            let displayPct = 0;
+            if (t.isInc) {
+                if (t.id === 'helper_a') {
+                    // Helper A logic: Internal count goes up by 1 (max 50)
+                    // Percentage shows count * 2 (so 50 contracts = 100%)
+                    displayPct = Math.min(100, (d.count || 0) * 2);
+                } else {
+                    displayPct = Math.floor(((d.count || 0) / t.goal) * 100);
+                }
+            } else {
+                displayPct = d.isEarned ? 100 : 0;
+            }
+
             return `
                 <div class="fs-card-glass p-8 relative flex flex-col justify-between mobile-1-1 shadow-2xl ${d.isEarned ? 'fs22-earned-glow' : ''}">
+                    <div class="pct-indicator">${displayPct}%</div>
                     <div class="text-left w-full">
                         <span class="rarity-tag" style="${getRarityStyle(t.rarity)}">${t.rarity}</span>
                         <h3 class="text-2xl font-black italic uppercase text-white mt-5 leading-tight">${t.title}</h3>
