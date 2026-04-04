@@ -2,161 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FS22 Ultimate Protocol</title>
+    
+    <meta name="theme-color" content="#0a0c0e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FS22 Sync">
+    <link rel="apple-touch-icon" href="https://static-cdn.jtvnw.net/jtv_user_pictures/1a4efdb4-023e-4802-b07c-82c09a45c4c8-profile_image-70x70.png">
+
+    <link rel="manifest" href="data:application/manifest+json,{'name':'FS22 Ultimate Protocol','short_name':'FS22 Sync','start_url':'.','display':'standalone','background_color':'#0a0c0e','theme_color':'#ffde00'}">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
-        #wp-custom-wrapper {
+        :root {
             --jd-green: #367c2b;
             --jd-yellow: #ffde00;
-            
-            background: transparent !important;
-            width: 90% !important;
+        }
+
+        body {
+            background-color: #000;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Prevent horizontal hang-over */
+        }
+
+        #wp-custom-wrapper {
+            width: 100% !important;
+            max-width: 1400px;
             margin: 0 auto !important;
             color: #f1f5f9 !important;
             font-family: ui-sans-serif, system-ui, sans-serif;
             min-height: 100vh;
-            padding-bottom: 5rem;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
         #wp-custom-wrapper .fs22-main-shell {
-            border-radius: 3.5rem;
+            border-radius: 2rem;
             position: relative;
             overflow: hidden;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            background: url('https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSsAtz--LSRgueGUzqjPk3A4Ry4PY5uhKyIxBH24w451dGUaFMr');
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.9)), 
+                        url('https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSsAtz--LSRgueGUzqjPk3A4Ry4PY5uhKyIxBH24w451dGUaFMr');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.8);
-        }
-
-        #wp-custom-wrapper .fs22-main-shell::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.98) 100%);
-            z-index: 1;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         #wp-custom-wrapper .fs-heavy-glass {
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(25px);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 2.5rem;
+            border-radius: 1.5rem;
             position: relative;
             z-index: 10;
         }
 
         #wp-custom-wrapper .fs-card-glass {
             background: rgba(15, 18, 20, 0.95);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(10px);
             border: 2px solid var(--fs22-op-color);
-            border-radius: 2.2rem;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 15px -5px var(--fs22-op-color);
+            border-radius: 1.5rem;
+            transition: transform 0.2s ease;
             position: relative;
-        }
-
-        #wp-custom-wrapper .fs22-earned-glow {
-            box-shadow: 0 0 35px -5px var(--fs22-op-color) !important;
-            background: color-mix(in srgb, var(--fs22-op-color) 12%, rgba(10, 12, 14, 0.98)) !important;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         #wp-custom-wrapper .pct-indicator {
             position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
-            font-size: 1rem;
+            top: 1rem;
+            right: 1.2rem;
+            font-size: 1.4rem;
             font-weight: 900;
             font-style: italic;
-            color: rgba(255, 255, 255, 0.2);
+            color: var(--jd-yellow);
+            text-shadow: 0 0 10px rgba(255, 222, 0, 0.4);
             pointer-events: none;
-            letter-spacing: 0.05em;
-            z-index: 20;
         }
 
-        #wp-custom-wrapper .fs22-earned-glow .pct-indicator {
-            color: var(--fs22-op-color);
-            opacity: 0.8;
+        #wp-custom-wrapper .fs22-earned-glow {
+            box-shadow: 0 0 25px -5px var(--fs22-op-color) !important;
+            background: color-mix(in srgb, var(--fs22-op-color) 15%, rgba(10, 12, 14, 0.98)) !important;
+        }
+
+        /* Responsive Grid Logic - No hanging over */
+        .responsive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        @media (max-width: 640px) {
+            .responsive-grid {
+                grid-template-columns: 1fr; /* Single column on mobile */
+                gap: 1rem;
+            }
+            #wp-custom-wrapper .fs22-main-shell {
+                border-radius: 1rem;
+                padding: 1rem !important;
+            }
         }
 
         #wp-custom-wrapper .fs22-btn {
-            cursor: pointer !important;
-            pointer-events: auto !important;
-            position: relative;
-            z-index: 50 !important;
+            cursor: pointer;
             transition: all 0.2s ease;
+            touch-action: manipulation; /* Faster taps on mobile */
         }
 
-        #wp-custom-wrapper .rarity-tag {
-            font-size: 9px;
+        #wp-custom-wrapper .fs22-btn:active {
+            transform: scale(0.95);
+        }
+
+        .rarity-tag {
+            font-size: 10px;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 0.15em;
-            padding: 4px 12px;
-            border-radius: 8px;
-            border-width: 1.5px;
-            display: inline-block;
-            background: rgba(0,0,0,0.7);
-        }
-
-        #wp-custom-wrapper .hw-accent-text { color: var(--fs22-hw-color) !important; }
-        #wp-custom-wrapper .hw-accent-bg { background-color: var(--fs22-hw-color) !important; }
-        #wp-custom-wrapper .hw-accent-border { border-color: var(--fs22-hw-color) !important; }
-
-        #wp-custom-wrapper .op-btn-active {
-            box-shadow: 0 0 20px var(--fs22-op-color);
-            border-color: var(--fs22-op-color) !important;
-        }
-
-        @media (max-width: 768px) {
-            #wp-custom-wrapper .mobile-1-1 { 
-                aspect-ratio: 1 / 1 !important; 
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                text-align: center;
-            }
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid;
+            background: rgba(0,0,0,0.5);
         }
     </style>
 </head>
 <body>
 
 <div id="wp-custom-wrapper">
-    <div id="fs22-app-container" class="fs22-main-shell p-6 md:p-12 mt-10">
+    <div id="fs22-app-container" class="fs22-main-shell p-4 md:p-10">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 relative z-[100]">
-            <div class="fs-heavy-glass p-8 flex flex-col items-center">
-                <span class="text-[10px] font-black uppercase tracking-[0.5em] text-white/30 mb-5">Select Operator</span>
-                <div id="fs22-user-selector" class="flex flex-wrap justify-center gap-4"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10 relative z-50">
+            <div class="fs-heavy-glass p-6">
+                <span class="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 block text-center">Operator Select</span>
+                <div id="fs22-user-selector" class="flex flex-wrap justify-center gap-3"></div>
             </div>
-            <div class="fs-heavy-glass p-8 flex flex-col items-center">
-                <span class="text-[10px] font-black uppercase tracking-[0.5em] text-white/30 mb-5">Hardware Logic</span>
-                <div class="flex gap-4">
-                    <button id="btn-PS5" class="fs22-btn px-10 py-3 rounded-2xl border-2 font-black text-xs uppercase tracking-widest">PS5</button>
-                    <button id="btn-PS4" class="fs22-btn px-10 py-3 rounded-2xl border-2 font-black text-xs uppercase tracking-widest">PS4</button>
+            <div class="fs-heavy-glass p-6">
+                <span class="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-4 block text-center">Hardware Platform</span>
+                <div class="flex justify-center gap-4">
+                    <button id="btn-PS5" class="fs22-btn px-8 py-3 rounded-xl border-2 font-black text-xs tracking-widest">PS5</button>
+                    <button id="btn-PS4" class="fs22-btn px-8 py-3 rounded-xl border-2 font-black text-xs tracking-widest">PS4</button>
                 </div>
             </div>
         </div>
 
-        <div id="fs22-platinum-root" class="mb-12 relative z-10"></div>
+        <div id="fs22-platinum-root" class="mb-10 relative z-10"></div>
 
-        <div id="fs22-trophy-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 relative z-10">
-            <p id="fs22-status-msg" class="col-span-full text-center py-20 animate-pulse text-white font-black tracking-widest uppercase">Initializing Protocol...</p>
+        <div id="fs22-trophy-grid" class="responsive-grid relative z-10">
+            <p class="col-span-full text-center py-20 text-white/50 animate-pulse font-black uppercase tracking-widest">Loading Protocol...</p>
         </div>
 
-        <footer class="mt-32 text-center border-t border-white/5 pt-12 text-[10px] text-white/20 uppercase tracking-[0.8em] font-black">
-            Lead Developer: Werewolf3788 • FS22 Ultimate Protocol v7.8
+        <footer class="mt-20 text-center opacity-30 text-[9px] uppercase tracking-[0.5em] font-black pb-10">
+            v8.0 PWA Enabled • Werewolf3788
         </footer>
     </div>
 </div>
 
 <script>
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        const sw = `
+            self.addEventListener('install', e => self.skipWaiting());
+            self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
+        `;
+        const blob = new Blob([sw], {type: 'text/javascript'});
+        navigator.serviceWorker.register(URL.createObjectURL(blob));
+    });
+}
+
 (function() {
     const firebaseConfig = {
         apiKey: "AIzaSyC55Cb3JcK9NiDkdSHpAS3UuTEG82aze7k",
@@ -184,7 +205,6 @@
     const MANIFEST = [
         { id: "road_trip", title: "Road Trip", goal: 100, isInc: true, rarity: "Silver" },
         { id: "plot_thickens", title: "The plot thickens", goal: 100, isInc: true, rarity: "Very Rare" },
-        // UPDATED HELPER A: Goal is 50 contracts. Step is 1.
         { id: "helper_a", title: "Helper A", goal: 50, isInc: true, step: 1, rarity: "Very Rare" }, 
         { id: "long_haul", title: "Long haul", goal: 50, isInc: true, rarity: "Very Rare" },
         { id: "thoroughbred", title: "Thoroughbred!", goal: 100, isInc: true, rarity: "Very Rare" },
@@ -283,10 +303,10 @@
             selector.innerHTML = SQUAD.map(u => {
                 const isActive = currentSel.id === u.id;
                 return `
-                    <button onclick="window.selectFsUser('${u.id}')" class="fs22-btn flex items-center gap-3 p-1.5 pr-6 rounded-full border-2 transition-all ${isActive ? 'op-btn-active' : ''}"
+                    <button onclick="window.selectFsUser('${u.id}')" class="fs22-btn flex items-center gap-2 p-1 pr-4 rounded-full border-2 ${isActive ? 'op-btn-active' : ''}"
                         style="border-color: transparent; background: ${isActive ? u.theme + '33' : 'rgba(0,0,0,0.4)'}">
-                        <img src="${u.img}" class="w-10 h-10 rounded-full border-2 border-black/40 shadow-inner" />
-                        <span class="text-[11px] font-black uppercase text-white/90">${u.label}</span>
+                        <img src="${u.img}" class="w-8 h-8 rounded-full" />
+                        <span class="text-[10px] font-black uppercase text-white/90">${u.label}</span>
                     </button>
                 `;
             }).join('');
@@ -308,20 +328,10 @@
     function initSync() {
         if (!currentUser) return;
         if (unsub) unsub();
-        const ref = getProfileRef(currentSel.id);
-        unsub = ref.onSnapshot(doc => {
+        unsub = getProfileRef(currentSel.id).onSnapshot(doc => {
             userData = doc.exists ? doc.data() : {};
             renderAll();
         });
-    }
-
-    function getRarityStyle(rarity) {
-        const colors = {
-            'Very Rare': '#a335ee', 'Rare': '#0070dd', 'Uncommon': '#1eff00',
-            'Bronze': '#cd7f32', 'Silver': '#c0c0c0', 'Gold': '#ffd700', 'Platinum': '#e5e4e2'
-        };
-        const color = colors[rarity] || '#ffffff';
-        return `border-color: ${color}; color: ${color};`;
     }
 
     function renderAll() {
@@ -329,76 +339,42 @@
         const pData = userData[currentPlatform] || {};
         const earned = MANIFEST.filter(m => pData[m.id]?.isEarned).length;
         const total = MANIFEST.length;
-        const isPlatEarned = earned >= total;
         const platPct = Math.floor((earned / total) * 100);
 
         const platRoot = document.getElementById('fs22-platinum-root');
         if (platRoot) {
             platRoot.innerHTML = `
-                <div class="fs-heavy-glass p-10 md:p-16 flex flex-col md:flex-row gap-12 items-center border-t-8 shadow-2xl transition-all" style="border-top-color: var(--fs22-op-color)">
+                <div class="fs-heavy-glass p-6 md:p-10 flex flex-col md:flex-row gap-4 items-center border-t-4 transition-all" style="border-top-color: var(--fs22-op-color)">
                     <div class="flex-1 text-center md:text-left">
-                        <span class="text-[12px] font-black uppercase tracking-[0.5em] mb-3 block text-white/20">${currentSel.label}'s Progress</span>
-                        <h2 class="text-4xl md:text-7xl font-black italic uppercase text-white leading-none drop-shadow-2xl">Mastery: ${earned}/${total}</h2>
+                        <span class="text-[10px] font-black uppercase tracking-[0.3em] opacity-30">Fleet Readiness</span>
+                        <h2 class="text-3xl md:text-5xl font-black italic uppercase text-white">${earned}/${total} COMPLETE</h2>
                     </div>
-                    <div class="text-right">
-                        <span class="text-9xl font-black italic leading-none hw-accent-text">${platPct}%</span>
-                    </div>
+                    <div class="text-5xl md:text-7xl font-black italic hw-accent-text">${platPct}%</div>
                 </div>
             `;
         }
 
-        const platCard = `
-            <div class="fs-card-glass p-8 relative flex flex-col justify-between mobile-1-1 shadow-2xl ${isPlatEarned ? 'fs22-earned-glow' : 'opacity-40'}">
-                <div class="pct-indicator">${platPct}%</div>
-                <div class="text-left w-full">
-                    <span class="rarity-tag" style="${getRarityStyle('Platinum')}">Platinum</span>
-                    <h3 class="text-2xl font-black italic uppercase text-white mt-5 leading-tight">Completed all tasks</h3>
-                </div>
-                <div class="flex items-center gap-4 mt-6 w-full justify-center">
-                    <div class="flex-1 py-4 rounded-xl text-[11px] font-black border uppercase tracking-widest text-center"
-                        style="background: ${isPlatEarned ? '#e5e4e2' : 'rgba(0,0,0,0.5)'}; border-color: #e5e4e2; color: ${isPlatEarned ? '#000' : '#e5e4e2'}">
-                        ${isPlatEarned ? 'PLATINUM ACHIEVED' : 'LOCKED'}
-                    </div>
-                </div>
-            </div>
-        `;
-
-        grid.innerHTML = platCard + MANIFEST.map(t => {
+        grid.innerHTML = MANIFEST.map(t => {
             const d = pData[t.id] || { count: 0, isEarned: false };
             const hwColor = HW_COLORS[currentPlatform];
-            
-            // Percentage Logic
-            let displayPct = 0;
-            if (t.isInc) {
-                if (t.id === 'helper_a') {
-                    // Helper A logic: Internal count goes up by 1 (max 50)
-                    // Percentage shows count * 2 (so 50 contracts = 100%)
-                    displayPct = Math.min(100, (d.count || 0) * 2);
-                } else {
-                    displayPct = Math.floor(((d.count || 0) / t.goal) * 100);
-                }
-            } else {
-                displayPct = d.isEarned ? 100 : 0;
-            }
+            let displayPct = t.isInc ? (t.id === 'helper_a' ? Math.min(100, d.count * 2) : Math.floor((d.count / t.goal) * 100)) : (d.isEarned ? 100 : 0);
 
             return `
-                <div class="fs-card-glass p-8 relative flex flex-col justify-between mobile-1-1 shadow-2xl ${d.isEarned ? 'fs22-earned-glow' : ''}">
+                <div class="fs-card-glass p-6 ${d.isEarned ? 'fs22-earned-glow' : ''}">
                     <div class="pct-indicator">${displayPct}%</div>
-                    <div class="text-left w-full">
-                        <span class="rarity-tag" style="${getRarityStyle(t.rarity)}">${t.rarity}</span>
-                        <h3 class="text-2xl font-black italic uppercase text-white mt-5 leading-tight">${t.title}</h3>
+                    <div class="mb-4">
+                        <span class="rarity-tag" style="border-color: ${hwColor}; color: ${hwColor}">${t.rarity}</span>
+                        <h3 class="text-xl font-black italic uppercase text-white mt-3 leading-tight">${t.title}</h3>
                     </div>
-                    <div class="flex items-center gap-4 mt-6 w-full justify-center">
+                    <div class="flex items-center gap-3 justify-center">
                         ${t.isInc ? `
-                            <button onclick="window.updFsTrophy('${t.id}', -1)" class="fs22-btn w-12 h-12 rounded-xl bg-black/50 text-white font-bold text-xl border border-white/10 hover:bg-white/10">-</button>
-                            <span class="text-xl font-black min-w-[70px] text-center hw-accent-text">
-                                ${d.count}<span class="text-white/30 text-xs">/${t.goal}</span>
-                            </span>
-                            <button onclick="window.updFsTrophy('${t.id}', 1)" class="fs22-btn w-12 h-12 rounded-xl bg-black/50 text-white font-bold text-xl border border-white/10 hover:bg-white/10">+</button>
+                            <button onclick="window.updFsTrophy('${t.id}', -1)" class="fs22-btn w-10 h-10 rounded-lg bg-black/40 border border-white/10">-</button>
+                            <span class="text-lg font-black hw-accent-text min-w-[60px] text-center">${d.count}<span class="text-[10px] text-white/20">/${t.goal}</span></span>
+                            <button onclick="window.updFsTrophy('${t.id}', 1)" class="fs22-btn w-10 h-10 rounded-lg bg-black/40 border border-white/10">+</button>
                         ` : `
-                            <button onclick="window.updFsTrophy('${t.id}', 1)" class="fs22-btn flex-1 py-4 rounded-xl text-[11px] font-black border uppercase tracking-widest transition-all" 
-                                style="background: ${d.isEarned ? hwColor : 'rgba(0,0,0,0.5)'}; border-color: ${hwColor}; color: ${d.isEarned ? '#000' : hwColor}">
-                                ${d.isEarned ? 'Harvested' : 'Collect'}
+                            <button onclick="window.updFsTrophy('${t.id}', 1)" class="fs22-btn flex-1 py-3 rounded-lg border font-black uppercase text-[10px] tracking-widest" 
+                                style="background: ${d.isEarned ? hwColor : 'transparent'}; border-color: ${hwColor}; color: ${d.isEarned ? '#000' : hwColor}">
+                                ${d.isEarned ? 'COMPLETED' : 'COLLECT'}
                             </button>
                         `}
                     </div>
@@ -407,14 +383,10 @@
         }).join('');
     }
 
-    auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged(user => {
         currentUser = user;
-        if (user) {
-            renderShell();
-            initSync();
-        }
+        if (user) { renderShell(); initSync(); }
     });
-
     auth.signInAnonymously();
 })();
 </script>
