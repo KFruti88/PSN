@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FS25 Master Tracker</title>
+    
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FS25 Tracker">
+    <link rel="apple-touch-icon" href="https://static-cdn.jtvnw.net/jtv_user_pictures/1a4efdb4-023e-4802-b07c-82c09a45c4c8-profile_image-70x70.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            /* Personalized Divi Mobile Settings */
+            /* Personal Divi Mobile Settings */
             --divi-section-height: 50px;
             --divi-row-height: 30px;
             --divi-body-size: 14px;
@@ -16,19 +23,25 @@
             --jd-green: #367c2b;
             --jd-yellow: #ffde00;
             --fs25-gold: #ffd700;
+            --fs25-theme: #367c2b; /* Default */
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: #020617;
+            color: #f1f5f9;
+            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #wp-custom-wrapper {
             background: #020617 !important;
             width: 100% !important;
-            margin: 0 auto !important;
-            color: #f1f5f9 !important;
-            font-family: ui-sans-serif, system-ui, sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
             padding: var(--divi-section-height) 0;
             box-sizing: border-box;
         }
@@ -59,6 +72,7 @@
         .fs-heavy-glass {
             background: rgba(0, 0, 0, 0.88);
             backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 2rem;
             position: relative;
@@ -70,7 +84,7 @@
 
         .category-header { 
             display: flex; justify-content: space-between; align-items: center; 
-            cursor: pointer; border-left: 10px solid var(--fs25-theme, #367c2b); 
+            cursor: pointer; border-left: 10px solid var(--fs25-theme); 
             padding: 15px 25px; background: rgba(15, 23, 42, 0.9);
             border-radius: 1rem; transition: 0.3s; margin-bottom: 10px;
             position: relative; z-index: 20;
@@ -83,6 +97,7 @@
         .fs-card-glass {
             background: rgba(15, 18, 20, 0.9);
             backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border: 1.5px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.5rem;
             transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
@@ -106,6 +121,34 @@
         .loading-pulse { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
 
+        /* Notification Toast Styling */
+        #notification-center {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            background: rgba(0, 0, 0, 0.9);
+            border-left: 4px solid var(--jd-yellow);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transform: translateX(120%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: auto;
+        }
+        .toast.show { transform: translateX(0); }
+
         @media (max-width: 768px) {
             .fs25-main-shell { border-radius: 0; padding: 1rem; width: 100%; }
             .grid-mobile-2 { display: grid !important; grid-template-columns: repeat(1, 1fr) !important; gap: 0.75rem !important; }
@@ -116,6 +159,8 @@
     </style>
 </head>
 <body>
+
+<div id="notification-center"></div>
 
 <div id="wp-custom-wrapper">
     <div id="fs25-app-container" class="fs25-main-shell">
@@ -234,7 +279,35 @@
         unsubscribe: null
     };
 
+    function showToast(msg) {
+        const center = document.getElementById('notification-center');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = msg;
+        center.appendChild(toast);
+        
+        // Trigger show
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        // Remove after delay
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    async function requestNotificationPermission() {
+        if (!("Notification" in window)) return;
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") showToast("Alerts Active");
+        }
+    }
+
     async function init() {
+        // Request permissions for mobile
+        await requestNotificationPermission();
+
         const appInstance = initializeApp(config);
         const auth = getAuth(appInstance);
         state.db = getFirestore(appInstance);
@@ -269,11 +342,13 @@
             
             if (action === 'switch') {
                 state.currentSel = SQUAD.find(u => u.id === btn.getAttribute('data-user'));
+                showToast(`Switched to ${state.currentSel.label}`);
                 renderShell();
                 initSync();
             }
             if (action === 'platform') {
                 state.currentPlatform = btn.getAttribute('data-platform');
+                showToast(`Platform: ${state.currentPlatform}`);
                 renderShell();
                 initSync();
             }
@@ -306,6 +381,14 @@
         }
 
         const isEarned = newCount >= t.goal;
+        
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(50);
+        
+        if (isEarned && !cur.isEarned) {
+            showToast(`Mastered: ${t.title}`);
+        }
+
         const ref = doc(state.db, 'artifacts', 'fs25-master', 'public', 'data', 'userTrophies', state.currentSel.id);
         
         try {
@@ -369,7 +452,8 @@
         categories.forEach(cat => {
             const items = MANIFEST.filter(m => m.cat === cat);
             const sid = 'sec-' + cat.replace(/\s/g, '');
-            if (state.collapsed[sid] === undefined) state.collapsed[sid] = false;
+            // UPDATED: Default to closed (true) when first loaded
+            if (state.collapsed[sid] === undefined) state.collapsed[sid] = true;
             const isCollapsed = state.collapsed[sid];
             
             const metInCat = items.filter(m => pData[m.id]?.isEarned).length;
@@ -378,7 +462,7 @@
             const section = document.createElement('div');
             section.className = `category-section ${isCollapsed ? 'section-collapsed' : ''}`;
             section.innerHTML = `
-                <div class="category-header" data-action="toggle-sec" data-sid="${sid}">
+                <div class="category-header" data-action="toggle-sec" data-sid="${sid}" style="border-left-color: var(--fs25-theme)">
                     <div class="flex flex-col">
                         <h2 class="category-title uppercase font-black italic tracking-wider text-sm text-white">${cat}</h2>
                         <span class="text-[8px] jd-yellow-text uppercase font-black tracking-widest">${metInCat}/${items.length} Synchronized</span>
@@ -427,7 +511,7 @@
             container.appendChild(section);
         });
     }
-    init();
+    window.onload = init;
 </script>
 </body>
 </html>
